@@ -1,0 +1,79 @@
+"use client";
+
+import Link from "next/link";
+import { Bookmark, Filter, List, Map, PenLine } from "lucide-react";
+import { useSearchParams } from "next/navigation";
+import { StoreMap } from "@/components/map/StoreMap";
+import type { DisplayStatus, Store, WaitTimeBucket } from "@/features/stores/store-types";
+import { useMemo } from "react";
+
+export function MapHome({ stores }: { stores: Store[] }) {
+  const searchParams = useSearchParams();
+  const waitTime = (searchParams.get("waitTime") ?? "all") as WaitTimeBucket | "all";
+  const status = (searchParams.get("status") ?? "all") as DisplayStatus | "all";
+  const genre = searchParams.get("genre") ?? "all";
+
+  const filteredStores = useMemo(() => {
+    return stores.filter((store) => {
+      const matchesWaitTime = waitTime === "all" || store.waitTime === waitTime;
+      const matchesStatus = status === "all" || store.status === status;
+      const matchesGenre = genre === "all" || store.genre === genre;
+      return matchesWaitTime && matchesStatus && matchesGenre;
+    });
+  }, [genre, status, stores, waitTime]);
+
+  const filterHref = `/filters?waitTime=${encodeURIComponent(waitTime)}&status=${encodeURIComponent(status)}&genre=${encodeURIComponent(genre)}`;
+
+  return (
+    <main className="relative h-dvh overflow-hidden bg-slate-900">
+      <StoreMap stores={filteredStores} fullscreen />
+
+      {filteredStores.length === 0 ? (
+        <div className="absolute left-1/2 top-1/2 z-20 w-[min(20rem,calc(100%-2rem))] -translate-x-1/2 -translate-y-1/2 rounded-lg bg-white/86 p-4 text-center shadow-panel backdrop-blur-md">
+          <p className="text-base font-black text-slate-950">該当する店舗がありません</p>
+          <p className="mt-1 text-sm text-slate-600">条件を変えて探してください。</p>
+        </div>
+      ) : null}
+
+      <div className="absolute bottom-28 right-4 z-30 flex rounded-full bg-slate-950/74 p-1.5 shadow-panel backdrop-blur-md">
+        <Link
+          href="/stores"
+          aria-label="店舗一覧を開く"
+          className="flex h-12 items-center gap-2 rounded-full px-3 text-sm font-black text-white"
+        >
+          <List className="size-5" aria-hidden="true" />
+          店舗一覧
+        </Link>
+        <Link
+          href={filterHref}
+          aria-label="絞り込みページを開く"
+          className="flex size-12 items-center justify-center rounded-full text-white"
+        >
+          <Filter className="size-6" aria-hidden="true" />
+        </Link>
+      </div>
+
+      <div className="absolute inset-x-0 bottom-0 z-40 border-t border-border bg-white pb-[env(safe-area-inset-bottom)]">
+        <div className="grid h-20 grid-cols-3 items-center">
+          <Link href="/" className="flex flex-col items-center justify-center gap-1 text-xs font-black text-slate-950">
+            <Map className="size-5" aria-hidden="true" />
+            マップ
+          </Link>
+          <Link
+            href="/record"
+            className="-mt-7 flex flex-col items-center justify-center gap-1 text-xs font-black text-emerald-700"
+          >
+            <span className="flex size-16 items-center justify-center rounded-full bg-emerald-500 text-white shadow-panel ring-8 ring-white">
+              <PenLine className="size-7" aria-hidden="true" />
+            </span>
+            記録
+          </Link>
+          <Link href="/favorites" className="flex flex-col items-center justify-center gap-1 text-xs font-black text-slate-500">
+            <Bookmark className="size-5" aria-hidden="true" />
+            保存
+          </Link>
+        </div>
+      </div>
+    </main>
+  );
+}

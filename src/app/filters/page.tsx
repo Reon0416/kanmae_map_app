@@ -1,13 +1,11 @@
 import { Suspense } from "react";
-import { MapHome } from "@/components/map/MapHome";
+import { MapFilterForm } from "@/components/map/MapFilterForm";
 import { getStores } from "@/features/stores/store-queries";
 
-export default function HomePage() {
-  const stores = getStores();
-
+export default function FiltersPage() {
   return (
     <Suspense fallback={null}>
-      <MapHome stores={stores} />
+      <MapFilterForm stores={getStores()} />
     </Suspense>
   );
 }
