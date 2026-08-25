@@ -1,106 +1,118 @@
 import type { Store } from "@/features/stores/store-types";
+import { latLngToMapPosition } from "@/lib/map/map-config";
+
+const now = Date.now();
+
+const createStore = (
+  store: Omit<Store, "description" | "priceBand" | "address" | "walkMinutes" | "hours" | "closed" | "acceptsTakeout" | "hasStudentDiscount" | "lastUpdatedAt" | "ownerStatus" | "mapPosition"> & {
+    description?: string;
+    walkMinutes?: number;
+  }
+): Store => ({
+  description: store.description ?? "関大前エリアの飲食店です。",
+  priceBand: "800_1200",
+  address: "大阪府吹田市千里山東",
+  walkMinutes: store.walkMinutes ?? 5,
+  hours: "未設定",
+  closed: "未設定",
+  acceptsTakeout: false,
+  hasStudentDiscount: false,
+  lastUpdatedAt: new Date(now - 6 * 60000).toISOString(),
+  mapPosition: latLngToMapPosition({ lat: store.lat, lng: store.lng }),
+  ...store
+});
 
 export const demoStores: Store[] = [
-  {
-    id: "ramen-kandaimae",
-    name: "関前ラーメン",
-    description: "授業終わりに入りやすい、回転の早いラーメン店。",
-    genre: "ラーメン",
-    priceBand: "800_1200",
-    address: "大阪府吹田市千里山東",
-    lat: 34.77041,
-    lng: 135.50682,
-    walkMinutes: 3,
-    hours: "11:00-22:00",
-    closed: "不定休",
-    acceptsTakeout: false,
-    hasStudentDiscount: true,
+  createStore({
+    id: "toriton",
+    name: "とりとん",
+    genre: "居酒屋",
+    lat: 34.773298685190646,
+    lng: 135.50875504614464,
     status: "available",
     waitTime: "within_5",
-    lastUpdatedAt: new Date(Date.now() - 6 * 60000).toISOString(),
-    ownerStatus: "available",
-    mapPosition: { x: 42, y: 46 }
-  },
-  {
-    id: "curry-seminar",
-    name: "セミナーカレー",
-    description: "昼休みは混みやすいが、少人数なら入りやすいカレー店。",
-    genre: "カレー",
-    priceBand: "800_1200",
-    address: "大阪府吹田市千里山東",
-    lat: 34.7711,
-    lng: 135.50724,
-    walkMinutes: 5,
-    hours: "10:30-21:00",
-    closed: "水曜",
-    acceptsTakeout: true,
-    hasStudentDiscount: false,
+    walkMinutes: 4
+  }),
+  createStore({
+    id: "suzume",
+    name: "すずめ",
+    genre: "飲食店",
+    lat: 34.77360601431687,
+    lng: 135.50812084235423,
     status: "limited",
     waitTime: "between_5_10",
-    lastUpdatedAt: new Date(Date.now() - 12 * 60000).toISOString(),
-    ownerStatus: "limited",
-    mapPosition: { x: 57, y: 36 }
-  },
-  {
-    id: "don-campus",
-    name: "キャンパス丼",
-    description: "ボリューム重視の丼もの。ピークは列が伸びやすい。",
-    genre: "定食・丼",
-    priceBand: "under_800",
-    address: "大阪府吹田市千里山東",
-    lat: 34.77005,
-    lng: 135.50594,
-    walkMinutes: 4,
-    hours: "11:00-20:30",
-    closed: "日曜",
-    acceptsTakeout: true,
-    hasStudentDiscount: true,
+    walkMinutes: 3
+  }),
+  createStore({
+    id: "kirinji",
+    name: "きりん寺",
+    genre: "油そば",
+    lat: 34.77360601434054,
+    lng: 135.5078827963048,
     status: "slightly_crowded",
     waitTime: "between_10_20",
-    lastUpdatedAt: new Date(Date.now() - 18 * 60000).toISOString(),
-    ownerStatus: "full",
-    mapPosition: { x: 31, y: 60 }
-  },
-  {
-    id: "pasta-north",
-    name: "北口パスタ",
-    description: "友人同士で使いやすいパスタ店。席数はやや少なめ。",
-    genre: "イタリアン",
-    priceBand: "1200_1800",
-    address: "大阪府吹田市千里山東",
-    lat: 34.7716,
-    lng: 135.50602,
-    walkMinutes: 6,
-    hours: "11:30-21:30",
-    closed: "月曜",
-    acceptsTakeout: false,
-    hasStudentDiscount: false,
+    walkMinutes: 3
+  }),
+  createStore({
+    id: "butafuku",
+    name: "豚福",
+    genre: "ラーメン",
+    lat: 34.7735503836104,
+    lng: 135.50705801701554,
+    status: "available",
+    waitTime: "within_5",
+    walkMinutes: 2
+  }),
+  createStore({
+    id: "kenpei",
+    name: "憲兵家",
+    genre: "飲食店",
+    lat: 34.77343339593108,
+    lng: 135.5060875932717,
+    status: "unknown",
+    waitTime: "no_wait",
+    walkMinutes: 6
+  }),
+  createStore({
+    id: "kirameki",
+    name: "笑顔ノキラメキ",
+    genre: "ラーメン",
+    lat: 34.773432294310346,
+    lng: 135.5060185264151,
     status: "full",
     waitTime: "over_20",
-    lastUpdatedAt: new Date(Date.now() - 4 * 60000).toISOString(),
-    ownerStatus: "full",
-    mapPosition: { x: 24, y: 30 }
-  },
-  {
-    id: "cafe-library",
-    name: "ライブラリーカフェ",
-    description: "軽食と作業に使えるカフェ。昼過ぎは落ち着きやすい。",
-    genre: "カフェ",
-    priceBand: "800_1200",
-    address: "大阪府吹田市千里山東",
-    lat: 34.76956,
-    lng: 135.50736,
-    walkMinutes: 7,
-    hours: "09:00-19:00",
-    closed: "なし",
-    acceptsTakeout: true,
-    hasStudentDiscount: true,
+    walkMinutes: 6
+  }),
+  createStore({
+    id: "semi",
+    name: "蝉",
+    genre: "飲食店",
+    lat: 34.77327041674564,
+    lng: 135.50677486778991,
     status: "stale",
     waitTime: "no_wait",
-    lastUpdatedAt: new Date(Date.now() - 48 * 60000).toISOString(),
-    ownerStatus: "available",
-    mapPosition: { x: 68, y: 70 }
-  }
+    walkMinutes: 4
+  }),
+  createStore({
+    id: "kokoro",
+    name: "こころ",
+    genre: "ラーメン",
+    lat: 34.77283513040589,
+    lng: 135.50586781314328,
+    status: "limited",
+    waitTime: "between_5_10",
+    walkMinutes: 7
+  }),
+  createStore({
+    id: "musou",
+    name: "無双屋",
+    genre: "飲食店",
+    lat: 34.7729585105518,
+    lng: 135.50586781308675,
+    status: "available",
+    waitTime: "within_5",
+    walkMinutes: 7
+  })
 ];
 
 export function getStores() {
