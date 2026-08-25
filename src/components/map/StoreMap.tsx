@@ -50,13 +50,13 @@ export function StoreMap({ stores, fullscreen = false }: { stores: Store[]; full
 
   return (
     <section className={fullscreen ? "absolute inset-0 overflow-hidden bg-[#d9eadb]" : "relative min-h-[620px] overflow-hidden rounded-lg border border-border bg-[#d9eadb] shadow-sm"}>
-      <div className="absolute left-1/2 top-0 h-full aspect-[2/3] -translate-x-1/2">
+      <div className="absolute left-1/2 top-0 h-full aspect-[64/75] -translate-x-1/2">
         <Image
           src={KANMAE_MAP_IMAGE}
           alt=""
           fill
           priority
-          sizes="(max-width: 768px) 100vw, 67vh"
+          sizes="(max-width: 768px) 100vw, 86vh"
           className="absolute inset-0 size-full select-none object-fill"
           draggable={false}
         />
