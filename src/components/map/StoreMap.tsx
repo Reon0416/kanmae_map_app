@@ -1,11 +1,11 @@
 "use client";
 
-import { Layers, LocateFixed } from "lucide-react";
+import { LocateFixed, Minus, Plus, RotateCcw } from "lucide-react";
 import Image from "next/image";
 import { StoreMarker } from "@/components/map/StoreMarker";
 import type { Store } from "@/features/stores/store-types";
 import { KANMAE_MAP_IMAGE, latLngToMapPosition } from "@/lib/map/map-config";
-import { useState } from "react";
+import { PointerEvent, WheelEvent, useRef, useState } from "react";
 
 type UserLocation = {
   position: {
@@ -15,9 +15,30 @@ type UserLocation = {
   accuracy: number;
 };
 
+type MapOffset = {
+  x: number;
+  y: number;
+};
+
+const MIN_SCALE = 1;
+const MAX_SCALE = 2.6;
+const SCALE_STEP = 0.2;
+
+function clampScale(scale: number) {
+  return Math.min(MAX_SCALE, Math.max(MIN_SCALE, Number(scale.toFixed(2))));
+}
+
 export function StoreMap({ stores, fullscreen = false }: { stores: Store[]; fullscreen?: boolean }) {
   const [userLocation, setUserLocation] = useState<UserLocation | null>(null);
   const [locationMessage, setLocationMessage] = useState<string | null>(null);
+  const [scale, setScale] = useState(1.25);
+  const [offset, setOffset] = useState<MapOffset>({ x: 0, y: 92 });
+  const dragState = useRef<{
+    pointerId: number;
+    startX: number;
+    startY: number;
+    startOffset: MapOffset;
+  } | null>(null);
 
   const locateUser = () => {
     if (!navigator.geolocation) {
@@ -48,9 +69,65 @@ export function StoreMap({ stores, fullscreen = false }: { stores: Store[]; full
     );
   };
 
+  const zoomBy = (delta: number) => {
+    setScale((currentScale) => clampScale(currentScale + delta));
+  };
+
+  const resetView = () => {
+    setScale(1.25);
+    setOffset({ x: 0, y: 92 });
+  };
+
+  const handlePointerDown = (event: PointerEvent<HTMLElement>) => {
+    if (event.button !== 0) return;
+
+    event.currentTarget.setPointerCapture(event.pointerId);
+    dragState.current = {
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startY: event.clientY,
+      startOffset: offset
+    };
+  };
+
+  const handlePointerMove = (event: PointerEvent<HTMLElement>) => {
+    const drag = dragState.current;
+
+    if (!drag || drag.pointerId !== event.pointerId) return;
+
+    setOffset({
+      x: drag.startOffset.x + event.clientX - drag.startX,
+      y: drag.startOffset.y + event.clientY - drag.startY
+    });
+  };
+
+  const handlePointerUp = (event: PointerEvent<HTMLElement>) => {
+    if (dragState.current?.pointerId === event.pointerId) {
+      dragState.current = null;
+    }
+  };
+
+  const handleWheel = (event: WheelEvent<HTMLElement>) => {
+    event.preventDefault();
+    zoomBy(event.deltaY > 0 ? -SCALE_STEP : SCALE_STEP);
+  };
+
   return (
-    <section className={fullscreen ? "absolute inset-0 overflow-hidden bg-[#d9eadb]" : "relative min-h-[620px] overflow-hidden rounded-lg border border-border bg-[#d9eadb] shadow-sm"}>
-      <div className="absolute left-1/2 top-0 h-full aspect-[64/75] -translate-x-1/2">
+    <section
+      className={fullscreen ? "absolute inset-0 cursor-grab touch-none overflow-hidden bg-[#d9eadb] active:cursor-grabbing" : "relative min-h-[620px] cursor-grab touch-none overflow-hidden rounded-lg border border-border bg-[#d9eadb] shadow-sm active:cursor-grabbing"}
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerUp}
+      onPointerCancel={handlePointerUp}
+      onWheel={handleWheel}
+    >
+      <div
+        className="absolute left-1/2 top-1/2 h-full aspect-[64/75]"
+        style={{
+          transform: `translate(calc(-50% + ${offset.x}px), calc(-50% + ${offset.y}px)) scale(${scale})`,
+          transformOrigin: "center"
+        }}
+      >
         <Image
           src={KANMAE_MAP_IMAGE}
           alt=""
@@ -84,14 +161,35 @@ export function StoreMap({ stores, fullscreen = false }: { stores: Store[]; full
       <div className={fullscreen ? "absolute right-4 top-32 z-20 grid gap-2" : "absolute right-5 top-5 z-10 flex gap-2"}>
         <button
           className="flex size-10 items-center justify-center rounded-md bg-white text-slate-700 shadow-sm"
+          aria-label="拡大"
+          onClick={() => zoomBy(SCALE_STEP)}
+          type="button"
+        >
+          <Plus className="size-5" aria-hidden="true" />
+        </button>
+        <button
+          className="flex size-10 items-center justify-center rounded-md bg-white text-slate-700 shadow-sm"
+          aria-label="縮小"
+          onClick={() => zoomBy(-SCALE_STEP)}
+          type="button"
+        >
+          <Minus className="size-5" aria-hidden="true" />
+        </button>
+        <button
+          className="flex size-10 items-center justify-center rounded-md bg-white text-slate-700 shadow-sm"
           aria-label="現在地"
           onClick={locateUser}
           type="button"
         >
           <LocateFixed className="size-5" aria-hidden="true" />
         </button>
-        <button className="flex size-10 items-center justify-center rounded-md bg-white text-slate-700 shadow-sm" aria-label="表示切替">
-          <Layers className="size-5" aria-hidden="true" />
+        <button
+          className="flex size-10 items-center justify-center rounded-md bg-white text-slate-700 shadow-sm"
+          aria-label="表示をリセット"
+          onClick={resetView}
+          type="button"
+        >
+          <RotateCcw className="size-5" aria-hidden="true" />
         </button>
       </div>
       {locationMessage ? (
