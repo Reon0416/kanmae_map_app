@@ -2,6 +2,8 @@ export const STAMP_IMAGE_BY_STORE: Partial<Record<string, string>> = {
   butafuku: "/stamps/butafuku.png",
   kenpei: "/stamps/kenpei.png",
   kirinji: "/stamps/kirinji.png",
+  kirameki: "/stamps/kirameki.png",
+  kokoro: "/stamps/kokoro.png",
   musou: "/stamps/musou.png",
   semi: "/stamps/semi.png",
   suzume: "/stamps/suzume.png",
