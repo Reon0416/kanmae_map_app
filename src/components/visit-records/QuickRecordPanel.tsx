@@ -5,6 +5,7 @@ import { CheckCircle2, Search, Utensils, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { WaitTimeSelector } from "@/components/visit-records/WaitTimeSelector";
 import type { Store, WaitTimeBucket } from "@/features/stores/store-types";
+import { saveLocalVisitRecord } from "@/features/visit-records/local-visit-records";
 import { cn } from "@/lib/utils";
 
 export function QuickRecordPanel({ stores }: { stores: Store[] }) {
@@ -22,6 +23,19 @@ export function QuickRecordPanel({ stores }: { stores: Store[] }) {
   const closeWaitTimeSheet = () => {
     setStoreId(null);
     setSaved(false);
+  };
+
+  const saveRecord = () => {
+    if (!selectedStore) {
+      return;
+    }
+
+    saveLocalVisitRecord({
+      storeId: selectedStore.id,
+      storeName: selectedStore.name,
+      waitTime
+    });
+    setSaved(true);
   };
 
   return (
@@ -88,7 +102,7 @@ export function QuickRecordPanel({ stores }: { stores: Store[] }) {
 
             <Button
               className="mt-5 h-14 w-full rounded-2xl bg-emerald-500 text-base font-black text-white shadow-[0_16px_34px_rgba(16,185,129,0.35)] hover:bg-emerald-600"
-              onClick={() => setSaved(true)}
+              onClick={saveRecord}
             >
               {saved ? <CheckCircle2 className="size-5" aria-hidden="true" /> : null}
               {saved ? "記録しました" : "記録する"}
