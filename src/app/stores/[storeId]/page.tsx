@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Star } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { StoreStatusBadge } from "@/components/stores/StoreStatusBadge";
 import { WaitTimeLabel } from "@/components/stores/WaitTimeLabel";
 import { VisitRecordButton } from "@/components/visit-records/VisitRecordButton";
@@ -56,10 +56,6 @@ export default async function StoreDetailPage({ params }: { params: Promise<{ st
             </dl>
             <div className="mt-4 rounded-md bg-muted p-3 text-sm font-semibold text-slate-700">{store.address}</div>
           </div>
-          <button className="flex h-11 w-full items-center justify-center gap-2 bg-white text-sm font-bold hover:bg-muted md:rounded-md md:shadow-sm">
-            <Star className="size-4" aria-hidden="true" />
-            お気に入りに追加
-          </button>
         </aside>
       </section>
       <div className="mt-3 md:px-4">

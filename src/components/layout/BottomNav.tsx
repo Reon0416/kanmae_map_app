@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { ClipboardList, Heart, Home, PenLine, Settings, ShieldCheck, Store, User } from "lucide-react";
+import { ClipboardList, Home, PenLine, Settings, ShieldCheck, Store, User } from "lucide-react";
 import { ROLE_STORAGE_KEY, USER_ROLE, type UserRole } from "@/features/auth/roles";
 import { cn } from "@/lib/utils";
 
@@ -11,7 +11,6 @@ const itemsByRole = {
     { href: "/", label: "マップ", icon: Home },
     { href: "/stores", label: "店舗", icon: Store },
     { href: "/record", label: "記録", icon: PenLine, featured: true },
-    { href: "/favorites", label: "保存", icon: Heart },
     { href: "/my", label: "自分", icon: User }
   ],
   store: [
@@ -42,7 +41,7 @@ export function BottomNav() {
 
   return (
     <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-white md:hidden">
-      <div className={cn("grid h-16", role === USER_ROLE.USER ? "grid-cols-5" : "grid-cols-4")}>
+      <div className={cn("grid h-16", role === USER_ROLE.USER ? "grid-cols-4" : "grid-cols-4")}>
         {items.map((item) => {
           const Icon = item.icon;
           if ("featured" in item && item.featured) {

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Bookmark, Filter, List, Map, PenLine } from "lucide-react";
+import { Filter, List, Map, PenLine } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { StoreMap } from "@/components/map/StoreMap";
 import type { DisplayStatus, Store, WaitTimeBucket } from "@/features/stores/store-types";
@@ -56,7 +56,7 @@ export function MapHome({ stores }: { stores: Store[] }) {
       </div>
 
       <div className="absolute inset-x-0 bottom-0 z-40 border-t border-border bg-white pb-[env(safe-area-inset-bottom)]">
-        <div className="grid h-20 grid-cols-3 items-center">
+        <div className="grid h-20 grid-cols-2 items-center">
           <Link href="/" className="flex flex-col items-center justify-center gap-1 text-xs font-black text-slate-950">
             <Map className="size-5" aria-hidden="true" />
             マップ
@@ -69,10 +69,6 @@ export function MapHome({ stores }: { stores: Store[] }) {
               <PenLine className="size-7" aria-hidden="true" />
             </span>
             記録
-          </Link>
-          <Link href="/favorites" className="flex flex-col items-center justify-center gap-1 text-xs font-black text-slate-500">
-            <Bookmark className="size-5" aria-hidden="true" />
-            保存
           </Link>
         </div>
       </div>

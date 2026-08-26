@@ -12,7 +12,6 @@ export function Header() {
           KANMAE
         </Link>
         <nav className="hidden items-center gap-5 text-sm font-semibold text-slate-600 md:flex">
-          <Link href="/favorites" className="hover:text-slate-950">お気に入り</Link>
           <Link href="/my" className="hover:text-slate-950">マイページ</Link>
           <Link href="/store-admin/status" className="hover:text-slate-950">店舗管理</Link>
           <Link href="/admin/stores" className="hover:text-slate-950">運営管理</Link>
