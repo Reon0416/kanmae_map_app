@@ -26,16 +26,18 @@ export function MapHome({ stores }: { stores: Store[] }) {
 
   return (
     <main className="relative h-dvh overflow-hidden bg-slate-900">
-      <StoreMap stores={filteredStores} fullscreen />
+      <div className="absolute inset-x-0 top-0 bottom-[calc(5rem+env(safe-area-inset-bottom))] overflow-hidden">
+        <StoreMap stores={filteredStores} fullscreen />
+      </div>
 
       {filteredStores.length === 0 ? (
-        <div className="absolute left-1/2 top-1/2 z-20 w-[min(20rem,calc(100%-2rem))] -translate-x-1/2 -translate-y-1/2 rounded-lg bg-white/86 p-4 text-center shadow-panel backdrop-blur-md">
+        <div className="absolute left-1/2 top-[45%] z-20 w-[min(20rem,calc(100%-2rem))] -translate-x-1/2 -translate-y-1/2 rounded-lg bg-white/86 p-4 text-center shadow-panel backdrop-blur-md">
           <p className="text-base font-black text-slate-950">該当する店舗がありません</p>
           <p className="mt-1 text-sm text-slate-600">条件を変えて探してください。</p>
         </div>
       ) : null}
 
-      <div className="absolute bottom-28 right-4 z-30 flex rounded-full bg-slate-950/74 p-1.5 shadow-panel backdrop-blur-md">
+      <div className="absolute bottom-[calc(6.25rem+env(safe-area-inset-bottom))] right-4 z-30 flex rounded-full bg-slate-950/74 p-1.5 shadow-panel backdrop-blur-md">
         <Link
           href="/stores"
           aria-label="店舗一覧を開く"
