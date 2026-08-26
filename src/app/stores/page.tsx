@@ -20,8 +20,8 @@ export default function StoresPage() {
 
   return (
     <main className="min-h-dvh bg-slate-100 pb-24">
-      <div className="mx-auto max-w-3xl px-3 pt-5">
-      <div className="mb-5 flex items-center justify-between gap-3">
+      <div className="px-3 pt-5">
+      <div className="mb-5 flex items-center justify-between gap-3 px-1">
         <div>
           <Link href="/" className="inline-flex items-center gap-1 text-sm font-bold text-slate-500">
             <ArrowLeft className="size-4" aria-hidden="true" />
@@ -34,7 +34,7 @@ export default function StoresPage() {
         </Link>
       </div>
 
-      <div className="overflow-hidden rounded-2xl bg-white shadow-[0_18px_54px_rgba(15,23,42,0.08)]">
+      <div className="overflow-hidden bg-white">
         {stores.map((store) => (
           <Link
             key={store.id}

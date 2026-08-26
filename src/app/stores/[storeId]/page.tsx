@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, MapPin, Star } from "lucide-react";
+import { ArrowLeft, Star } from "lucide-react";
 import { StoreStatusBadge } from "@/components/stores/StoreStatusBadge";
 import { WaitTimeLabel } from "@/components/stores/WaitTimeLabel";
 import { VisitRecordButton } from "@/components/visit-records/VisitRecordButton";
@@ -14,13 +14,13 @@ export default async function StoreDetailPage({ params }: { params: Promise<{ st
   if (!store) notFound();
 
   return (
-    <main className="mx-auto max-w-5xl px-4 pb-24 pt-6 md:px-6 md:pb-10">
-      <Link href="/" className="inline-flex items-center gap-2 text-sm font-semibold text-slate-600 hover:text-slate-950">
+    <main className="min-h-dvh bg-slate-100 pb-24 pt-5 md:pb-10">
+      <Link href="/" className="inline-flex items-center gap-2 px-4 text-sm font-semibold text-slate-600 hover:text-slate-950">
         <ArrowLeft className="size-4" aria-hidden="true" />
         マップへ戻る
       </Link>
-      <section className="mt-5 grid gap-5 md:grid-cols-[1fr_340px]">
-        <div className="overflow-hidden rounded-lg border border-border bg-white shadow-sm">
+      <section className="mt-5 grid gap-3 md:grid-cols-[1fr_340px] md:px-4">
+        <div className="overflow-hidden bg-white md:rounded-lg md:shadow-sm">
           <div className="flex min-h-64 items-end bg-[linear-gradient(135deg,#dbeafe,#dcfce7_48%,#fef3c7)] p-6">
             <div>
               <div className="flex flex-wrap items-center gap-2">
@@ -47,25 +47,22 @@ export default async function StoreDetailPage({ params }: { params: Promise<{ st
           </div>
         </div>
         <aside className="space-y-4">
-          <div className="rounded-lg border border-border bg-white p-4 shadow-sm">
+          <div className="bg-white p-4 md:rounded-lg md:shadow-sm">
             <h2 className="text-base font-bold">店舗情報</h2>
             <dl className="mt-3 space-y-3 text-sm">
               <div className="flex justify-between gap-3"><dt className="text-slate-500">営業時間</dt><dd className="font-semibold">{store.hours}</dd></div>
               <div className="flex justify-between gap-3"><dt className="text-slate-500">定休日</dt><dd className="font-semibold">{store.closed}</dd></div>
               <div className="flex justify-between gap-3"><dt className="text-slate-500">テイクアウト</dt><dd className="font-semibold">{store.acceptsTakeout ? "可" : "不可"}</dd></div>
             </dl>
-            <div className="mt-4 flex items-center gap-2 rounded-md bg-muted p-3 text-sm font-semibold text-slate-700">
-              <MapPin className="size-4" aria-hidden="true" />
-              徒歩{store.walkMinutes}分 / {store.address}
-            </div>
+            <div className="mt-4 rounded-md bg-muted p-3 text-sm font-semibold text-slate-700">{store.address}</div>
           </div>
-          <button className="flex h-11 w-full items-center justify-center gap-2 rounded-md border border-border bg-white text-sm font-bold shadow-sm hover:bg-muted">
+          <button className="flex h-11 w-full items-center justify-center gap-2 bg-white text-sm font-bold hover:bg-muted md:rounded-md md:shadow-sm">
             <Star className="size-4" aria-hidden="true" />
             お気に入りに追加
           </button>
         </aside>
       </section>
-      <div className="mt-5">
+      <div className="mt-3 md:px-4">
         <VisitRecordButton store={store} />
       </div>
     </main>

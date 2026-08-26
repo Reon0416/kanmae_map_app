@@ -11,7 +11,7 @@ export function VisitRecordButton({ store }: { store: Store }) {
   const [saved, setSaved] = useState(false);
 
   return (
-    <div className="rounded-lg border border-border bg-white p-4">
+    <div className="bg-white p-4 md:rounded-lg">
       <h2 className="text-base font-bold text-slate-950">来店記録</h2>
       <p className="mt-1 text-sm text-slate-600">{store.name}の近くにいる場合、待ち時間目安を選んで記録できます。</p>
       <div className="mt-4">

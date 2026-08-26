@@ -10,8 +10,8 @@ export default function RecordPage() {
 
   return (
     <RoleGate allowed={[USER_ROLE.USER]}>
-      <main className="mx-auto max-w-3xl bg-slate-50 px-4 pb-24 pt-5">
-        <Link href="/" className="mb-4 inline-flex items-center gap-1 text-sm font-bold text-slate-500">
+      <main className="min-h-dvh bg-slate-50 pb-24 pt-5">
+        <Link href="/" className="mb-4 inline-flex items-center gap-1 px-4 text-sm font-bold text-slate-500">
           <ArrowLeft className="size-4" aria-hidden="true" />
           マップ
         </Link>

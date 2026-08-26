@@ -26,13 +26,13 @@ export function QuickRecordPanel({ stores }: { stores: Store[] }) {
 
   return (
     <>
-      <section className="overflow-hidden rounded-[28px] bg-white shadow-[0_24px_70px_rgba(15,23,42,0.12)]">
+      <section className="overflow-hidden bg-white">
         <div className="bg-gradient-to-br from-emerald-500 to-cyan-500 px-5 pb-6 pt-5 text-white">
           <p className="text-sm font-black opacity-80">待ち時間を記録</p>
           <h1 className="mt-1 text-3xl font-black tracking-normal">店を選ぶ</h1>
         </div>
 
-        <div className="px-4 py-4">
+        <div className="px-3 py-4">
           <div className="mb-3 flex items-center gap-2 rounded-2xl bg-slate-100 px-3 py-2 text-sm font-bold text-slate-500">
             <Search className="size-4" aria-hidden="true" />
             店舗をタップ
