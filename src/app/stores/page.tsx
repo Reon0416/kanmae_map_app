@@ -25,14 +25,14 @@ function compareStores(a: Store, b: Store) {
     return lowPriorityDiff;
   }
 
-  const statusDiff = statusPriority[a.status] - statusPriority[b.status];
-  if (statusDiff !== 0) {
-    return statusDiff;
-  }
-
   const waitTimeDiff = WAIT_TIME_SCORE[a.waitTime] - WAIT_TIME_SCORE[b.waitTime];
   if (waitTimeDiff !== 0) {
     return waitTimeDiff;
+  }
+
+  const statusDiff = statusPriority[a.status] - statusPriority[b.status];
+  if (statusDiff !== 0) {
+    return statusDiff;
   }
 
   return a.name.localeCompare(b.name, "ja");
