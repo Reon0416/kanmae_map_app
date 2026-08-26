@@ -3,7 +3,6 @@ import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { StoreStatusBadge } from "@/components/stores/StoreStatusBadge";
 import { WaitTimeLabel } from "@/components/stores/WaitTimeLabel";
-import { VisitRecordButton } from "@/components/visit-records/VisitRecordButton";
 import { getStoreById } from "@/features/stores/store-queries";
 import { formatRelativeTime, priceBandLabel } from "@/lib/utils";
 
@@ -58,9 +57,6 @@ export default async function StoreDetailPage({ params }: { params: Promise<{ st
           </div>
         </aside>
       </section>
-      <div className="mt-3 md:px-4">
-        <VisitRecordButton store={store} />
-      </div>
     </main>
   );
 }
