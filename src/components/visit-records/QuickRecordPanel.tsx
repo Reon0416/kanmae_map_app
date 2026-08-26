@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { CheckCircle2, Search, Utensils, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { StampRewardOverlay } from "@/components/visit-records/StampRewardOverlay";
 import { WaitTimeSelector } from "@/components/visit-records/WaitTimeSelector";
 import type { Store, WaitTimeBucket } from "@/features/stores/store-types";
 import { saveLocalVisitRecord } from "@/features/visit-records/local-visit-records";
@@ -12,17 +13,20 @@ export function QuickRecordPanel({ stores }: { stores: Store[] }) {
   const [storeId, setStoreId] = useState<string | null>(null);
   const [waitTime, setWaitTime] = useState<WaitTimeBucket>("within_5");
   const [saved, setSaved] = useState(false);
+  const [showStampReward, setShowStampReward] = useState(false);
   const selectedStore = stores.find((store) => store.id === storeId) ?? null;
 
   const openWaitTimeSheet = (nextStoreId: string) => {
     setStoreId(nextStoreId);
     setWaitTime("within_5");
     setSaved(false);
+    setShowStampReward(false);
   };
 
   const closeWaitTimeSheet = () => {
     setStoreId(null);
     setSaved(false);
+    setShowStampReward(false);
   };
 
   const saveRecord = () => {
@@ -36,6 +40,7 @@ export function QuickRecordPanel({ stores }: { stores: Store[] }) {
       waitTime
     });
     setSaved(true);
+    setShowStampReward(true);
   };
 
   return (
@@ -109,6 +114,10 @@ export function QuickRecordPanel({ stores }: { stores: Store[] }) {
             </Button>
           </section>
         </div>
+      ) : null}
+
+      {selectedStore && showStampReward ? (
+        <StampRewardOverlay store={selectedStore} onClose={() => setShowStampReward(false)} />
       ) : null}
     </>
   );
