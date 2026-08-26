@@ -1,5 +1,5 @@
 import { RoleGate } from "@/components/auth/RoleGate";
-import { VisitStampCalendar } from "@/components/my/VisitStampCalendar";
+import { VisitStampCard } from "@/components/my/VisitStampCard";
 import { USER_ROLE } from "@/features/auth/roles";
 
 export default function MyPage() {
@@ -9,7 +9,7 @@ export default function MyPage() {
         <h1 className="px-4 text-2xl font-black md:px-6">マイページ</h1>
 
         <div className="mt-5 md:overflow-hidden md:rounded-lg md:border md:border-border">
-          <VisitStampCalendar />
+          <VisitStampCard />
         </div>
       </main>
     </RoleGate>
