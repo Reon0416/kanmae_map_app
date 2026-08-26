@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { MapPin } from "lucide-react";
 import { StoreStatusBadge } from "@/components/stores/StoreStatusBadge";
 import { WaitTimeLabel } from "@/components/stores/WaitTimeLabel";
 import type { Store } from "@/features/stores/store-types";
@@ -20,11 +19,8 @@ export function StoreCard({ store }: { store: Store }) {
       </div>
       <p className="mt-3 line-clamp-2 text-sm text-slate-600">{store.description}</p>
       <div className="mt-4 flex flex-wrap items-center gap-3 text-sm text-slate-600">
+        <StoreStatusBadge status={store.status} />
         <WaitTimeLabel waitTime={store.waitTime} />
-        <span className="inline-flex items-center gap-1">
-          <MapPin className="size-4" aria-hidden="true" />
-          徒歩{store.walkMinutes}分
-        </span>
         <span>最終更新 {formatRelativeTime(store.lastUpdatedAt)}</span>
       </div>
     </Link>

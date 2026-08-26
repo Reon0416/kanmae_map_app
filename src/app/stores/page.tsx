@@ -1,15 +1,26 @@
 import Link from "next/link";
-import { ArrowLeft, Map, MapPin } from "lucide-react";
-import { StoreStatusBadge } from "@/components/stores/StoreStatusBadge";
-import { WaitTimeLabel } from "@/components/stores/WaitTimeLabel";
+import { ArrowLeft, Clock3, Map, Utensils } from "lucide-react";
+import { STATUS_LABELS } from "@/constants/crowd-status";
+import { WAIT_TIME_LABELS } from "@/constants/wait-time-options";
 import { getStores } from "@/features/stores/store-queries";
-import { formatRelativeTime, priceBandLabel } from "@/lib/utils";
+import type { DisplayStatus } from "@/features/stores/store-types";
+import { cn, priceBandLabel } from "@/lib/utils";
+
+const statusStyles: Record<DisplayStatus, string> = {
+  available: "bg-emerald-500 text-white",
+  limited: "bg-yellow-400 text-yellow-950",
+  slightly_crowded: "bg-orange-500 text-white",
+  full: "bg-red-500 text-white",
+  stale: "bg-slate-500 text-white",
+  unknown: "bg-slate-400 text-white"
+};
 
 export default function StoresPage() {
   const stores = getStores();
 
   return (
-    <main className="mx-auto max-w-3xl px-4 pb-24 pt-5">
+    <main className="min-h-dvh bg-slate-100 pb-24">
+      <div className="mx-auto max-w-3xl px-3 pt-5">
       <div className="mb-5 flex items-center justify-between gap-3">
         <div>
           <Link href="/" className="inline-flex items-center gap-1 text-sm font-bold text-slate-500">
@@ -23,33 +34,35 @@ export default function StoresPage() {
         </Link>
       </div>
 
-      <div className="grid gap-3">
+      <div className="overflow-hidden rounded-2xl bg-white shadow-[0_18px_54px_rgba(15,23,42,0.08)]">
         {stores.map((store) => (
           <Link
             key={store.id}
             href={`/stores/${store.id}`}
-            className="rounded-lg border border-border bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+            className="grid grid-cols-[86px_1fr_auto] gap-3 border-b border-dashed border-slate-200 bg-white p-3 transition last:border-b-0 hover:bg-slate-50"
           >
-            <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0">
-                <h2 className="truncate text-lg font-black text-slate-950">{store.name}</h2>
-                <p className="mt-1 text-sm font-semibold text-slate-600">
-                  {store.genre} / {priceBandLabel(store.priceBand)}
-                </p>
-              </div>
-              <StoreStatusBadge status={store.status} />
+            <div className="flex size-[86px] items-center justify-center rounded-xl bg-gradient-to-br from-orange-100 via-emerald-100 to-cyan-100 shadow-inner">
+              <Utensils className="size-8 text-slate-500" aria-hidden="true" />
             </div>
-            <p className="mt-3 line-clamp-2 text-sm leading-6 text-slate-600">{store.description}</p>
-            <div className="mt-4 flex flex-wrap items-center gap-3 text-sm text-slate-600">
-              <WaitTimeLabel waitTime={store.waitTime} />
-              <span className="inline-flex items-center gap-1 font-semibold">
-                <MapPin className="size-4" aria-hidden="true" />
-                徒歩{store.walkMinutes}分
+            <div className="min-w-0 py-1">
+              <h2 className="truncate text-base font-black text-blue-700">{store.name}</h2>
+              <p className="mt-1 line-clamp-2 text-sm leading-5 text-slate-600">{store.description}</p>
+              <p className="mt-1.5 text-xs font-bold text-slate-500">
+                {store.genre} / {priceBandLabel(store.priceBand)}
+              </p>
+            </div>
+            <div className="flex min-w-[82px] flex-col items-end justify-center gap-2">
+              <span className={cn("rounded-full px-2.5 py-1 text-xs font-black shadow-sm", statusStyles[store.status])}>
+                {STATUS_LABELS[store.status]}
               </span>
-              <span className="font-semibold">更新 {formatRelativeTime(store.lastUpdatedAt)}</span>
+              <span className="inline-flex items-center gap-1 rounded-full bg-slate-950 px-2.5 py-1 text-sm font-black text-white shadow-sm">
+                <Clock3 className="size-3.5" aria-hidden="true" />
+                {WAIT_TIME_LABELS[store.waitTime].replace("分以内", "分").replace("分以上", "分+")}
+              </span>
             </div>
           </Link>
         ))}
+      </div>
       </div>
 
       <Link
