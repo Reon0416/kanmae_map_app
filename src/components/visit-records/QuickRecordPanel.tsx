@@ -52,6 +52,8 @@ export function QuickRecordPanel({ stores }: { stores: Store[] }) {
         </div>
 
         <div className="px-3 py-4">
+          <div className="mb-3 flex items-center gap-2 rounded-2xl bg-slate-100 px-3 py-2 text-sm font-bold text-slate-500">
+          </div>
           <div className="grid gap-2">
           {stores.map((store) => (
             <button
