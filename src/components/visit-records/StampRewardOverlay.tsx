@@ -59,7 +59,7 @@ export function StampRewardOverlay({
       </button>
 
       <div className="kanmae-stamp-float flex flex-col items-center">
-        <div className="relative flex size-44 items-center justify-center rounded-full border-[10px] border-emerald-400/80 bg-white shadow-[0_24px_80px_rgba(16,185,129,0.35)]">
+        <div className="kanmae-stamp-impact relative flex size-44 items-center justify-center rounded-full border-[10px] border-emerald-400/80 bg-white shadow-[0_24px_80px_rgba(16,185,129,0.35)]">
           <div className="absolute inset-3 rounded-full border-2 border-emerald-200" />
           {stampImage ? (
             <Image
