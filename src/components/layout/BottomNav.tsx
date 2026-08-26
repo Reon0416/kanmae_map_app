@@ -8,7 +8,6 @@ import { cn } from "@/lib/utils";
 
 const itemsByRole = {
   user: [
-    { href: "/", label: "マップ", icon: Home },
     { href: "/stores", label: "店舗", icon: Store },
     { href: "/record", label: "記録", icon: PenLine, featured: true },
     { href: "/my", label: "自分", icon: User }
@@ -41,7 +40,7 @@ export function BottomNav() {
 
   return (
     <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-white md:hidden">
-      <div className={cn("grid h-16", role === USER_ROLE.USER ? "grid-cols-4" : "grid-cols-4")}>
+      <div className={cn("grid h-16", role === USER_ROLE.USER ? "grid-cols-3" : "grid-cols-4")}>
         {items.map((item) => {
           const Icon = item.icon;
           if ("featured" in item && item.featured) {
