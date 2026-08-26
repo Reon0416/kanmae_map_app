@@ -48,7 +48,6 @@ export function VisitStampCard({ stores }: { stores: Store[] }) {
         return a.name.localeCompare(b.name, "ja");
       });
   }, [records, stores]);
-  const maxStoreStampCount = Math.max(...stampCountsByStore.map((store) => store.count), 1);
 
   return (
     <section className="bg-white">
@@ -92,42 +91,70 @@ export function VisitStampCard({ stores }: { stores: Store[] }) {
         </div>
 
         <div className="mt-5">
-          <h2 className="px-1 text-lg font-black text-slate-950">店ごとのスタンプ</h2>
-          <div className="mt-3 divide-y divide-slate-100 bg-white">
+          <div className="overflow-hidden rounded-[26px] bg-slate-950 p-5 text-white shadow-[0_18px_44px_rgba(15,23,42,0.22)]">
+            <div className="flex items-end justify-between gap-4">
+              <div>
+                <p className="text-xs font-black text-emerald-300">MEDAL COLLECTION</p>
+                <h2 className="mt-1 text-xl font-black tracking-normal">メダル図鑑</h2>
+              </div>
+              <div className="text-right">
+                <p className="text-5xl font-black leading-none tracking-normal text-white">{stampCount}</p>
+                <p className="mt-1 text-xs font-black text-slate-300">枚</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-3 grid grid-cols-2 gap-2.5">
             {stampCountsByStore.map((store, index) => (
-              <div key={store.id} className="py-3">
-                <div className="flex items-center justify-between gap-3">
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2">
-                      {index === 0 && store.count > 0 ? (
-                        <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-black text-emerald-700">
-                          TOP
-                        </span>
-                      ) : null}
-                      <p className="truncate text-base font-black text-slate-950">{store.name}</p>
-                    </div>
-                    <p className="mt-0.5 text-xs font-bold text-slate-500">{store.genre}</p>
-                  </div>
-                  <div className="flex shrink-0 items-center gap-1 rounded-full bg-slate-950 px-3 py-1.5 text-sm font-black text-white">
-                    {getStampImage(store.id) ? (
+              <div
+                key={store.id}
+                className={cn(
+                  "relative overflow-hidden rounded-[22px] border bg-white p-3 shadow-sm",
+                  store.count > 0 ? "border-emerald-100" : "border-slate-100 opacity-45 grayscale"
+                )}
+              >
+                {index === 0 && store.count > 0 ? (
+                  <span className="absolute left-2 top-2 z-10 rounded-full bg-emerald-500 px-2 py-0.5 text-[10px] font-black text-white">
+                    TOP
+                  </span>
+                ) : null}
+                <div className="mx-auto flex size-24 items-center justify-center rounded-full bg-gradient-to-br from-emerald-50 to-cyan-50 shadow-inner">
+                  {getStampImage(store.id) ? (
+                    <Image
+                      src={getStampImage(store.id) ?? ""}
+                      alt={`${store.name}のスタンプ`}
+                      width={92}
+                      height={92}
+                      className="size-[88px] rounded-full object-contain"
+                    />
+                  ) : (
+                    <Sparkles className="size-10 text-emerald-400" aria-hidden="true" />
+                  )}
+                </div>
+
+                <div className="mt-3 min-w-0 text-center">
+                  <p className="truncate text-sm font-black text-slate-950">{store.name}</p>
+                  <p className="mt-0.5 text-[11px] font-bold text-slate-500">{store.genre}</p>
+                </div>
+
+                <div className="mt-3 flex items-center justify-center">
+                  <div className={cn(
+                    "flex items-center gap-1 rounded-full px-3 py-1.5 text-lg font-black",
+                    store.count > 0 ? "bg-slate-950 text-white" : "bg-slate-100 text-slate-400"
+                  )}>
+                    {store.count > 0 && getStampImage(store.id) ? (
                       <Image
                         src={getStampImage(store.id) ?? ""}
                         alt={`${store.name}のスタンプ`}
                         width={22}
                         height={22}
-                        className="size-5 rounded-full object-contain"
+                        className="size-6 rounded-full object-contain"
                       />
                     ) : (
-                      <Sparkles className="size-4 text-emerald-300" aria-hidden="true" />
+                      <Sparkles className="size-5 text-emerald-300" aria-hidden="true" />
                     )}
-                    {store.count}
+                    <span>{store.count}</span>
                   </div>
-                </div>
-                <div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-100">
-                  <div
-                    className="h-full rounded-full bg-gradient-to-r from-emerald-400 to-cyan-400"
-                    style={{ width: `${(store.count / maxStoreStampCount) * 100}%` }}
-                  />
                 </div>
               </div>
             ))}
