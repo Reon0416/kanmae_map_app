@@ -117,7 +117,7 @@ export function QuickRecordPanel({ stores }: { stores: Store[] }) {
       ) : null}
 
       {selectedStore && showStampReward ? (
-        <StampRewardOverlay store={selectedStore} onClose={() => setShowStampReward(false)} />
+        <StampRewardOverlay store={selectedStore} onClose={closeWaitTimeSheet} />
       ) : null}
     </>
   );
