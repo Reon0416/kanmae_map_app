@@ -8,7 +8,7 @@ import { readLocalVisitRecords, type LocalVisitRecord } from "@/features/visit-r
 import { getStampImage } from "@/features/visit-records/stamp-images";
 import { cn } from "@/lib/utils";
 
-const STAMP_GOAL = 30;
+const STAMP_GOAL = 12;
 
 export function VisitStampCard({ stores }: { stores: Store[] }) {
   const [records, setRecords] = useState<LocalVisitRecord[]>([]);
@@ -54,10 +54,19 @@ export function VisitStampCard({ stores }: { stores: Store[] }) {
       <div className="px-3 py-5">
         <div className="relative overflow-hidden rounded-[26px] border border-emerald-100 bg-gradient-to-br from-emerald-50 via-cyan-50 to-white p-4 shadow-[0_18px_50px_rgba(15,118,110,0.14)]">
           <div className="absolute inset-x-0 top-0 h-3 bg-gradient-to-r from-emerald-400 via-cyan-400 to-emerald-300" />
-          <div className="absolute inset-y-0 left-1/2 w-px bg-emerald-100/70" />
-          <div className="absolute inset-x-4 top-1/2 h-px bg-emerald-100/70" />
 
-          <div className="grid grid-cols-5 gap-2.5 pt-3">
+          <div className="relative z-10 flex items-end justify-between gap-4 border-b border-emerald-100/80 pb-4 pt-2">
+            <div>
+              <p className="text-xs font-black text-emerald-600">STAMP CARD</p>
+              <h2 className="mt-1 text-lg font-black text-slate-950">スタンプカード</h2>
+            </div>
+            <div className="flex items-end gap-1 text-right">
+              <span className="text-5xl font-black leading-none tracking-normal text-emerald-600">{currentCardStampCount}</span>
+              <span className="pb-1 text-2xl font-black text-slate-300">/ {STAMP_GOAL}</span>
+            </div>
+          </div>
+
+          <div className="relative z-10 mt-4 grid grid-cols-4 gap-3">
             {stampSlots.map((index) => {
               const stampRecord = currentCardRecords[index];
               const stampImage = stampRecord ? getStampImage(stampRecord.storeId) : undefined;
@@ -66,10 +75,10 @@ export function VisitStampCard({ stores }: { stores: Store[] }) {
                 <div
                   key={index}
                   className={cn(
-                    "flex aspect-square items-center justify-center rounded-full border-2 transition",
+                    "relative flex aspect-square items-center justify-center rounded-full border-2 transition",
                     stamped
                       ? "border-emerald-500 bg-white text-emerald-600 shadow-[inset_0_0_0_5px_rgba(16,185,129,0.12),0_6px_14px_rgba(16,185,129,0.18)]"
-                      : "border-emerald-200 bg-white/82 shadow-inner"
+                      : "border-dashed border-emerald-300/70 bg-white/60 text-emerald-300/70"
                   )}
                   aria-label={stamped ? "スタンプ済み" : "未スタンプ"}
                 >
@@ -83,7 +92,9 @@ export function VisitStampCard({ stores }: { stores: Store[] }) {
                     />
                   ) : stamped ? (
                     <Sparkles className="size-6 opacity-90" aria-hidden="true" />
-                  ) : null}
+                  ) : (
+                    <span className="text-xl font-black leading-none">{index + 1}</span>
+                  )}
                 </div>
               );
             })}
