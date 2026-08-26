@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { CheckCircle2, Search, X } from "lucide-react";
+import { CheckCircle2, Search, Utensils, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { WaitTimeSelector } from "@/components/visit-records/WaitTimeSelector";
 import type { Store, WaitTimeBucket } from "@/features/stores/store-types";
@@ -43,12 +43,15 @@ export function QuickRecordPanel({ stores }: { stores: Store[] }) {
               key={store.id}
               type="button"
               className={cn(
-                "group flex min-h-16 items-center justify-between gap-3 rounded-2xl bg-slate-50 px-4 py-3 text-left transition active:scale-[0.99] hover:bg-emerald-50",
+                "group grid grid-cols-[72px_1fr_auto] items-center gap-3 rounded-2xl bg-slate-50 p-2.5 text-left transition active:scale-[0.99] hover:bg-emerald-50",
                 store.id === selectedStore?.id && "bg-emerald-50"
               )}
               onClick={() => openWaitTimeSheet(store.id)}
             >
-              <span>
+              <span className="flex size-[72px] items-center justify-center rounded-xl bg-gradient-to-br from-orange-100 via-emerald-100 to-cyan-100 shadow-inner">
+                <Utensils className="size-7 text-slate-500" aria-hidden="true" />
+              </span>
+              <span className="min-w-0">
                 <span className="block font-black text-slate-950">{store.name}</span>
                 <span className="mt-0.5 block text-xs font-bold text-slate-500">{store.genre}</span>
               </span>
