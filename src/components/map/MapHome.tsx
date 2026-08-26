@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Filter, List, Map, PenLine } from "lucide-react";
+import { Filter, List, PenLine } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { StoreMap } from "@/components/map/StoreMap";
 import type { DisplayStatus, Store, WaitTimeBucket } from "@/features/stores/store-types";
@@ -56,11 +56,7 @@ export function MapHome({ stores }: { stores: Store[] }) {
       </div>
 
       <div className="absolute inset-x-0 bottom-0 z-40 border-t border-border bg-white pb-[env(safe-area-inset-bottom)]">
-        <div className="grid h-20 grid-cols-2 items-center">
-          <Link href="/" className="flex flex-col items-center justify-center gap-1 text-xs font-black text-slate-950">
-            <Map className="size-5" aria-hidden="true" />
-            マップ
-          </Link>
+        <div className="flex h-20 items-center justify-center">
           <Link
             href="/record"
             className="-mt-7 flex flex-col items-center justify-center gap-1 text-xs font-black text-emerald-700"
