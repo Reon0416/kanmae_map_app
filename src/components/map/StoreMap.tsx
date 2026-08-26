@@ -5,7 +5,7 @@ import Image from "next/image";
 import { StoreMarker } from "@/components/map/StoreMarker";
 import type { Store } from "@/features/stores/store-types";
 import { KANMAE_MAP_IMAGE, latLngToMapPosition } from "@/lib/map/map-config";
-import { PointerEvent, WheelEvent, useRef, useState } from "react";
+import { PointerEvent, WheelEvent, useCallback, useEffect, useRef, useState } from "react";
 
 type UserLocation = {
   position: {
@@ -20,25 +20,86 @@ type MapOffset = {
   y: number;
 };
 
+type MapSize = {
+  width: number;
+  height: number;
+};
+
+const MAP_ASPECT_RATIO = 64 / 75;
 const MIN_SCALE = 1;
 const MAX_SCALE = 2.6;
 const SCALE_STEP = 0.2;
+const INITIAL_SCALE = 1.25;
+const INITIAL_OFFSET = { x: 0, y: 92 };
 
 function clampScale(scale: number) {
   return Math.min(MAX_SCALE, Math.max(MIN_SCALE, Number(scale.toFixed(2))));
 }
 
+function getCoverMapSize(width: number, height: number): MapSize {
+  if (width / height > MAP_ASPECT_RATIO) {
+    return {
+      width,
+      height: width / MAP_ASPECT_RATIO
+    };
+  }
+
+  return {
+    width: height * MAP_ASPECT_RATIO,
+    height
+  };
+}
+
 export function StoreMap({ stores, fullscreen = false }: { stores: Store[]; fullscreen?: boolean }) {
   const [userLocation, setUserLocation] = useState<UserLocation | null>(null);
   const [locationMessage, setLocationMessage] = useState<string | null>(null);
-  const [scale, setScale] = useState(1.25);
-  const [offset, setOffset] = useState<MapOffset>({ x: 0, y: 92 });
+  const [scale, setScale] = useState(INITIAL_SCALE);
+  const [offset, setOffset] = useState<MapOffset>(INITIAL_OFFSET);
+  const [mapSize, setMapSize] = useState<MapSize>({ width: 0, height: 0 });
+  const sectionRef = useRef<HTMLElement | null>(null);
   const dragState = useRef<{
     pointerId: number;
     startX: number;
     startY: number;
     startOffset: MapOffset;
   } | null>(null);
+
+  const clampOffset = useCallback((nextOffset: MapOffset, nextScale = scale) => {
+    const container = sectionRef.current;
+
+    if (!container) return nextOffset;
+
+    const rect = container.getBoundingClientRect();
+    const currentMapSize = mapSize.width > 0 ? mapSize : getCoverMapSize(rect.width, rect.height);
+    const maxX = Math.max(0, (currentMapSize.width * nextScale - rect.width) / 2);
+    const maxY = Math.max(0, (currentMapSize.height * nextScale - rect.height) / 2);
+
+    return {
+      x: Math.min(maxX, Math.max(-maxX, nextOffset.x)),
+      y: Math.min(maxY, Math.max(-maxY, nextOffset.y))
+    };
+  }, [mapSize, scale]);
+
+  useEffect(() => {
+    const container = sectionRef.current;
+
+    if (!container) return;
+
+    const updateMapSize = () => {
+      const rect = container.getBoundingClientRect();
+      setMapSize(getCoverMapSize(rect.width, rect.height));
+    };
+
+    updateMapSize();
+    const observer = new ResizeObserver(updateMapSize);
+    observer.observe(container);
+
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    setOffset((currentOffset) => clampOffset(currentOffset));
+  }, [clampOffset]);
 
   const locateUser = () => {
     if (!navigator.geolocation) {
@@ -70,16 +131,21 @@ export function StoreMap({ stores, fullscreen = false }: { stores: Store[]; full
   };
 
   const zoomBy = (delta: number) => {
-    setScale((currentScale) => clampScale(currentScale + delta));
+    setScale((currentScale) => {
+      const nextScale = clampScale(currentScale + delta);
+      setOffset((currentOffset) => clampOffset(currentOffset, nextScale));
+      return nextScale;
+    });
   };
 
   const resetView = () => {
-    setScale(1.25);
-    setOffset({ x: 0, y: 92 });
+    setScale(INITIAL_SCALE);
+    setOffset(clampOffset(INITIAL_OFFSET, INITIAL_SCALE));
   };
 
   const handlePointerDown = (event: PointerEvent<HTMLElement>) => {
     if (event.button !== 0) return;
+    if (event.target instanceof Element && event.target.closest("a, button")) return;
 
     event.currentTarget.setPointerCapture(event.pointerId);
     dragState.current = {
@@ -95,10 +161,10 @@ export function StoreMap({ stores, fullscreen = false }: { stores: Store[]; full
 
     if (!drag || drag.pointerId !== event.pointerId) return;
 
-    setOffset({
+    setOffset(clampOffset({
       x: drag.startOffset.x + event.clientX - drag.startX,
       y: drag.startOffset.y + event.clientY - drag.startY
-    });
+    }));
   };
 
   const handlePointerUp = (event: PointerEvent<HTMLElement>) => {
@@ -114,6 +180,7 @@ export function StoreMap({ stores, fullscreen = false }: { stores: Store[]; full
 
   return (
     <section
+      ref={sectionRef}
       className={fullscreen ? "absolute inset-0 cursor-grab touch-none overflow-hidden bg-[#d9eadb] active:cursor-grabbing" : "relative min-h-[620px] cursor-grab touch-none overflow-hidden rounded-lg border border-border bg-[#d9eadb] shadow-sm active:cursor-grabbing"}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
@@ -122,8 +189,10 @@ export function StoreMap({ stores, fullscreen = false }: { stores: Store[]; full
       onWheel={handleWheel}
     >
       <div
-        className="absolute left-1/2 top-1/2 h-full aspect-[64/75]"
+        className="absolute left-1/2 top-1/2"
         style={{
+          width: mapSize.width || undefined,
+          height: mapSize.height || undefined,
           transform: `translate(calc(-50% + ${offset.x}px), calc(-50% + ${offset.y}px)) scale(${scale})`,
           transformOrigin: "center"
         }}
