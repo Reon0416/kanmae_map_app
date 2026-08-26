@@ -1,9 +1,11 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 import { Sparkles } from "lucide-react";
 import type { Store } from "@/features/stores/store-types";
 import { readLocalVisitRecords, type LocalVisitRecord } from "@/features/visit-records/local-visit-records";
+import { getStampImage } from "@/features/visit-records/stamp-images";
 import { cn } from "@/lib/utils";
 
 const STAMP_GOAL = 30;
@@ -25,6 +27,7 @@ export function VisitStampCard({ stores }: { stores: Store[] }) {
   const stampCount = records.length;
   const currentCardStampCount = stampCount % STAMP_GOAL || (stampCount > 0 ? STAMP_GOAL : 0);
   const stampSlots = useMemo(() => Array.from({ length: STAMP_GOAL }, (_, index) => index), []);
+  const currentCardRecords = useMemo(() => records.slice(0, currentCardStampCount), [currentCardStampCount, records]);
   const stampCountsByStore = useMemo(() => {
     const counts = records.reduce<Record<string, number>>((acc, record) => {
       acc[record.storeId] = (acc[record.storeId] ?? 0) + 1;
@@ -57,7 +60,9 @@ export function VisitStampCard({ stores }: { stores: Store[] }) {
 
           <div className="grid grid-cols-5 gap-2.5 pt-3">
             {stampSlots.map((index) => {
-              const stamped = index < currentCardStampCount;
+              const stampRecord = currentCardRecords[index];
+              const stampImage = stampRecord ? getStampImage(stampRecord.storeId) : undefined;
+              const stamped = Boolean(stampRecord);
               return (
                 <div
                   key={index}
@@ -69,7 +74,15 @@ export function VisitStampCard({ stores }: { stores: Store[] }) {
                   )}
                   aria-label={stamped ? "スタンプ済み" : "未スタンプ"}
                 >
-                  {stamped ? (
+                  {stamped && stampImage ? (
+                    <Image
+                      src={stampImage}
+                      alt={`${stampRecord.storeName}のスタンプ`}
+                      width={72}
+                      height={72}
+                      className="size-full rounded-full object-contain p-0.5"
+                    />
+                  ) : stamped ? (
                     <Sparkles className="size-6 opacity-90" aria-hidden="true" />
                   ) : null}
                 </div>
@@ -96,7 +109,17 @@ export function VisitStampCard({ stores }: { stores: Store[] }) {
                     <p className="mt-0.5 text-xs font-bold text-slate-500">{store.genre}</p>
                   </div>
                   <div className="flex shrink-0 items-center gap-1 rounded-full bg-slate-950 px-3 py-1.5 text-sm font-black text-white">
-                    <Sparkles className="size-4 text-emerald-300" aria-hidden="true" />
+                    {getStampImage(store.id) ? (
+                      <Image
+                        src={getStampImage(store.id) ?? ""}
+                        alt={`${store.name}のスタンプ`}
+                        width={22}
+                        height={22}
+                        className="size-5 rounded-full object-contain"
+                      />
+                    ) : (
+                      <Sparkles className="size-4 text-emerald-300" aria-hidden="true" />
+                    )}
                     {store.count}
                   </div>
                 </div>

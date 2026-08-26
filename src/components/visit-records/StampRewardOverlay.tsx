@@ -4,12 +4,9 @@ import Image from "next/image";
 import { useEffect, useState } from "react";
 import { Sparkles, X } from "lucide-react";
 import type { Store } from "@/features/stores/store-types";
+import { getStampImage } from "@/features/visit-records/stamp-images";
 
 const DISMISS_DELAY_MS = 1400;
-
-const STAMP_IMAGE_BY_STORE: Partial<Record<string, string>> = {
-  // Example: tonpuku: "/stamps/tonpuku.png"
-};
 
 export function StampRewardOverlay({
   store,
@@ -18,7 +15,7 @@ export function StampRewardOverlay({
   store: Store;
   onClose: () => void;
 }) {
-  const stampImage = STAMP_IMAGE_BY_STORE[store.id];
+  const stampImage = getStampImage(store.id);
   const [canDismiss, setCanDismiss] = useState(false);
 
   useEffect(() => {
