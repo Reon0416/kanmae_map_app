@@ -1,6 +1,6 @@
 "use client";
 
-import { LocateFixed, Minus, Plus, RotateCcw } from "lucide-react";
+import { LocateFixed } from "lucide-react";
 import Image from "next/image";
 import { StoreMarker } from "@/components/map/StoreMarker";
 import type { Store } from "@/features/stores/store-types";
@@ -26,16 +26,9 @@ type MapSize = {
 };
 
 const MAP_ASPECT_RATIO = 64 / 75;
-const MIN_SCALE = 1;
-const MAX_SCALE = 2.6;
-const SCALE_STEP = 0.2;
 const INITIAL_SCALE = 1.25;
 const INITIAL_OFFSET = { x: 0, y: 92 };
 const TAP_MOVE_THRESHOLD = 8;
-
-function clampScale(scale: number) {
-  return Math.min(MAX_SCALE, Math.max(MIN_SCALE, Number(scale.toFixed(2))));
-}
 
 function getCoverMapSize(width: number, height: number): MapSize {
   if (width / height > MAP_ASPECT_RATIO) {
@@ -62,7 +55,7 @@ export function StoreMap({
 }) {
   const [userLocation, setUserLocation] = useState<UserLocation | null>(null);
   const [locationMessage, setLocationMessage] = useState<string | null>(null);
-  const [scale, setScale] = useState(INITIAL_SCALE);
+  const scale = INITIAL_SCALE;
   const [offset, setOffset] = useState<MapOffset>(INITIAL_OFFSET);
   const [mapSize, setMapSize] = useState<MapSize>({ width: 0, height: 0 });
   const sectionRef = useRef<HTMLElement | null>(null);
@@ -139,19 +132,6 @@ export function StoreMap({
     );
   };
 
-  const zoomBy = (delta: number) => {
-    setScale((currentScale) => {
-      const nextScale = clampScale(currentScale + delta);
-      setOffset((currentOffset) => clampOffset(currentOffset, nextScale));
-      return nextScale;
-    });
-  };
-
-  const resetView = () => {
-    setScale(INITIAL_SCALE);
-    setOffset(clampOffset(INITIAL_OFFSET, INITIAL_SCALE));
-  };
-
   const handlePointerDown = (event: PointerEvent<HTMLElement>) => {
     if (event.button !== 0) return;
     if (event.target instanceof Element && event.target.closest("a, button")) return;
@@ -194,7 +174,6 @@ export function StoreMap({
 
   const handleWheel = (event: WheelEvent<HTMLElement>) => {
     event.preventDefault();
-    zoomBy(event.deltaY > 0 ? -SCALE_STEP : SCALE_STEP);
   };
 
   return (
@@ -249,35 +228,11 @@ export function StoreMap({
       <div className={fullscreen ? "absolute right-4 top-32 z-20 grid gap-2" : "absolute right-5 top-5 z-10 flex gap-2"}>
         <button
           className="flex size-10 items-center justify-center rounded-md bg-white text-slate-700 shadow-sm"
-          aria-label="拡大"
-          onClick={() => zoomBy(SCALE_STEP)}
-          type="button"
-        >
-          <Plus className="size-5" aria-hidden="true" />
-        </button>
-        <button
-          className="flex size-10 items-center justify-center rounded-md bg-white text-slate-700 shadow-sm"
-          aria-label="縮小"
-          onClick={() => zoomBy(-SCALE_STEP)}
-          type="button"
-        >
-          <Minus className="size-5" aria-hidden="true" />
-        </button>
-        <button
-          className="flex size-10 items-center justify-center rounded-md bg-white text-slate-700 shadow-sm"
           aria-label="現在地"
           onClick={locateUser}
           type="button"
         >
           <LocateFixed className="size-5" aria-hidden="true" />
-        </button>
-        <button
-          className="flex size-10 items-center justify-center rounded-md bg-white text-slate-700 shadow-sm"
-          aria-label="表示をリセット"
-          onClick={resetView}
-          type="button"
-        >
-          <RotateCcw className="size-5" aria-hidden="true" />
         </button>
       </div>
       {locationMessage ? (
