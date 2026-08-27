@@ -3,10 +3,12 @@
 import { useSearchParams } from "next/navigation";
 import { TOGGLE_MAP_BOTTOM_NAV_EVENT } from "@/components/layout/BottomNav";
 import { StoreMap } from "@/components/map/StoreMap";
+import { StoreRecordSheet } from "@/components/stores/StoreDetailRecordSheet";
 import type { DisplayStatus, Store, WaitTimeBucket } from "@/features/stores/store-types";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 
 export function MapHome({ stores }: { stores: Store[] }) {
+  const [selectedStore, setSelectedStore] = useState<Store | null>(null);
   const searchParams = useSearchParams();
   const waitTime = (searchParams.get("waitTime") ?? "all") as WaitTimeBucket | "all";
   const status = (searchParams.get("status") ?? "all") as DisplayStatus | "all";
@@ -28,6 +30,7 @@ export function MapHome({ stores }: { stores: Store[] }) {
           stores={filteredStores}
           fullscreen
           onMapTap={() => window.dispatchEvent(new Event(TOGGLE_MAP_BOTTOM_NAV_EVENT))}
+          onStoreSelect={setSelectedStore}
         />
       </div>
 
@@ -36,6 +39,14 @@ export function MapHome({ stores }: { stores: Store[] }) {
           <p className="text-base font-black text-slate-950">該当する店舗がありません</p>
           <p className="mt-1 text-sm text-slate-600">条件を変えて探してください。</p>
         </div>
+      ) : null}
+
+      {selectedStore ? (
+        <StoreRecordSheet
+          store={selectedStore}
+          isOpen
+          onClose={() => setSelectedStore(null)}
+        />
       ) : null}
 
     </main>

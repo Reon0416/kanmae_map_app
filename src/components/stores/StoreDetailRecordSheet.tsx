@@ -10,28 +10,31 @@ import { saveLocalVisitRecord } from "@/features/visit-records/local-visit-recor
 
 export const OPEN_STORE_DETAIL_RECORD_EVENT = "kanmae:open-store-detail-record";
 
-export function StoreDetailRecordSheet({ store }: { store: Store }) {
-  const [isOpen, setIsOpen] = useState(false);
+export function StoreRecordSheet({
+  store,
+  isOpen,
+  onClose
+}: {
+  store: Store;
+  isOpen: boolean;
+  onClose: () => void;
+}) {
   const [waitTime, setWaitTime] = useState<WaitTimeBucket>("within_5");
   const [saved, setSaved] = useState(false);
   const [showStampReward, setShowStampReward] = useState(false);
 
   useEffect(() => {
-    const openSheet = () => {
-      setIsOpen(true);
+    if (isOpen) {
       setWaitTime("within_5");
       setSaved(false);
       setShowStampReward(false);
-    };
-
-    window.addEventListener(OPEN_STORE_DETAIL_RECORD_EVENT, openSheet);
-    return () => window.removeEventListener(OPEN_STORE_DETAIL_RECORD_EVENT, openSheet);
-  }, []);
+    }
+  }, [isOpen, store.id]);
 
   const closeSheet = () => {
-    setIsOpen(false);
     setSaved(false);
     setShowStampReward(false);
+    onClose();
   };
 
   const saveRecord = () => {
@@ -82,4 +85,17 @@ export function StoreDetailRecordSheet({ store }: { store: Store }) {
       {showStampReward ? <StampRewardOverlay store={store} onClose={closeSheet} /> : null}
     </>
   );
+}
+
+export function StoreDetailRecordSheet({ store }: { store: Store }) {
+  const [isOpen, setIsOpen] = useState(false);
+
+  useEffect(() => {
+    const openSheet = () => setIsOpen(true);
+
+    window.addEventListener(OPEN_STORE_DETAIL_RECORD_EVENT, openSheet);
+    return () => window.removeEventListener(OPEN_STORE_DETAIL_RECORD_EVENT, openSheet);
+  }, []);
+
+  return <StoreRecordSheet store={store} isOpen={isOpen} onClose={() => setIsOpen(false)} />;
 }

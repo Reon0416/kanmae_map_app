@@ -47,11 +47,13 @@ function getCoverMapSize(width: number, height: number): MapSize {
 export function StoreMap({
   stores,
   fullscreen = false,
-  onMapTap
+  onMapTap,
+  onStoreSelect
 }: {
   stores: Store[];
   fullscreen?: boolean;
   onMapTap?: () => void;
+  onStoreSelect?: (store: Store) => void;
 }) {
   const [userLocation, setUserLocation] = useState<UserLocation | null>(null);
   const [locationMessage, setLocationMessage] = useState<string | null>(null);
@@ -208,6 +210,7 @@ export function StoreMap({
           <StoreMarker
             key={store.id}
             store={store}
+            onSelect={(selectedStore) => onStoreSelect?.(selectedStore)}
           />
         ))}
         {userLocation ? (
