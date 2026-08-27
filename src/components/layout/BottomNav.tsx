@@ -8,6 +8,8 @@ import { OPEN_STORE_DETAIL_RECORD_EVENT } from "@/components/stores/StoreDetailR
 import { ROLE_STORAGE_KEY, USER_ROLE, type UserRole } from "@/features/auth/roles";
 import { cn } from "@/lib/utils";
 
+export const TOGGLE_MAP_BOTTOM_NAV_EVENT = "kanmae:toggle-map-bottom-nav";
+
 const itemsByRole = {
   user: [
     { href: "/stores", label: "店舗", icon: Store },
@@ -30,7 +32,9 @@ const itemsByRole = {
 
 export function BottomNav() {
   const [role, setRole] = useState<UserRole>(USER_ROLE.USER);
+  const [isMapNavHidden, setIsMapNavHidden] = useState(false);
   const pathname = usePathname();
+  const isMapPage = pathname === "/";
   const isStoreDetailPage = pathname.startsWith("/stores/") && pathname !== "/stores";
 
   useEffect(() => {
@@ -40,10 +44,30 @@ export function BottomNav() {
     }
   }, []);
 
+  useEffect(() => {
+    setIsMapNavHidden(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    const toggleMapNav = () => {
+      if (window.location.pathname === "/") {
+        setIsMapNavHidden((current) => !current);
+      }
+    };
+
+    window.addEventListener(TOGGLE_MAP_BOTTOM_NAV_EVENT, toggleMapNav);
+    return () => window.removeEventListener(TOGGLE_MAP_BOTTOM_NAV_EVENT, toggleMapNav);
+  }, []);
+
   const items = itemsByRole[role];
 
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-white md:hidden">
+    <nav
+      className={cn(
+        "fixed inset-x-0 bottom-0 z-40 border-t border-border bg-white transition-transform duration-300 ease-out md:hidden",
+        isMapPage && isMapNavHidden && "translate-y-[calc(100%+2.5rem)]"
+      )}
+    >
       <div className={cn("grid h-16", role === USER_ROLE.USER ? "grid-cols-3" : "grid-cols-4")}>
         {items.map((item) => {
           const Icon = item.icon;

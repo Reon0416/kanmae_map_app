@@ -31,6 +31,7 @@ const MAX_SCALE = 2.6;
 const SCALE_STEP = 0.2;
 const INITIAL_SCALE = 1.25;
 const INITIAL_OFFSET = { x: 0, y: 92 };
+const TAP_MOVE_THRESHOLD = 8;
 
 function clampScale(scale: number) {
   return Math.min(MAX_SCALE, Math.max(MIN_SCALE, Number(scale.toFixed(2))));
@@ -50,7 +51,15 @@ function getCoverMapSize(width: number, height: number): MapSize {
   };
 }
 
-export function StoreMap({ stores, fullscreen = false }: { stores: Store[]; fullscreen?: boolean }) {
+export function StoreMap({
+  stores,
+  fullscreen = false,
+  onMapTap
+}: {
+  stores: Store[];
+  fullscreen?: boolean;
+  onMapTap?: () => void;
+}) {
   const [userLocation, setUserLocation] = useState<UserLocation | null>(null);
   const [locationMessage, setLocationMessage] = useState<string | null>(null);
   const [scale, setScale] = useState(INITIAL_SCALE);
@@ -168,8 +177,18 @@ export function StoreMap({ stores, fullscreen = false }: { stores: Store[]; full
   };
 
   const handlePointerUp = (event: PointerEvent<HTMLElement>) => {
-    if (dragState.current?.pointerId === event.pointerId) {
+    const drag = dragState.current;
+
+    if (drag?.pointerId === event.pointerId) {
       dragState.current = null;
+
+      const movedDistance = Math.hypot(event.clientX - drag.startX, event.clientY - drag.startY);
+      if (
+        movedDistance <= TAP_MOVE_THRESHOLD &&
+        !(event.target instanceof Element && event.target.closest("a, button"))
+      ) {
+        onMapTap?.();
+      }
     }
   };
 

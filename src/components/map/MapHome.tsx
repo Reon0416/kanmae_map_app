@@ -1,6 +1,7 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
+import { TOGGLE_MAP_BOTTOM_NAV_EVENT } from "@/components/layout/BottomNav";
 import { StoreMap } from "@/components/map/StoreMap";
 import type { DisplayStatus, Store, WaitTimeBucket } from "@/features/stores/store-types";
 import { useMemo } from "react";
@@ -22,8 +23,12 @@ export function MapHome({ stores }: { stores: Store[] }) {
 
   return (
     <main className="relative h-dvh overflow-hidden bg-slate-900">
-      <div className="absolute inset-x-0 top-0 bottom-[calc(5rem+env(safe-area-inset-bottom))] overflow-hidden">
-        <StoreMap stores={filteredStores} fullscreen />
+      <div className="absolute inset-0 overflow-hidden">
+        <StoreMap
+          stores={filteredStores}
+          fullscreen
+          onMapTap={() => window.dispatchEvent(new Event(TOGGLE_MAP_BOTTOM_NAV_EVENT))}
+        />
       </div>
 
       {filteredStores.length === 0 ? (
