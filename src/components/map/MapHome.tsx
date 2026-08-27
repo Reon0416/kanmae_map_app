@@ -1,7 +1,5 @@
 "use client";
 
-import Link from "next/link";
-import { Filter, List } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { StoreMap } from "@/components/map/StoreMap";
 import type { DisplayStatus, Store, WaitTimeBucket } from "@/features/stores/store-types";
@@ -22,8 +20,6 @@ export function MapHome({ stores }: { stores: Store[] }) {
     });
   }, [genre, status, stores, waitTime]);
 
-  const filterHref = `/filters?waitTime=${encodeURIComponent(waitTime)}&status=${encodeURIComponent(status)}&genre=${encodeURIComponent(genre)}`;
-
   return (
     <main className="relative h-dvh overflow-hidden bg-slate-900">
       <div className="absolute inset-x-0 top-0 bottom-[calc(5rem+env(safe-area-inset-bottom))] overflow-hidden">
@@ -36,24 +32,6 @@ export function MapHome({ stores }: { stores: Store[] }) {
           <p className="mt-1 text-sm text-slate-600">条件を変えて探してください。</p>
         </div>
       ) : null}
-
-      <div className="absolute bottom-[calc(6.25rem+env(safe-area-inset-bottom))] right-4 z-30 flex rounded-full bg-slate-950/74 p-1.5 shadow-panel backdrop-blur-md">
-        <Link
-          href="/stores"
-          aria-label="店舗一覧を開く"
-          className="flex h-12 items-center gap-2 rounded-full px-3 text-sm font-black text-white"
-        >
-          <List className="size-5" aria-hidden="true" />
-          店舗一覧
-        </Link>
-        <Link
-          href={filterHref}
-          aria-label="絞り込みページを開く"
-          className="flex size-12 items-center justify-center rounded-full text-white"
-        >
-          <Filter className="size-6" aria-hidden="true" />
-        </Link>
-      </div>
 
     </main>
   );
