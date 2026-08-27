@@ -13,12 +13,12 @@ const sortOptions: Array<{
 }> = [
   {
     value: "wait_asc",
-    label: "少ない順",
+    label: "待ち時間が少ない順",
     Icon: ArrowUpNarrowWide
   },
   {
     value: "wait_desc",
-    label: "多い順",
+    label: "待ち時間が多い順",
     Icon: ArrowDownWideNarrow
   }
 ];
@@ -53,15 +53,16 @@ export function StoreSortSelect({ value }: { value: StoreSortOrder }) {
             type="button"
             onClick={() => updateSort(optionValue)}
             aria-pressed={isActive}
+            aria-label={label}
+            title={label}
             className={cn(
-              "inline-flex h-9 items-center gap-1.5 rounded-full px-3 text-xs font-black transition",
+              "inline-flex size-9 items-center justify-center rounded-full transition",
               isActive
                 ? "bg-slate-950 text-white shadow-md shadow-slate-900/15"
                 : "text-slate-500 hover:bg-slate-100 hover:text-slate-950"
             )}
           >
             <Icon className="size-4" aria-hidden="true" />
-            {label}
           </button>
         );
       })}
