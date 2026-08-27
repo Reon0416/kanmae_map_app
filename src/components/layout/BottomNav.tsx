@@ -2,7 +2,9 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import { ClipboardList, Home, PenLine, Settings, ShieldCheck, Store, User } from "lucide-react";
+import { OPEN_STORE_DETAIL_RECORD_EVENT } from "@/components/stores/StoreDetailRecordSheet";
 import { ROLE_STORAGE_KEY, USER_ROLE, type UserRole } from "@/features/auth/roles";
 import { cn } from "@/lib/utils";
 
@@ -28,6 +30,8 @@ const itemsByRole = {
 
 export function BottomNav() {
   const [role, setRole] = useState<UserRole>(USER_ROLE.USER);
+  const pathname = usePathname();
+  const isStoreDetailPage = pathname.startsWith("/stores/") && pathname !== "/stores";
 
   useEffect(() => {
     const storedRole = window.localStorage.getItem(ROLE_STORAGE_KEY) as UserRole | null;
@@ -44,12 +48,32 @@ export function BottomNav() {
         {items.map((item) => {
           const Icon = item.icon;
           if ("featured" in item && item.featured) {
-            return (
-              <Link key={item.href} href={item.href} className="-mt-8 flex flex-col items-center justify-center gap-1 text-xs font-black text-emerald-700">
+            const featuredClassName = "-mt-8 flex flex-col items-center justify-center gap-1 text-xs font-black text-emerald-700";
+            const featuredContent = (
+              <>
                 <span className="flex size-16 items-center justify-center rounded-full bg-emerald-500 text-white shadow-panel ring-8 ring-white">
                   <Icon className="size-7" aria-hidden="true" />
                 </span>
                 {item.label}
+              </>
+            );
+
+            if (isStoreDetailPage) {
+              return (
+                <button
+                  key={item.href}
+                  type="button"
+                  className={featuredClassName}
+                  onClick={() => window.dispatchEvent(new Event(OPEN_STORE_DETAIL_RECORD_EVENT))}
+                >
+                  {featuredContent}
+                </button>
+              );
+            }
+
+            return (
+              <Link key={item.href} href={item.href} className={featuredClassName}>
+                {featuredContent}
               </Link>
             );
           }

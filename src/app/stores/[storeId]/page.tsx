@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
+import { StoreDetailRecordSheet } from "@/components/stores/StoreDetailRecordSheet";
 import { StoreStatusBadge } from "@/components/stores/StoreStatusBadge";
 import { WaitTimeLabel } from "@/components/stores/WaitTimeLabel";
 import { getStoreById } from "@/features/stores/store-queries";
@@ -57,6 +58,7 @@ export default async function StoreDetailPage({ params }: { params: Promise<{ st
           </div>
         </aside>
       </section>
+      <StoreDetailRecordSheet store={store} />
     </main>
   );
 }
