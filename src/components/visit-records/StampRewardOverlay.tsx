@@ -7,6 +7,7 @@ import type { Store } from "@/features/stores/store-types";
 import { getStampImage } from "@/features/visit-records/stamp-images";
 
 const DISMISS_DELAY_MS = 1400;
+const STAMP_SOUND_SRC = "/sounds/stamp.m4a";
 
 export function StampRewardOverlay({
   store,
@@ -21,6 +22,14 @@ export function StampRewardOverlay({
   useEffect(() => {
     const timer = window.setTimeout(() => setCanDismiss(true), DISMISS_DELAY_MS);
     return () => window.clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    const sound = new Audio(STAMP_SOUND_SRC);
+    sound.volume = 0.85;
+    sound.play().catch(() => {
+      // Some browsers block sound if the record action is not treated as a user gesture.
+    });
   }, []);
 
   const closeIfReady = () => {
