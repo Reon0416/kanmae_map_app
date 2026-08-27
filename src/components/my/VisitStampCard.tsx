@@ -1,7 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import type { UIEvent } from "react";
 import { Sparkles } from "lucide-react";
 import type { Store } from "@/features/stores/store-types";
 import { readLocalVisitRecords, type LocalVisitRecord } from "@/features/visit-records/local-visit-records";
@@ -31,7 +32,7 @@ function StampCardView({
   const stampSlots = Array.from({ length: STAMP_GOAL }, (_, index) => index);
 
   return (
-    <div className="min-w-full snap-center px-3">
+    <div className="min-w-full snap-start px-3">
       <div className="relative overflow-hidden rounded-[26px] border border-emerald-100 bg-gradient-to-br from-emerald-50 via-cyan-50 to-white p-4 shadow-[0_18px_50px_rgba(15,118,110,0.14)]">
         <div className="relative z-10 flex items-center justify-between gap-4 border-b border-emerald-100/80 pb-4">
           <div>
@@ -83,6 +84,9 @@ function StampCardView({
 
 export function VisitStampCard({ stores }: { stores: Store[] }) {
   const [records, setRecords] = useState<LocalVisitRecord[]>([]);
+  const [activeCardIndex, setActiveCardIndex] = useState(0);
+  const scrollContainerRef = useRef<HTMLDivElement | null>(null);
+  const snapTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
     const updateRecords = () => setRecords(readLocalVisitRecords());
@@ -119,11 +123,57 @@ export function VisitStampCard({ stores }: { stores: Store[] }) {
       });
   }, [records, stores]);
 
+  useEffect(() => {
+    setActiveCardIndex(0);
+    scrollContainerRef.current?.scrollTo({ left: 0 });
+  }, [visibleStampCards.length]);
+
+  useEffect(() => {
+    return () => {
+      if (snapTimerRef.current) {
+        window.clearTimeout(snapTimerRef.current);
+      }
+    };
+  }, []);
+
+  const settleStampCardScroll = (container: HTMLDivElement) => {
+    const nextIndex = Math.min(
+      visibleStampCards.length - 1,
+      Math.max(0, Math.round(container.scrollLeft / container.clientWidth))
+    );
+
+    setActiveCardIndex(nextIndex);
+    container.scrollTo({
+      left: nextIndex * container.clientWidth,
+      behavior: "smooth"
+    });
+  };
+
+  const handleStampCardScroll = (event: UIEvent<HTMLDivElement>) => {
+    const container = event.currentTarget;
+    const currentIndex = Math.min(
+      visibleStampCards.length - 1,
+      Math.max(0, Math.round(container.scrollLeft / container.clientWidth))
+    );
+
+    setActiveCardIndex(currentIndex);
+
+    if (snapTimerRef.current) {
+      window.clearTimeout(snapTimerRef.current);
+    }
+
+    snapTimerRef.current = window.setTimeout(() => settleStampCardScroll(container), 120);
+  };
+
   return (
     <section className="bg-white">
       <div className="py-5">
-        <div className="overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          <div className="flex snap-x snap-mandatory">
+        <div
+          ref={scrollContainerRef}
+          className="overflow-x-auto overscroll-x-contain pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          onScroll={handleStampCardScroll}
+        >
+          <div className="flex snap-x snap-mandatory scroll-smooth">
             {visibleStampCards.map((cardRecords, index) => {
               const cardNumber = stampCards.length - index;
               return (
@@ -143,7 +193,7 @@ export function VisitStampCard({ stores }: { stores: Store[] }) {
                 key={index}
                 className={cn(
                   "block h-1.5 rounded-full",
-                  index === 0 ? "w-5 bg-emerald-500" : "w-1.5 bg-slate-200"
+                  index === activeCardIndex ? "w-5 bg-emerald-500" : "w-1.5 bg-slate-200"
                 )}
               />
             ))}
