@@ -27,7 +27,7 @@ export function VisitStampCard({ stores }: { stores: Store[] }) {
   const stampCount = records.length;
   const currentCardStampCount = stampCount % STAMP_GOAL || (stampCount > 0 ? STAMP_GOAL : 0);
   const stampSlots = useMemo(() => Array.from({ length: STAMP_GOAL }, (_, index) => index), []);
-  const currentCardRecords = useMemo(() => records.slice(0, currentCardStampCount), [currentCardStampCount, records]);
+  const currentCardRecords = useMemo(() => records.slice(0, currentCardStampCount).reverse(), [currentCardStampCount, records]);
   const stampCountsByStore = useMemo(() => {
     const counts = records.reduce<Record<string, number>>((acc, record) => {
       acc[record.storeId] = (acc[record.storeId] ?? 0) + 1;
@@ -53,9 +53,7 @@ export function VisitStampCard({ stores }: { stores: Store[] }) {
     <section className="bg-white">
       <div className="px-3 py-5">
         <div className="relative overflow-hidden rounded-[26px] border border-emerald-100 bg-gradient-to-br from-emerald-50 via-cyan-50 to-white p-4 shadow-[0_18px_50px_rgba(15,118,110,0.14)]">
-          <div className="absolute inset-x-0 top-0 h-3 bg-gradient-to-r from-emerald-400 via-cyan-400 to-emerald-300" />
-
-          <div className="relative z-10 flex items-end justify-between gap-4 border-b border-emerald-100/80 pb-4 pt-2">
+          <div className="relative z-10 flex items-end justify-between gap-4 border-b border-emerald-100/80 pb-4">
             <div>
               <p className="text-xs font-black text-emerald-600">STAMP CARD</p>
               <h2 className="mt-1 text-lg font-black text-slate-950">スタンプカード</h2>
@@ -105,8 +103,8 @@ export function VisitStampCard({ stores }: { stores: Store[] }) {
           <div className="overflow-hidden rounded-[26px] bg-slate-950 p-5 text-white shadow-[0_18px_44px_rgba(15,23,42,0.22)]">
             <div className="flex items-end justify-between gap-4">
               <div>
-                <p className="text-xs font-black text-emerald-300">MEDAL COLLECTION</p>
-                <h2 className="mt-1 text-xl font-black tracking-normal">メダル図鑑</h2>
+                <p className="text-xs font-black text-emerald-300">STAMP COLLECTION</p>
+                <h2 className="mt-1 text-xl font-black tracking-normal">これまで押したスタンプ</h2>
               </div>
               <div className="text-right">
                 <p className="text-5xl font-black leading-none tracking-normal text-white">{stampCount}</p>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { CheckCircle2, Search, Utensils, X } from "lucide-react";
+import { CheckCircle2, Utensils, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { StampRewardOverlay } from "@/components/visit-records/StampRewardOverlay";
 import { WaitTimeSelector } from "@/components/visit-records/WaitTimeSelector";

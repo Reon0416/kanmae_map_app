@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowLeft, Map, Utensils } from "lucide-react";
 import { DISPLAY_STATUS } from "@/constants/crowd-status";
 import { WAIT_TIME_BUCKET, WAIT_TIME_LABELS, WAIT_TIME_SCORE } from "@/constants/wait-time-options";
+import { StoreSortSelect, type StoreSortOrder } from "@/components/stores/StoreSortSelect";
 import { getStores } from "@/features/stores/store-queries";
 import type { DisplayStatus, Store } from "@/features/stores/store-types";
 import { cn, priceBandLabel } from "@/lib/utils";
@@ -15,17 +16,11 @@ const statusPriority: Record<DisplayStatus, number> = {
   full: 4
 };
 
-function isLowPriorityStore(store: Store) {
-  return store.status === DISPLAY_STATUS.FULL || store.waitTime === WAIT_TIME_BUCKET.OVER_20;
-}
-
-function compareStores(a: Store, b: Store) {
-  const lowPriorityDiff = Number(isLowPriorityStore(a)) - Number(isLowPriorityStore(b));
-  if (lowPriorityDiff !== 0) {
-    return lowPriorityDiff;
-  }
-
-  const waitTimeDiff = WAIT_TIME_SCORE[a.waitTime] - WAIT_TIME_SCORE[b.waitTime];
+function compareStores(a: Store, b: Store, sortOrder: StoreSortOrder) {
+  const waitTimeDiff =
+    sortOrder === "wait_desc"
+      ? WAIT_TIME_SCORE[b.waitTime] - WAIT_TIME_SCORE[a.waitTime]
+      : WAIT_TIME_SCORE[a.waitTime] - WAIT_TIME_SCORE[b.waitTime];
   if (waitTimeDiff !== 0) {
     return waitTimeDiff;
   }
@@ -38,13 +33,19 @@ function compareStores(a: Store, b: Store) {
   return a.name.localeCompare(b.name, "ja");
 }
 
-export default function StoresPage() {
-  const stores = [...getStores()].sort(compareStores);
+export default async function StoresPage({
+  searchParams
+}: {
+  searchParams: Promise<{ sort?: string }>;
+}) {
+  const params = await searchParams;
+  const sortOrder: StoreSortOrder = params.sort === "wait_desc" ? "wait_desc" : "wait_asc";
+  const stores = [...getStores()].sort((a, b) => compareStores(a, b, sortOrder));
 
   return (
     <main className="min-h-dvh bg-slate-100 pb-24">
       <div className="px-3 pt-5">
-      <div className="mb-5 flex items-center justify-between gap-3 px-1">
+      <div className="mb-4 flex items-center justify-between gap-3 px-1">
         <div>
           <Link href="/" className="inline-flex items-center gap-1 text-sm font-bold text-slate-500">
             <ArrowLeft className="size-4" aria-hidden="true" />
@@ -52,33 +53,28 @@ export default function StoresPage() {
           </Link>
           <h1 className="mt-2 text-2xl font-black text-slate-950">店舗一覧</h1>
         </div>
-        <Link href="/record" className="rounded-full bg-emerald-500 px-4 py-2 text-sm font-black text-white shadow-sm">
-          記録する
-        </Link>
+      </div>
+
+      <div className="mb-3 flex justify-end px-1">
+        <StoreSortSelect value={sortOrder} />
       </div>
 
       <div className="overflow-hidden bg-white">
         {stores.map((store) => {
-          const lowPriority = isLowPriorityStore(store);
+          const isFull = store.status === DISPLAY_STATUS.FULL;
           return (
           <Link
             key={store.id}
             href={`/stores/${store.id}`}
-            className={cn(
-              "grid grid-cols-[86px_1fr_auto] gap-3 border-b border-dashed border-slate-200 bg-white p-3 transition last:border-b-0 hover:bg-slate-50",
-              lowPriority && "bg-slate-100/80 opacity-55 grayscale-[0.25] hover:bg-slate-100"
-            )}
+            className="grid grid-cols-[86px_1fr_auto] gap-3 border-b border-dashed border-slate-200 bg-white p-3 transition last:border-b-0 hover:bg-slate-50"
           >
             <div
-              className={cn(
-                "flex size-[86px] items-center justify-center rounded-xl bg-gradient-to-br from-orange-100 via-emerald-100 to-cyan-100 shadow-inner",
-                lowPriority && "from-slate-100 via-slate-100 to-slate-200"
-              )}
+              className="flex size-[86px] items-center justify-center rounded-xl bg-gradient-to-br from-orange-100 via-emerald-100 to-cyan-100 shadow-inner"
             >
-              <Utensils className={cn("size-8 text-slate-500", lowPriority && "text-slate-400")} aria-hidden="true" />
+              <Utensils className="size-8 text-slate-500" aria-hidden="true" />
             </div>
             <div className="min-w-0 py-1">
-              <h2 className={cn("truncate text-base font-black text-blue-700", lowPriority && "text-slate-600")}>{store.name}</h2>
+              <h2 className="truncate text-base font-black text-blue-700">{store.name}</h2>
               <p className="mt-1 line-clamp-2 text-sm leading-5 text-slate-600">{store.description}</p>
               <p className="mt-1.5 text-xs font-bold text-slate-500">
                 {store.genre} / {priceBandLabel(store.priceBand)}
@@ -97,6 +93,7 @@ export default function StoresPage() {
               >
                 {WAIT_TIME_LABELS[store.waitTime]}
               </span>
+              {isFull ? <span className="mt-1 text-xs font-black text-red-500">満席</span> : null}
             </div>
           </Link>
           );
