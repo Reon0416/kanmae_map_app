@@ -15,9 +15,9 @@ export default async function StoreDetailPage({ params }: { params: Promise<{ st
 
   return (
     <main className="min-h-dvh bg-slate-100 pb-24 pt-5 md:pb-10">
-      <Link href="/" className="inline-flex items-center gap-2 px-4 text-sm font-semibold text-slate-600 hover:text-slate-950">
+      <Link href="/stores" className="inline-flex items-center gap-2 px-4 text-sm font-semibold text-slate-600 hover:text-slate-950">
         <ArrowLeft className="size-4" aria-hidden="true" />
-        マップへ戻る
+        店舗一覧へ
       </Link>
       <section className="mt-5 grid gap-3 md:grid-cols-[1fr_340px] md:px-4">
         <div className="overflow-hidden bg-white md:rounded-lg md:shadow-sm">

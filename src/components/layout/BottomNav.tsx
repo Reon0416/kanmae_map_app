@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
-import { ClipboardList, Home, PenLine, Settings, ShieldCheck, Store, User } from "lucide-react";
+import { ClipboardList, Home, Map, PenLine, Settings, ShieldCheck, Store, User } from "lucide-react";
 import { OPEN_STORE_DETAIL_RECORD_EVENT } from "@/components/stores/StoreDetailRecordSheet";
 import { ROLE_STORAGE_KEY, USER_ROLE, type UserRole } from "@/features/auth/roles";
 import { cn } from "@/lib/utils";
@@ -11,11 +11,6 @@ import { cn } from "@/lib/utils";
 export const TOGGLE_MAP_BOTTOM_NAV_EVENT = "kanmae:toggle-map-bottom-nav";
 
 const itemsByRole = {
-  user: [
-    { href: "/stores", label: "店舗", icon: Store },
-    { href: "/record", label: "記録", icon: PenLine, featured: true },
-    { href: "/my", label: "自分", icon: User }
-  ],
   store: [
     { href: "/store-admin", label: "ホーム", icon: Home },
     { href: "/store-admin/status", label: "状況", icon: Store },
@@ -29,6 +24,22 @@ const itemsByRole = {
     { href: "/login", label: "切替", icon: User }
   ]
 } as const;
+
+const userNavItems = [
+  { href: "/", label: "マップ", icon: Map },
+  { href: "/stores", label: "店舗", icon: Store },
+  { href: "/record", label: "記録", icon: PenLine, featured: true },
+  { href: "/my", label: "自分", icon: User }
+] as const;
+
+function getUserItems(pathname: string) {
+  if (pathname.startsWith("/stores/") && pathname !== "/stores") {
+    return userNavItems.filter((item) => item.href === "/" || item.href === "/my");
+  }
+
+  const currentHref = pathname === "/" ? "/" : `/${pathname.split("/")[1]}`;
+  return userNavItems.filter((item) => item.href !== currentHref);
+}
 
 export function BottomNav() {
   const [role, setRole] = useState<UserRole>(USER_ROLE.USER);
@@ -59,7 +70,7 @@ export function BottomNav() {
     return () => window.removeEventListener(TOGGLE_MAP_BOTTOM_NAV_EVENT, toggleMapNav);
   }, []);
 
-  const items = itemsByRole[role];
+  const items = role === USER_ROLE.USER ? getUserItems(pathname) : itemsByRole[role];
 
   return (
     <nav
@@ -68,7 +79,14 @@ export function BottomNav() {
         isMapPage && isMapNavHidden && "translate-y-[calc(100%+2.5rem)]"
       )}
     >
-      <div className={cn("grid h-16", role === USER_ROLE.USER ? "grid-cols-3" : "grid-cols-4")}>
+      <div
+        className={cn(
+          "grid h-16",
+          items.length === 2 && "grid-cols-2",
+          items.length === 3 && "grid-cols-3",
+          items.length === 4 && "grid-cols-4"
+        )}
+      >
         {items.map((item) => {
           const Icon = item.icon;
           if ("featured" in item && item.featured) {
