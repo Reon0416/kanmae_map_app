@@ -8,6 +8,12 @@ import { getStampImage } from "@/features/visit-records/stamp-images";
 
 const DISMISS_DELAY_MS = 1400;
 const STAMP_SOUND_SRC = "/sounds/stamp.m4a";
+const SOUND_START_DELAY_MS = 0;
+const SOUND_VOLUME = 1;
+const SOUND_FADE_OUT_START_MS = 650;
+const SOUND_FADE_OUT_DURATION_MS = 350;
+const SOUND_STOP_MS = 1000;
+const SOUND_FADE_STEPS = 12;
 
 export function StampRewardOverlay({
   store,
@@ -26,10 +32,35 @@ export function StampRewardOverlay({
 
   useEffect(() => {
     const sound = new Audio(STAMP_SOUND_SRC);
-    sound.volume = 0.85;
-    sound.play().catch(() => {
-      // Some browsers block sound if the record action is not treated as a user gesture.
-    });
+    const timers: number[] = [];
+    sound.volume = SOUND_VOLUME;
+
+    timers.push(window.setTimeout(() => {
+      sound.currentTime = 0;
+      sound.play().catch(() => {
+        // Some browsers block sound if the record action is not treated as a user gesture.
+      });
+    }, SOUND_START_DELAY_MS));
+
+    timers.push(window.setTimeout(() => {
+      const fadeIntervalMs = SOUND_FADE_OUT_DURATION_MS / SOUND_FADE_STEPS;
+
+      for (let step = 1; step <= SOUND_FADE_STEPS; step += 1) {
+        timers.push(window.setTimeout(() => {
+          sound.volume = Math.max(0, SOUND_VOLUME * (1 - step / SOUND_FADE_STEPS));
+        }, fadeIntervalMs * step));
+      }
+    }, SOUND_START_DELAY_MS + SOUND_FADE_OUT_START_MS));
+
+    timers.push(window.setTimeout(() => {
+      sound.pause();
+      sound.currentTime = 0;
+    }, SOUND_START_DELAY_MS + SOUND_STOP_MS));
+
+    return () => {
+      timers.forEach((timer) => window.clearTimeout(timer));
+      sound.pause();
+    };
   }, []);
 
   const closeIfReady = () => {
