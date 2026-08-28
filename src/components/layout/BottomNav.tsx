@@ -37,6 +37,10 @@ function getUserItems(pathname: string) {
     return userNavItems.filter((item) => item.href === "/" || item.href === "/my");
   }
 
+  if (pathname === "/my") {
+    return userNavItems.filter((item) => item.href === "/stores" || item.href === "/record" || item.href === "/");
+  }
+
   const currentHref = pathname === "/" ? "/" : `/${pathname.split("/")[1]}`;
   return userNavItems.filter((item) => item.href !== currentHref);
 }

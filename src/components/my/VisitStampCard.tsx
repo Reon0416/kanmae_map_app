@@ -10,6 +10,7 @@ import { getStampImage } from "@/features/visit-records/stamp-images";
 import { cn } from "@/lib/utils";
 
 const STAMP_GOAL = 12;
+const SNAP_ADVANCE_RATIO = 0.16;
 
 function chunkRecords(records: LocalVisitRecord[]) {
   const chronologicalRecords = [...records].reverse();
@@ -87,6 +88,7 @@ export function VisitStampCard({ stores }: { stores: Store[] }) {
   const [activeCardIndex, setActiveCardIndex] = useState(0);
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
   const snapTimerRef = useRef<number | null>(null);
+  const settledCardIndexRef = useRef(0);
 
   useEffect(() => {
     const updateRecords = () => setRecords(readLocalVisitRecords());
@@ -101,7 +103,7 @@ export function VisitStampCard({ stores }: { stores: Store[] }) {
 
   const stampCount = records.length;
   const stampCards = useMemo(() => chunkRecords(records), [records]);
-  const visibleStampCards = useMemo(() => [...stampCards].reverse(), [stampCards]);
+  const visibleStampCards = stampCards;
   const stampCountsByStore = useMemo(() => {
     const counts = records.reduce<Record<string, number>>((acc, record) => {
       acc[record.storeId] = (acc[record.storeId] ?? 0) + 1;
@@ -124,8 +126,12 @@ export function VisitStampCard({ stores }: { stores: Store[] }) {
   }, [records, stores]);
 
   useEffect(() => {
-    setActiveCardIndex(0);
-    scrollContainerRef.current?.scrollTo({ left: 0 });
+    const latestCardIndex = Math.max(0, visibleStampCards.length - 1);
+    settledCardIndexRef.current = latestCardIndex;
+    setActiveCardIndex(latestCardIndex);
+    scrollContainerRef.current?.scrollTo({
+      left: latestCardIndex * (scrollContainerRef.current?.clientWidth ?? 0)
+    });
   }, [visibleStampCards.length]);
 
   useEffect(() => {
@@ -137,11 +143,15 @@ export function VisitStampCard({ stores }: { stores: Store[] }) {
   }, []);
 
   const settleStampCardScroll = (container: HTMLDivElement) => {
-    const nextIndex = Math.min(
-      visibleStampCards.length - 1,
-      Math.max(0, Math.round(container.scrollLeft / container.clientWidth))
-    );
+    const currentCardLeft = settledCardIndexRef.current * container.clientWidth;
+    const movedDistance = container.scrollLeft - currentCardLeft;
+    const shouldAdvance = Math.abs(movedDistance) >= container.clientWidth * SNAP_ADVANCE_RATIO;
+    const direction = movedDistance > 0 ? 1 : -1;
+    const nextIndex = shouldAdvance
+      ? Math.min(visibleStampCards.length - 1, Math.max(0, settledCardIndexRef.current + direction))
+      : settledCardIndexRef.current;
 
+    settledCardIndexRef.current = nextIndex;
     setActiveCardIndex(nextIndex);
     container.scrollTo({
       left: nextIndex * container.clientWidth,
@@ -175,7 +185,7 @@ export function VisitStampCard({ stores }: { stores: Store[] }) {
         >
           <div className="flex snap-x snap-mandatory scroll-smooth">
             {visibleStampCards.map((cardRecords, index) => {
-              const cardNumber = stampCards.length - index;
+              const cardNumber = index + 1;
               return (
                 <StampCardView
                   key={cardNumber}
