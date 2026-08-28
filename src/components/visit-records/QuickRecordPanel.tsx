@@ -7,6 +7,7 @@ import { StampRewardOverlay } from "@/components/visit-records/StampRewardOverla
 import { WaitTimeSelector } from "@/components/visit-records/WaitTimeSelector";
 import type { Store, WaitTimeBucket } from "@/features/stores/store-types";
 import { saveLocalVisitRecord } from "@/features/visit-records/local-visit-records";
+import { playStampSound } from "@/features/visit-records/stamp-sound";
 import { cn } from "@/lib/utils";
 
 export function QuickRecordPanel({ stores }: { stores: Store[] }) {
@@ -39,6 +40,7 @@ export function QuickRecordPanel({ stores }: { stores: Store[] }) {
       storeName: selectedStore.name,
       waitTime
     });
+    playStampSound();
     setSaved(true);
     setShowStampReward(true);
   };

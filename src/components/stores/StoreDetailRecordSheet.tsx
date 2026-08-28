@@ -7,6 +7,7 @@ import { StampRewardOverlay } from "@/components/visit-records/StampRewardOverla
 import { WaitTimeSelector } from "@/components/visit-records/WaitTimeSelector";
 import type { Store, WaitTimeBucket } from "@/features/stores/store-types";
 import { saveLocalVisitRecord } from "@/features/visit-records/local-visit-records";
+import { playStampSound } from "@/features/visit-records/stamp-sound";
 
 export const OPEN_STORE_DETAIL_RECORD_EVENT = "kanmae:open-store-detail-record";
 
@@ -43,6 +44,7 @@ export function StoreRecordSheet({
       storeName: store.name,
       waitTime
     });
+    playStampSound();
     setSaved(true);
     setShowStampReward(true);
   };
