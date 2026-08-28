@@ -5,7 +5,7 @@ export const KANDAI_MAE_CENTER = {
 
 export const DEFAULT_VISIT_RADIUS_METERS = 100;
 
-export const KANMAE_MAP_IMAGE = "/maps/サンプル.jpg";
+export const KANMAE_MAP_IMAGE = "/maps/サンプル濃いめ.jpg";
 
 export const KANMAE_MAP_CORNERS = {
   topLeft: { lat: 34.772735, lng: 135.505862 },
