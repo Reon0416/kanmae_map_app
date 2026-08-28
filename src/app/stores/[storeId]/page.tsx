@@ -28,7 +28,7 @@ export default async function StoreDetailPage({ params }: { params: Promise<{ st
                 {store.hasStudentDiscount ? <span className="rounded-full bg-white px-2.5 py-1 text-xs font-bold text-slate-700">学割あり</span> : null}
               </div>
               <h1 className="mt-3 text-3xl font-black text-slate-950">{store.name}</h1>
-              <p className="mt-2 max-w-xl text-sm font-semibold text-slate-700">{store.description}</p>
+              <p className="mt-2 max-w-xl text-sm font-semibold text-slate-700">{store.genre}</p>
             </div>
           </div>
           <div className="grid gap-4 p-5 sm:grid-cols-3">
@@ -52,9 +52,7 @@ export default async function StoreDetailPage({ params }: { params: Promise<{ st
             <dl className="mt-3 space-y-3 text-sm">
               <div className="flex justify-between gap-3"><dt className="text-slate-500">営業時間</dt><dd className="font-semibold">{store.hours}</dd></div>
               <div className="flex justify-between gap-3"><dt className="text-slate-500">定休日</dt><dd className="font-semibold">{store.closed}</dd></div>
-              <div className="flex justify-between gap-3"><dt className="text-slate-500">テイクアウト</dt><dd className="font-semibold">{store.acceptsTakeout ? "可" : "不可"}</dd></div>
             </dl>
-            <div className="mt-4 rounded-md bg-muted p-3 text-sm font-semibold text-slate-700">{store.address}</div>
           </div>
         </aside>
       </section>

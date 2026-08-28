@@ -36,7 +36,7 @@ export const demoStores: Store[] = [
   createStore({
     id: "suzume",
     name: "すずめ",
-    genre: "飲食店",
+    genre: "つけ麺",
     lat: 34.77360601431687,
     lng: 135.50812084235423,
     status: "limited",
@@ -56,7 +56,7 @@ export const demoStores: Store[] = [
   createStore({
     id: "butafuku",
     name: "豚福",
-    genre: "ラーメン",
+    genre: "家系ラーメン",
     lat: 34.7735503836104,
     lng: 135.50705801701554,
     status: "available",
@@ -66,7 +66,7 @@ export const demoStores: Store[] = [
   createStore({
     id: "kenpei",
     name: "憲兵家",
-    genre: "飲食店",
+    genre: "家系ラーメン",
     lat: 34.77343339593108,
     lng: 135.5060875932717,
     status: "unknown",
@@ -76,7 +76,7 @@ export const demoStores: Store[] = [
   createStore({
     id: "kirameki",
     name: "笑顔ノキラメキ",
-    genre: "ラーメン",
+    genre: "鶏白湯ラーメン",
     lat: 34.773432294310346,
     lng: 135.5060185264151,
     status: "full",
@@ -86,7 +86,7 @@ export const demoStores: Store[] = [
   createStore({
     id: "semi",
     name: "蝉",
-    genre: "飲食店",
+    genre: "魚介豚骨ラーメン",
     lat: 34.77327041674564,
     lng: 135.50677486778991,
     status: "stale",
@@ -106,7 +106,7 @@ export const demoStores: Store[] = [
   createStore({
     id: "musou",
     name: "無双屋",
-    genre: "飲食店",
+    genre: "ラーメン",
     lat: 34.7729585105518,
     lng: 135.50586781308675,
     status: "available",
