@@ -34,7 +34,7 @@ const userNavItems = [
 
 function getUserItems(pathname: string) {
   if (pathname.startsWith("/stores/") && pathname !== "/stores") {
-    return userNavItems.filter((item) => item.href === "/" || item.href === "/my");
+    return userNavItems.filter((item) => item.href === "/" || item.href === "/record" || item.href === "/my");
   }
 
   if (pathname === "/my") {
