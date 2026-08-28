@@ -202,7 +202,9 @@ export function StoreMap({
           alt=""
           fill
           priority
-          sizes="(max-width: 768px) 100vw, 86vh"
+          unoptimized
+          quality={100}
+          sizes="100vw"
           className="absolute inset-0 size-full select-none object-fill"
           draggable={false}
         />
