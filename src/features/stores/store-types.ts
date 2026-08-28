@@ -11,6 +11,7 @@ export type Store = {
   id: string;
   name: string;
   description: string;
+  heroImage?: string;
   genre: string;
   priceBand: PriceBand;
   address: string;

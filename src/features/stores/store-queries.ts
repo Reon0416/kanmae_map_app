@@ -67,6 +67,7 @@ export const demoStores: Store[] = [
     id: "kenpei",
     name: "憲兵家",
     genre: "家系ラーメン",
+    heroImage: "/stores/kenpei-sign.png",
     lat: 34.77343339593108,
     lng: 135.5060875932717,
     status: "unknown",

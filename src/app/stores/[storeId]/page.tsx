@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
@@ -21,7 +22,20 @@ export default async function StoreDetailPage({ params }: { params: Promise<{ st
       </Link>
       <section className="mt-5 grid gap-3 md:grid-cols-[1fr_340px] md:px-4">
         <div className="overflow-hidden bg-white md:rounded-lg md:shadow-sm">
-          <div className="flex min-h-64 items-end bg-[linear-gradient(135deg,#dbeafe,#dcfce7_48%,#fef3c7)] p-6">
+          {store.heroImage ? (
+            <div className="relative aspect-[3/1] w-full bg-white">
+              <Image
+                src={store.heroImage}
+                alt={`${store.name}の看板`}
+                fill
+                priority
+                quality={100}
+                sizes="(max-width: 768px) 100vw, 720px"
+                className="object-contain"
+              />
+            </div>
+          ) : null}
+          <div className={`${store.heroImage ? "p-6" : "flex min-h-64 items-end bg-[linear-gradient(135deg,#dbeafe,#dcfce7_48%,#fef3c7)] p-6"}`}>
             <div>
               <div className="flex flex-wrap items-center gap-2">
                 <StoreStatusBadge status={store.status} />
