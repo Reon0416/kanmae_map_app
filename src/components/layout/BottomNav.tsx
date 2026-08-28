@@ -32,13 +32,17 @@ const userNavItems = [
   { href: "/my", label: "自分", icon: User }
 ] as const;
 
+function getUserItem(href: (typeof userNavItems)[number]["href"]) {
+  return userNavItems.find((item) => item.href === href) ?? userNavItems[0];
+}
+
 function getUserItems(pathname: string) {
   if (pathname.startsWith("/stores/") && pathname !== "/stores") {
-    return userNavItems.filter((item) => item.href === "/" || item.href === "/record" || item.href === "/my");
+    return [getUserItem("/"), getUserItem("/record"), getUserItem("/my")];
   }
 
   if (pathname === "/my") {
-    return userNavItems.filter((item) => item.href === "/stores" || item.href === "/record" || item.href === "/");
+    return [getUserItem("/stores"), getUserItem("/record"), getUserItem("/")];
   }
 
   const currentHref = pathname === "/" ? "/" : `/${pathname.split("/")[1]}`;
