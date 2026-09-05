@@ -88,6 +88,7 @@ export const demoStores: Store[] = [
     id: "semi",
     name: "蝉",
     genre: "魚介豚骨ラーメン",
+    heroImage: "/stores/semi-sign.png",
     lat: 34.77327041674564,
     lng: 135.50677486778991,
     status: "stale",
@@ -123,3 +124,4 @@ export function getStores() {
 export function getStoreById(storeId: string) {
   return demoStores.find((store) => store.id === storeId);
 }
+
