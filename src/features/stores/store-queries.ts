@@ -27,6 +27,7 @@ export const demoStores: Store[] = [
     id: "toriton",
     name: "とりとん",
     genre: "居酒屋",
+    heroImage: "/stores/toriton-sign.png",
     lat: 34.773298685190646,
     lng: 135.50875504614464,
     status: "available",
