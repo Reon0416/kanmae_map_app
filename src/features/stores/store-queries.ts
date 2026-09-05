@@ -58,6 +58,7 @@ export const demoStores: Store[] = [
     id: "butafuku",
     name: "豚福",
     genre: "家系ラーメン",
+    heroImage: "/stores/butafuku-sign.png",
     lat: 34.7735503836104,
     lng: 135.50705801701554,
     status: "available",
