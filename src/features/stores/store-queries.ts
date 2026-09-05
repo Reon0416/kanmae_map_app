@@ -101,6 +101,7 @@ export const demoStores: Store[] = [
     id: "kokoro",
     name: "こころ",
     genre: "ラーメン",
+    heroImage: "/stores/kokoro-sign.png",
     lat: 34.77283513040589,
     lng: 135.50586781314328,
     status: "limited",
