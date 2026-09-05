@@ -36,8 +36,9 @@ export const demoStores: Store[] = [
   }),
   createStore({
     id: "suzume",
-    name: "すずめ",
+    name: "つけ麺　雀",
     genre: "つけ麺",
+    heroImage: "/stores/suzume-sign.png",
     lat: 34.77360601431687,
     lng: 135.50812084235423,
     status: "limited",
