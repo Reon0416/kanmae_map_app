@@ -109,8 +109,9 @@ export const demoStores: Store[] = [
   }),
   createStore({
     id: "musou",
-    name: "無双屋",
+    name: "武双家",
     genre: "ラーメン",
+    heroImage: "/stores/musou-sign.png",
     lat: 34.7729585105518,
     lng: 135.50586781308675,
     status: "available",
