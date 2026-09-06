@@ -29,6 +29,10 @@ const storeThumbnailImages: Record<string, {
     src: "/stores/toriton-storefront.jpg", width: 1345, height: 1170,
     bounds: { x: 0, y: 13, width: 1339, height: 1157 }
   },
+  suzume: {
+    src: "/stores/suzume-storefront.jpg", width: 1310, height: 1200,
+    bounds: { x: 8, y: 5, width: 1293, height: 1191 }
+  },
   kirinji: {
     src: "/stores/kirinji-storefront.jpg", width: 1312, height: 1199,
     bounds: { x: 9, y: 15, width: 1289, height: 1178 }
