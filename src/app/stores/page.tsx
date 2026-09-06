@@ -72,7 +72,7 @@ export default async function StoresPage({
             <div className="relative flex size-[86px] shrink-0 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-orange-100 via-emerald-100 to-cyan-100 shadow-inner">
               {store.id === "kenpei" ? (
                 <Image
-                  src="/stores/kenpei-stamp.jpg"
+                  src="/stores/kenpei-storefront.png"
                   alt=""
                   fill
                   sizes="86px"
