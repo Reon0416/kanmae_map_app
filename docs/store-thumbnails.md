@@ -1,25 +1,16 @@
 # Store list thumbnails
 
-Use `StoreThumbnail` for every illustrated store thumbnail. The list reserves
-86 x 86 CSS pixels; the centered visible crop is always 78 x 78 pixels.
+The user explicitly selected the display from commit
+`599ec16310ae61adff79dbf5b8de0fa00280ffb3` (initial Butafuku thumbnail addition).
+The page has been restored to that version. Do not confuse it with the later
+square-cover version `551e0165fb442519d38a5e9b8568c0c098bf7668`.
 
-Register the source dimensions and a manually reviewed building bounding box in
-`src/app/stores/page.tsx`. Exclude white margins, detached flags, vegetation,
-cast shadows and pavement extending beyond the building. Pixel thresholding is
-only an initial estimate: it also detects pavement and unrelated objects.
+Preserve the 86px frame, width-based scale and original artwork bounds in
+`src/app/stores/page.tsx`. Different heights are intentional in this selected
+historical appearance. The unused StoreThumbnail square-cover component must
+not be reintroduced: it clipped Butafuku and Kenpei.
 
-The component scales uniformly by the larger of 78 / building width and
-78 / building height, centers the building and clips to the common square.
-This intentionally crops the edges of wide/tall buildings rather than shrinking
-the entire illustration. Never stretch the aspect ratio or override the scale
-per store. Keep source assets intact.
-
-Before publishing an additional thumbnail, render it beside existing thumbnails
-at actual mobile and desktop sizes. Check loaded images, apparent building size,
-the main sign, crop edges and alignment. Adjust the reviewed building bounds if
-necessary, not the shared square dimensions. Deployment success alone does not
-verify the appearance.
-
-The previous width-only rule produced heights of about 86px (Kenpei), 78px
-(Semi) and 54px (Butafuku); equal widths did not mean equal visual size.
-
+Do not deploy the rejected square-redrawn Butafuku illustration. When asked to
+restore a prior appearance, identify the referenced message/commit and compare
+the actual page source before publishing. Do not infer the target from the
+latest screenshot alone. New sizing changes require a new user request.
