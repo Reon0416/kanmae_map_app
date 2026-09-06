@@ -82,10 +82,7 @@ export default async function StoresPage({
                   alt=""
                   fill
                   sizes="86px"
-                  className={cn(
-                    "bg-white",
-                    store.id === "semi" ? "object-cover" : "object-contain"
-                  )}
+                  className="bg-white object-cover object-center"
                 />
               ) : (
                 <Utensils className="size-8 text-slate-500" aria-hidden="true" />
