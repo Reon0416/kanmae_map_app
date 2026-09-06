@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft, Map, Utensils } from "lucide-react";
 import { DISPLAY_STATUS } from "@/constants/crowd-status";
@@ -68,10 +69,18 @@ export default async function StoresPage({
             href={`/stores/${store.id}`}
             className="grid grid-cols-[86px_1fr_auto] gap-3 border-b border-dashed border-slate-200 bg-white p-3 transition last:border-b-0 hover:bg-slate-50"
           >
-            <div
-              className="flex size-[86px] items-center justify-center rounded-xl bg-gradient-to-br from-orange-100 via-emerald-100 to-cyan-100 shadow-inner"
-            >
-              <Utensils className="size-8 text-slate-500" aria-hidden="true" />
+            <div className="relative flex size-[86px] shrink-0 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-orange-100 via-emerald-100 to-cyan-100 shadow-inner">
+              {store.id === "kenpei" ? (
+                <Image
+                  src="/stores/kenpei-storefront.jpg"
+                  alt=""
+                  fill
+                  sizes="86px"
+                  className="object-cover"
+                />
+              ) : (
+                <Utensils className="size-8 text-slate-500" aria-hidden="true" />
+              )}
             </div>
             <div className="min-w-0 py-1">
               <h2 className="truncate text-base font-black text-blue-700">{store.name}</h2>
@@ -112,3 +121,4 @@ export default async function StoresPage({
     </main>
   );
 }
+
