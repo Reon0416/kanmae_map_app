@@ -82,6 +82,7 @@ export const demoStores: Store[] = [
     id: "kirameki",
     name: "笑顔ノキラメキ",
     genre: "鶏白湯ラーメン",
+    heroImage: "/stores/kirameki-sign.png",
     lat: 34.773432294310346,
     lng: 135.5060185264151,
     status: "full",
