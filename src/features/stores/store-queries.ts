@@ -69,7 +69,7 @@ export const demoStores: Store[] = [
   }),
   createStore({
     id: "kenpei",
-    name: "憲兵家",
+    name: "横浜家系ラーメン　憲兵家",
     genre: "家系ラーメン",
     heroImage: "/stores/kenpei-sign.png",
     lat: 34.77343339593108,
@@ -113,7 +113,7 @@ export const demoStores: Store[] = [
   }),
   createStore({
     id: "musou",
-    name: "武双家",
+    name: "横浜家系ラーメン　武双屋",
     genre: "ラーメン",
     heroImage: "/stores/musou-sign.png",
     lat: 34.7729585105518,
