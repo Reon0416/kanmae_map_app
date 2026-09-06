@@ -102,7 +102,7 @@ export const demoStores: Store[] = [
   }),
   createStore({
     id: "kokoro",
-    name: "こころ",
+    name: "麺屋　こころ",
     genre: "ラーメン",
     heroImage: "/stores/kokoro-sign.png",
     lat: 34.77283513040589,
