@@ -17,9 +17,22 @@ const statusPriority: Record<DisplayStatus, number> = {
   full: 4
 };
 
-const storeThumbnailImages: Record<string, string> = {
-  kenpei: "/stores/kenpei-storefront.png",
-  semi: "/stores/semi-storefront.png"
+// Measure the building bounds, excluding white margins, for every new thumbnail.
+// All buildings share a 78px visible width inside the 86px frame.
+const storeThumbnailImages: Record<string, {
+  src: string;
+  width: number;
+  height: number;
+  bounds: { x: number; y: number; width: number; height: number };
+}> = {
+  kenpei: {
+    src: "/stores/kenpei-storefront.png", width: 1254, height: 1254,
+    bounds: { x: 159, y: 10, width: 1068, height: 1176 }
+  },
+  semi: {
+    src: "/stores/semi-storefront.png", width: 1536, height: 1024,
+    bounds: { x: 315, y: 30, width: 981, height: 986 }
+  }
 };
 
 function compareStores(a: Store, b: Store, sortOrder: StoreSortOrder) {
@@ -69,20 +82,32 @@ export default async function StoresPage({
         {stores.map((store) => {
           const isFull = store.status === DISPLAY_STATUS.FULL;
           const thumbnailImage = storeThumbnailImages[store.id];
+          const thumbnailScale = thumbnailImage ? 78 / thumbnailImage.bounds.width : 1;
           return (
           <Link
             key={store.id}
             href={`/stores/${store.id}`}
             className="grid grid-cols-[86px_1fr_auto] gap-3 border-b border-dashed border-slate-200 bg-white p-3 transition last:border-b-0 hover:bg-slate-50"
           >
-            <div className="relative flex size-[86px] shrink-0 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-orange-100 via-emerald-100 to-cyan-100 shadow-inner">
+            <div className={cn(
+              "relative flex size-[86px] shrink-0 items-center justify-center overflow-hidden rounded-xl",
+              thumbnailImage ? "bg-white" : "bg-gradient-to-br from-orange-100 via-emerald-100 to-cyan-100 shadow-inner"
+            )}>
               {thumbnailImage ? (
                 <Image
-                  src={thumbnailImage}
+                  src={thumbnailImage.src}
                   alt=""
-                  fill
-                  sizes="86px"
-                  className="bg-white object-cover object-center"
+                  width={thumbnailImage.width}
+                  height={thumbnailImage.height}
+                  sizes="128px"
+                  className="absolute max-w-none bg-white"
+                  style={{
+                    width: thumbnailImage.width * thumbnailScale,
+                    height: thumbnailImage.height * thumbnailScale,
+                    left: 4 - thumbnailImage.bounds.x * thumbnailScale,
+                    top: (86 - thumbnailImage.bounds.height * thumbnailScale) / 2
+                      - thumbnailImage.bounds.y * thumbnailScale
+                  }}
                 />
               ) : (
                 <Utensils className="size-8 text-slate-500" aria-hidden="true" />
