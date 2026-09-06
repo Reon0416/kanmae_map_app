@@ -3,7 +3,7 @@ import { ArrowLeft, Map, Utensils } from "lucide-react";
 import { DISPLAY_STATUS } from "@/constants/crowd-status";
 import { WAIT_TIME_BUCKET, WAIT_TIME_LABELS, WAIT_TIME_SCORE } from "@/constants/wait-time-options";
 import { StoreSortSelect, type StoreSortOrder } from "@/components/stores/StoreSortSelect";
-import { StoreThumbnail, type StoreThumbnailImage } from "@/components/stores/StoreThumbnail";
+import { StoreThumbnail, THUMBNAIL_FRAME, type StoreThumbnailImage } from "@/components/stores/StoreThumbnail";
 import { getStores } from "@/features/stores/store-queries";
 import type { DisplayStatus, Store } from "@/features/stores/store-types";
 import { cn, priceBandLabel } from "@/lib/utils";
@@ -21,15 +21,15 @@ const statusPriority: Record<DisplayStatus, number> = {
 const storeThumbnailImages: Record<string, StoreThumbnailImage> = {
   kenpei: {
     src: "/stores/kenpei-storefront.png", width: 1254, height: 1254,
-    bounds: { x: 159, y: 10, width: 1068, height: 1176 }
+    bounds: { x: 155, y: 6, width: 1076, height: 1184 }
   },
   semi: {
     src: "/stores/semi-storefront.png", width: 1536, height: 1024,
-    bounds: { x: 315, y: 30, width: 981, height: 986 }
+    bounds: { x: 311, y: 26, width: 989, height: 994 }
   },
   butafuku: {
     src: "/stores/butafuku-storefront.png", width: 1536, height: 1024,
-    bounds: { x: 225, y: 8, width: 1235, height: 934 }
+    bounds: { x: 30, y: 4, width: 1463, height: 1015 }
   }
 };
 
@@ -84,12 +84,13 @@ export default async function StoresPage({
           <Link
             key={store.id}
             href={`/stores/${store.id}`}
-            className="grid grid-cols-[86px_1fr_auto] gap-3 border-b border-dashed border-slate-200 bg-white p-3 transition last:border-b-0 hover:bg-slate-50"
+            className="grid gap-3 border-b border-dashed border-slate-200 bg-white p-3 transition last:border-b-0 hover:bg-slate-50"
+            style={{ gridTemplateColumns: `${THUMBNAIL_FRAME.width}px minmax(0, 1fr) auto` }}
           >
             <div className={cn(
-              "relative flex size-[86px] shrink-0 items-center justify-center overflow-hidden rounded-xl",
+              "relative flex shrink-0 items-center justify-center overflow-hidden rounded-xl",
               thumbnailImage ? "bg-white" : "bg-gradient-to-br from-orange-100 via-emerald-100 to-cyan-100 shadow-inner"
-            )}>
+            )} style={THUMBNAIL_FRAME}>
               {thumbnailImage ? (
                 <StoreThumbnail image={thumbnailImage} />
               ) : (
