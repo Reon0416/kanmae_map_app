@@ -25,7 +25,7 @@ const createStore = (
 export const demoStores: Store[] = [
   createStore({
     id: "toriton",
-    name: "とりとん",
+    name: "麺処　とりとん",
     genre: "居酒屋",
     heroImage: "/stores/toriton-sign.png",
     lat: 34.773298685190646,
@@ -58,7 +58,7 @@ export const demoStores: Store[] = [
   }),
   createStore({
     id: "butafuku",
-    name: "豚福",
+    name: "ラーメン　豚福",
     genre: "家系ラーメン",
     heroImage: "/stores/butafuku-sign.png",
     lat: 34.7735503836104,
