@@ -30,8 +30,8 @@ const storeThumbnailImages: Record<string, {
     bounds: { x: 0, y: 13, width: 1339, height: 1157 }
   },
   kenpei: {
-    src: "/stores/kenpei-front.jpg", width: 1312, height: 1199,
-    bounds: { x: 24, y: 8, width: 1253, height: 1171 }
+    src: "/stores/kenpei-storefront.png", width: 1254, height: 1254,
+    bounds: { x: 159, y: 10, width: 1068, height: 1176 }
   },
   semi: {
     src: "/stores/semi-storefront.png", width: 1536, height: 1024,
