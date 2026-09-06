@@ -41,6 +41,10 @@ const storeThumbnailImages: Record<string, {
     src: "/stores/kokoro-storefront.jpg", width: 1312, height: 1199,
     bounds: { x: 20, y: 29, width: 1283, height: 1170 }
   },
+  kirameki: {
+    src: "/stores/kirameki-storefront.jpg", width: 1536, height: 1024,
+    bounds: { x: 68, y: 10, width: 1349, height: 1014 }
+  },
   kenpei: {
     src: "/stores/kenpei-storefront.png", width: 1254, height: 1254,
     bounds: { x: 159, y: 10, width: 1068, height: 1176 }
