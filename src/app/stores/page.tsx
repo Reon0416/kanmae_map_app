@@ -1,9 +1,9 @@
-import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft, Map, Utensils } from "lucide-react";
 import { DISPLAY_STATUS } from "@/constants/crowd-status";
 import { WAIT_TIME_BUCKET, WAIT_TIME_LABELS, WAIT_TIME_SCORE } from "@/constants/wait-time-options";
 import { StoreSortSelect, type StoreSortOrder } from "@/components/stores/StoreSortSelect";
+import { StoreThumbnail, type StoreThumbnailImage } from "@/components/stores/StoreThumbnail";
 import { getStores } from "@/features/stores/store-queries";
 import type { DisplayStatus, Store } from "@/features/stores/store-types";
 import { cn, priceBandLabel } from "@/lib/utils";
@@ -17,14 +17,8 @@ const statusPriority: Record<DisplayStatus, number> = {
   full: 4
 };
 
-// Measure the building bounds, excluding white margins, for every new thumbnail.
-// All buildings share a 78px visible width inside the 86px frame.
-const storeThumbnailImages: Record<string, {
-  src: string;
-  width: number;
-  height: number;
-  bounds: { x: number; y: number; width: number; height: number };
-}> = {
+// See docs/store-thumbnails.md when adding or replacing an image.
+const storeThumbnailImages: Record<string, StoreThumbnailImage> = {
   kenpei: {
     src: "/stores/kenpei-storefront.png", width: 1254, height: 1254,
     bounds: { x: 159, y: 10, width: 1068, height: 1176 }
@@ -35,7 +29,7 @@ const storeThumbnailImages: Record<string, {
   },
   butafuku: {
     src: "/stores/butafuku-storefront.png", width: 1536, height: 1024,
-    bounds: { x: 34, y: 8, width: 1455, height: 1007 }
+    bounds: { x: 225, y: 8, width: 1235, height: 934 }
   }
 };
 
@@ -86,7 +80,6 @@ export default async function StoresPage({
         {stores.map((store) => {
           const isFull = store.status === DISPLAY_STATUS.FULL;
           const thumbnailImage = storeThumbnailImages[store.id];
-          const thumbnailScale = thumbnailImage ? 78 / thumbnailImage.bounds.width : 1;
           return (
           <Link
             key={store.id}
@@ -98,21 +91,7 @@ export default async function StoresPage({
               thumbnailImage ? "bg-white" : "bg-gradient-to-br from-orange-100 via-emerald-100 to-cyan-100 shadow-inner"
             )}>
               {thumbnailImage ? (
-                <Image
-                  src={thumbnailImage.src}
-                  alt=""
-                  width={thumbnailImage.width}
-                  height={thumbnailImage.height}
-                  sizes="128px"
-                  className="absolute max-w-none bg-white"
-                  style={{
-                    width: thumbnailImage.width * thumbnailScale,
-                    height: thumbnailImage.height * thumbnailScale,
-                    left: 4 - thumbnailImage.bounds.x * thumbnailScale,
-                    top: (86 - thumbnailImage.bounds.height * thumbnailScale) / 2
-                      - thumbnailImage.bounds.y * thumbnailScale
-                  }}
-                />
+                <StoreThumbnail image={thumbnailImage} />
               ) : (
                 <Utensils className="size-8 text-slate-500" aria-hidden="true" />
               )}
