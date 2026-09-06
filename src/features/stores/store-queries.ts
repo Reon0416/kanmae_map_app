@@ -49,6 +49,7 @@ export const demoStores: Store[] = [
     id: "kirinji",
     name: "きりん寺",
     genre: "油そば",
+    heroImage: "/stores/kirinji-sign.png",
     lat: 34.77360601434054,
     lng: 135.5078827963048,
     status: "slightly_crowded",
