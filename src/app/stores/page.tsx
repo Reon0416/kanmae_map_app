@@ -32,6 +32,10 @@ const storeThumbnailImages: Record<string, {
   semi: {
     src: "/stores/semi-storefront.png", width: 1536, height: 1024,
     bounds: { x: 315, y: 30, width: 981, height: 986 }
+  },
+  butafuku: {
+    src: "/stores/butafuku-storefront.png", width: 1536, height: 1024,
+    bounds: { x: 34, y: 8, width: 1455, height: 1007 }
   }
 };
 
