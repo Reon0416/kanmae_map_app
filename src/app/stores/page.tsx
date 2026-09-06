@@ -17,6 +17,11 @@ const statusPriority: Record<DisplayStatus, number> = {
   full: 4
 };
 
+const storeThumbnailImages: Record<string, string> = {
+  kenpei: "/stores/kenpei-storefront.png",
+  semi: "/stores/semi-storefront.png"
+};
+
 function compareStores(a: Store, b: Store, sortOrder: StoreSortOrder) {
   const waitTimeDiff =
     sortOrder === "wait_desc"
@@ -63,6 +68,7 @@ export default async function StoresPage({
       <div className="overflow-hidden bg-white">
         {stores.map((store) => {
           const isFull = store.status === DISPLAY_STATUS.FULL;
+          const thumbnailImage = storeThumbnailImages[store.id];
           return (
           <Link
             key={store.id}
@@ -70,9 +76,9 @@ export default async function StoresPage({
             className="grid grid-cols-[86px_1fr_auto] gap-3 border-b border-dashed border-slate-200 bg-white p-3 transition last:border-b-0 hover:bg-slate-50"
           >
             <div className="relative flex size-[86px] shrink-0 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-orange-100 via-emerald-100 to-cyan-100 shadow-inner">
-              {store.id === "kenpei" ? (
+              {thumbnailImage ? (
                 <Image
-                  src="/stores/kenpei-storefront.png"
+                  src={thumbnailImage}
                   alt=""
                   fill
                   sizes="86px"
