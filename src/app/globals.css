@@ -86,3 +86,34 @@ a {
   inset: -14px;
   position: absolute;
 }
+
+.kanmae-stamp-page {
+  backface-visibility: hidden;
+  transform: rotateY(calc(var(--stamp-page-turn) * 68deg));
+  transform-origin: center;
+  transform-style: preserve-3d;
+  transition: box-shadow 120ms linear;
+  will-change: transform;
+}
+
+.kanmae-stamp-page::after {
+  background: linear-gradient(
+    90deg,
+    rgb(15 23 42 / calc(var(--stamp-page-fold) * 0.2)),
+    transparent 18%,
+    transparent 80%,
+    rgb(15 23 42 / calc(var(--stamp-page-fold) * 0.16))
+  );
+  content: "";
+  inset: 0;
+  opacity: calc(1 - var(--stamp-page-fold));
+  pointer-events: none;
+  position: absolute;
+  z-index: 20;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kanmae-stamp-page {
+    transform: none;
+  }
+}
