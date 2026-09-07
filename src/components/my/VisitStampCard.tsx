@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { UIEvent } from "react";
+import type { CSSProperties, UIEvent } from "react";
 import { Sparkles } from "lucide-react";
 import type { Store } from "@/features/stores/store-types";
 import { readLocalVisitRecords, type LocalVisitRecord } from "@/features/visit-records/local-visit-records";
@@ -25,16 +25,26 @@ function chunkRecords(records: LocalVisitRecord[]) {
 
 function StampCardView({
   records,
-  cardNumber
+  cardNumber,
+  turnAmount
 }: {
   records: LocalVisitRecord[];
   cardNumber: number;
+  turnAmount: number;
 }) {
   const stampSlots = Array.from({ length: STAMP_GOAL }, (_, index) => index);
+  const clampedTurnAmount = Math.min(1, Math.max(-1, turnAmount));
+  const pageStyle = {
+    "--stamp-page-turn": clampedTurnAmount,
+    "--stamp-page-fold": Math.max(0, 1 - Math.abs(clampedTurnAmount))
+  } as CSSProperties;
 
   return (
-    <div className="min-w-full snap-start px-3">
-      <div className="relative overflow-hidden rounded-[26px] border border-emerald-100 bg-gradient-to-br from-emerald-50 via-cyan-50 to-white p-4 shadow-[0_18px_50px_rgba(15,118,110,0.14)]">
+    <div className="min-w-full snap-start px-3 [perspective:1200px]">
+      <div
+        className="kanmae-stamp-page relative overflow-hidden rounded-[26px] border border-emerald-100 bg-gradient-to-br from-emerald-50 via-cyan-50 to-white p-4 shadow-[0_18px_50px_rgba(15,118,110,0.14)]"
+        style={pageStyle}
+      >
         <div className="relative z-10 flex items-center justify-between gap-4 border-b border-emerald-100/80 pb-4">
           <div>
             <p className="text-xs font-black text-emerald-600">STAMP CARD</p>
@@ -86,6 +96,7 @@ function StampCardView({
 export function VisitStampCard({ stores }: { stores: Store[] }) {
   const [records, setRecords] = useState<LocalVisitRecord[]>([]);
   const [activeCardIndex, setActiveCardIndex] = useState(0);
+  const [scrollProgress, setScrollProgress] = useState(0);
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
   const snapTimerRef = useRef<number | null>(null);
   const settledCardIndexRef = useRef(0);
@@ -129,6 +140,7 @@ export function VisitStampCard({ stores }: { stores: Store[] }) {
     const latestCardIndex = Math.max(0, visibleStampCards.length - 1);
     settledCardIndexRef.current = latestCardIndex;
     setActiveCardIndex(latestCardIndex);
+    setScrollProgress(latestCardIndex);
     scrollContainerRef.current?.scrollTo({
       left: latestCardIndex * (scrollContainerRef.current?.clientWidth ?? 0)
     });
@@ -161,11 +173,15 @@ export function VisitStampCard({ stores }: { stores: Store[] }) {
 
   const handleStampCardScroll = (event: UIEvent<HTMLDivElement>) => {
     const container = event.currentTarget;
+    const nextScrollProgress = container.clientWidth > 0
+      ? container.scrollLeft / container.clientWidth
+      : 0;
     const currentIndex = Math.min(
       visibleStampCards.length - 1,
-      Math.max(0, Math.round(container.scrollLeft / container.clientWidth))
+      Math.max(0, Math.round(nextScrollProgress))
     );
 
+    setScrollProgress(nextScrollProgress);
     setActiveCardIndex(currentIndex);
 
     if (snapTimerRef.current) {
@@ -191,6 +207,7 @@ export function VisitStampCard({ stores }: { stores: Store[] }) {
                   key={cardNumber}
                   records={cardRecords}
                   cardNumber={cardNumber}
+                  turnAmount={index - scrollProgress}
                 />
               );
             })}
