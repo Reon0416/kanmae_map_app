@@ -25,23 +25,12 @@ type MapSize = {
   height: number;
 };
 
-const MAP_ASPECT_RATIO = 64 / 75;
-const INITIAL_SCALE = 1.25;
-const INITIAL_OFFSET = { x: 0, y: 92 };
+const INITIAL_SCALE = 1;
+const INITIAL_OFFSET = { x: 0, y: 0 };
 const TAP_MOVE_THRESHOLD = 8;
 
-function getCoverMapSize(width: number, height: number): MapSize {
-  if (width / height > MAP_ASPECT_RATIO) {
-    return {
-      width,
-      height: width / MAP_ASPECT_RATIO
-    };
-  }
-
-  return {
-    width: height * MAP_ASPECT_RATIO,
-    height
-  };
+function getViewportMapSize(width: number, height: number): MapSize {
+  return { width, height };
 }
 
 export function StoreMap({
@@ -74,7 +63,7 @@ export function StoreMap({
     if (!container) return nextOffset;
 
     const rect = container.getBoundingClientRect();
-    const currentMapSize = mapSize.width > 0 ? mapSize : getCoverMapSize(rect.width, rect.height);
+    const currentMapSize = mapSize.width > 0 ? mapSize : getViewportMapSize(rect.width, rect.height);
     const maxX = Math.max(0, (currentMapSize.width * nextScale - rect.width) / 2);
     const maxY = Math.max(0, (currentMapSize.height * nextScale - rect.height) / 2);
 
@@ -91,7 +80,7 @@ export function StoreMap({
 
     const updateMapSize = () => {
       const rect = container.getBoundingClientRect();
-      setMapSize(getCoverMapSize(rect.width, rect.height));
+      setMapSize(getViewportMapSize(rect.width, rect.height));
     };
 
     updateMapSize();
