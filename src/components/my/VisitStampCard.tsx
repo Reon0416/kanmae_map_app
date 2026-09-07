@@ -40,7 +40,7 @@ function StampCardView({
   } as CSSProperties;
 
   return (
-    <div className="min-w-full snap-start px-3 [perspective:1200px]">
+    <div className="min-w-full snap-start px-3 [perspective:1200px] [scroll-snap-stop:always]">
       <div
         className="kanmae-stamp-page relative overflow-hidden rounded-[26px] border border-emerald-100 bg-gradient-to-br from-emerald-50 via-cyan-50 to-white p-4 shadow-[0_18px_50px_rgba(15,118,110,0.14)]"
         style={pageStyle}
@@ -99,6 +99,8 @@ export function VisitStampCard({ stores }: { stores: Store[] }) {
   const [scrollProgress, setScrollProgress] = useState(0);
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
   const snapTimerRef = useRef<number | null>(null);
+  const settleReleaseTimerRef = useRef<number | null>(null);
+  const isSettlingRef = useRef(false);
   const settledCardIndexRef = useRef(0);
 
   useEffect(() => {
@@ -151,10 +153,15 @@ export function VisitStampCard({ stores }: { stores: Store[] }) {
       if (snapTimerRef.current) {
         window.clearTimeout(snapTimerRef.current);
       }
+      if (settleReleaseTimerRef.current) {
+        window.clearTimeout(settleReleaseTimerRef.current);
+      }
     };
   }, []);
 
   const settleStampCardScroll = (container: HTMLDivElement) => {
+    if (isSettlingRef.current) return;
+
     const currentCardLeft = settledCardIndexRef.current * container.clientWidth;
     const movedDistance = container.scrollLeft - currentCardLeft;
     const shouldAdvance = Math.abs(movedDistance) >= container.clientWidth * SNAP_ADVANCE_RATIO;
@@ -163,12 +170,17 @@ export function VisitStampCard({ stores }: { stores: Store[] }) {
       ? Math.min(visibleStampCards.length - 1, Math.max(0, settledCardIndexRef.current + direction))
       : settledCardIndexRef.current;
 
+    isSettlingRef.current = true;
     settledCardIndexRef.current = nextIndex;
     setActiveCardIndex(nextIndex);
     container.scrollTo({
       left: nextIndex * container.clientWidth,
       behavior: "smooth"
     });
+    settleReleaseTimerRef.current = window.setTimeout(() => {
+      isSettlingRef.current = false;
+      setScrollProgress(nextIndex);
+    }, 420);
   };
 
   const handleStampCardScroll = (event: UIEvent<HTMLDivElement>) => {
@@ -183,6 +195,8 @@ export function VisitStampCard({ stores }: { stores: Store[] }) {
 
     setScrollProgress(nextScrollProgress);
     setActiveCardIndex(currentIndex);
+
+    if (isSettlingRef.current) return;
 
     if (snapTimerRef.current) {
       window.clearTimeout(snapTimerRef.current);
