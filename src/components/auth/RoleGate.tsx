@@ -16,6 +16,10 @@ export function RoleGate({ allowed, children }: { allowed: UserRole[]; children:
     return <main className="mx-auto max-w-3xl px-4 py-10 text-sm text-slate-600">確認中...</main>;
   }
 
+  if (!role && allowed.includes("user")) {
+    return children;
+  }
+
   if (!role || !allowed.includes(role)) {
     return (
       <main className="mx-auto max-w-3xl px-4 py-10">

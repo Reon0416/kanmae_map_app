@@ -1,4 +1,5 @@
 import { createBrowserClient } from "@supabase/ssr";
+import { supabaseAuthCookieOptions } from "@/lib/supabase/auth-config";
 
 export function createSupabaseBrowserClient() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -8,5 +9,7 @@ export function createSupabaseBrowserClient() {
     throw new Error("Supabase browser environment variables are not configured.");
   }
 
-  return createBrowserClient(supabaseUrl, supabaseAnonKey);
+  return createBrowserClient(supabaseUrl, supabaseAnonKey, {
+    cookieOptions: supabaseAuthCookieOptions
+  });
 }

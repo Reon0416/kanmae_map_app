@@ -1,46 +1,49 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useMemo, useRef, useState } from "react";
-import type { CSSProperties, UIEvent } from "react";
-import { Sparkles } from "lucide-react";
+import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
+import type { CSSProperties } from "react";
+import { Loader2, LogIn, Sparkles } from "lucide-react";
 import type { Store } from "@/features/stores/store-types";
-import { readLocalVisitRecords, type LocalVisitRecord } from "@/features/visit-records/local-visit-records";
 import { getStampImage } from "@/features/visit-records/stamp-images";
 import { cn } from "@/lib/utils";
 
 const STAMP_GOAL = 12;
-const SNAP_ADVANCE_RATIO = 0.16;
 
-function chunkRecords(records: LocalVisitRecord[]) {
-  const chronologicalRecords = [...records].reverse();
-  const chunks: LocalVisitRecord[][] = [];
+type StampCount = {
+  storeId: string;
+  storeName: string;
+  stampCount: number;
+  lastStampedAt: string | null;
+};
 
-  for (let index = 0; index < chronologicalRecords.length; index += STAMP_GOAL) {
-    chunks.push(chronologicalRecords.slice(index, index + STAMP_GOAL));
+type StampResponse = {
+  stores: StampCount[];
+  totalStampCount: number;
+};
+
+function getCurrentCardStampCount(totalStampCount: number) {
+  if (totalStampCount === 0) {
+    return 0;
   }
 
-  return chunks.length > 0 ? chunks : [[]];
+  const remainder = totalStampCount % STAMP_GOAL;
+  return remainder === 0 ? STAMP_GOAL : remainder;
 }
 
-function StampCardView({
-  records,
-  cardNumber,
-  turnAmount
-}: {
-  records: LocalVisitRecord[];
-  cardNumber: number;
-  turnAmount: number;
-}) {
+function StampCardView({ totalStampCount }: { totalStampCount: number }) {
+  const currentStampCount = getCurrentCardStampCount(totalStampCount);
+  const completedCards = Math.floor(totalStampCount / STAMP_GOAL);
+  const cardNumber = Math.max(1, completedCards + (currentStampCount === STAMP_GOAL ? 0 : 1));
   const stampSlots = Array.from({ length: STAMP_GOAL }, (_, index) => index);
-  const clampedTurnAmount = Math.min(1, Math.max(-1, turnAmount));
   const pageStyle = {
-    "--stamp-page-turn": clampedTurnAmount,
-    "--stamp-page-fold": Math.max(0, 1 - Math.abs(clampedTurnAmount))
+    "--stamp-page-turn": 0,
+    "--stamp-page-fold": 1
   } as CSSProperties;
 
   return (
-    <div className="min-w-full snap-start px-3 [perspective:1200px] [scroll-snap-stop:always]">
+    <div className="px-3 [perspective:1200px]">
       <div
         className="kanmae-stamp-page relative overflow-hidden rounded-[26px] border border-emerald-100 bg-gradient-to-br from-emerald-50 via-cyan-50 to-white p-4 shadow-[0_18px_50px_rgba(15,118,110,0.14)]"
         style={pageStyle}
@@ -57,9 +60,8 @@ function StampCardView({
 
         <div className="relative z-10 mt-4 grid grid-cols-4 gap-3">
           {stampSlots.map((index) => {
-            const stampRecord = records[index];
-            const stampImage = stampRecord ? getStampImage(stampRecord.storeId) : undefined;
-            const stamped = Boolean(stampRecord);
+            const stamped = index < currentStampCount;
+
             return (
               <div
                 key={index}
@@ -71,16 +73,8 @@ function StampCardView({
                 )}
                 aria-label={stamped ? "スタンプ済み" : "未スタンプ"}
               >
-                {stamped && stampImage ? (
-                  <Image
-                    src={stampImage}
-                    alt={`${stampRecord.storeName}のスタンプ`}
-                    width={72}
-                    height={72}
-                    className="size-full rounded-full object-contain p-0.5"
-                  />
-                ) : stamped ? (
-                  <Sparkles className="size-6 opacity-90" aria-hidden="true" />
+                {stamped ? (
+                  <Sparkles className="size-8 opacity-90" aria-hidden="true" />
                 ) : (
                   <span className="text-xl font-black leading-none">{index + 1}</span>
                 )}
@@ -94,152 +88,107 @@ function StampCardView({
 }
 
 export function VisitStampCard({ stores }: { stores: Store[] }) {
-  const [records, setRecords] = useState<LocalVisitRecord[]>([]);
-  const [activeCardIndex, setActiveCardIndex] = useState(0);
-  const [scrollProgress, setScrollProgress] = useState(0);
-  const scrollContainerRef = useRef<HTMLDivElement | null>(null);
-  const snapTimerRef = useRef<number | null>(null);
-  const settleReleaseTimerRef = useRef<number | null>(null);
-  const isSettlingRef = useRef(false);
-  const settledCardIndexRef = useRef(0);
+  const [stampData, setStampData] = useState<StampResponse | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const updateRecords = () => setRecords(readLocalVisitRecords());
-    updateRecords();
-    window.addEventListener("storage", updateRecords);
-    window.addEventListener("kanmae:visit-record-created", updateRecords);
+    let ignore = false;
+
+    async function loadStamps() {
+      setIsLoading(true);
+      setError(null);
+
+      const response = await fetch("/api/stamps", {
+        cache: "no-store"
+      });
+
+      if (ignore) {
+        return;
+      }
+
+      if (response.status === 401) {
+        setStampData(null);
+        setError("スタンプを見るにはログインしてください。");
+        setIsLoading(false);
+        return;
+      }
+
+      if (!response.ok) {
+        setStampData(null);
+        setError("スタンプを読み込めませんでした。");
+        setIsLoading(false);
+        return;
+      }
+
+      setStampData(await response.json());
+      setIsLoading(false);
+    }
+
+    loadStamps();
+    window.addEventListener("kanmae:visit-record-created", loadStamps);
+
     return () => {
-      window.removeEventListener("storage", updateRecords);
-      window.removeEventListener("kanmae:visit-record-created", updateRecords);
+      ignore = true;
+      window.removeEventListener("kanmae:visit-record-created", loadStamps);
     };
   }, []);
 
-  const stampCount = records.length;
-  const stampCards = useMemo(() => chunkRecords(records), [records]);
-  const visibleStampCards = stampCards;
   const stampCountsByStore = useMemo(() => {
-    const counts = records.reduce<Record<string, number>>((acc, record) => {
-      acc[record.storeId] = (acc[record.storeId] ?? 0) + 1;
-      return acc;
-    }, {});
+    const counts = new Map((stampData?.stores ?? []).map((item) => [item.storeId, item]));
 
     return stores
-      .map((store) => ({
-        id: store.id,
-        name: store.name,
-        genre: store.genre,
-        count: counts[store.id] ?? 0
-      }))
+      .map((store) => {
+        const count = counts.get(store.id);
+        return {
+          id: store.id,
+          name: store.name,
+          genre: store.genre,
+          count: count?.stampCount ?? 0
+        };
+      })
       .sort((a, b) => {
         if (b.count !== a.count) {
           return b.count - a.count;
         }
         return a.name.localeCompare(b.name, "ja");
       });
-  }, [records, stores]);
+  }, [stampData, stores]);
 
-  useEffect(() => {
-    const latestCardIndex = Math.max(0, visibleStampCards.length - 1);
-    settledCardIndexRef.current = latestCardIndex;
-    setActiveCardIndex(latestCardIndex);
-    setScrollProgress(latestCardIndex);
-    scrollContainerRef.current?.scrollTo({
-      left: latestCardIndex * (scrollContainerRef.current?.clientWidth ?? 0)
-    });
-  }, [visibleStampCards.length]);
-
-  useEffect(() => {
-    return () => {
-      if (snapTimerRef.current) {
-        window.clearTimeout(snapTimerRef.current);
-      }
-      if (settleReleaseTimerRef.current) {
-        window.clearTimeout(settleReleaseTimerRef.current);
-      }
-    };
-  }, []);
-
-  const settleStampCardScroll = (container: HTMLDivElement) => {
-    if (isSettlingRef.current) return;
-
-    const currentCardLeft = settledCardIndexRef.current * container.clientWidth;
-    const movedDistance = container.scrollLeft - currentCardLeft;
-    const shouldAdvance = Math.abs(movedDistance) >= container.clientWidth * SNAP_ADVANCE_RATIO;
-    const direction = movedDistance > 0 ? 1 : -1;
-    const nextIndex = shouldAdvance
-      ? Math.min(visibleStampCards.length - 1, Math.max(0, settledCardIndexRef.current + direction))
-      : settledCardIndexRef.current;
-
-    isSettlingRef.current = true;
-    settledCardIndexRef.current = nextIndex;
-    setActiveCardIndex(nextIndex);
-    container.scrollTo({
-      left: nextIndex * container.clientWidth,
-      behavior: "smooth"
-    });
-    settleReleaseTimerRef.current = window.setTimeout(() => {
-      isSettlingRef.current = false;
-      setScrollProgress(nextIndex);
-    }, 420);
-  };
-
-  const handleStampCardScroll = (event: UIEvent<HTMLDivElement>) => {
-    const container = event.currentTarget;
-    const nextScrollProgress = container.clientWidth > 0
-      ? container.scrollLeft / container.clientWidth
-      : 0;
-    const currentIndex = Math.min(
-      visibleStampCards.length - 1,
-      Math.max(0, Math.round(nextScrollProgress))
+  if (isLoading) {
+    return (
+      <section className="flex min-h-72 items-center justify-center bg-white">
+        <div className="flex items-center gap-2 text-sm font-bold text-slate-500">
+          <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+          読み込み中
+        </div>
+      </section>
     );
+  }
 
-    setScrollProgress(nextScrollProgress);
-    setActiveCardIndex(currentIndex);
+  if (error) {
+    return (
+      <section className="bg-white p-5">
+        <div className="rounded-lg border border-border bg-slate-50 p-5">
+          <h2 className="text-lg font-black text-slate-950">{error}</h2>
+          <Link
+            href="/login"
+            className="mt-4 inline-flex h-10 items-center gap-2 rounded-md bg-slate-950 px-4 text-sm font-bold text-white"
+          >
+            <LogIn className="size-4" aria-hidden="true" />
+            ログインへ
+          </Link>
+        </div>
+      </section>
+    );
+  }
 
-    if (isSettlingRef.current) return;
-
-    if (snapTimerRef.current) {
-      window.clearTimeout(snapTimerRef.current);
-    }
-
-    snapTimerRef.current = window.setTimeout(() => settleStampCardScroll(container), 120);
-  };
+  const stampCount = stampData?.totalStampCount ?? 0;
 
   return (
     <section className="bg-white">
       <div className="py-5">
-        <div
-          ref={scrollContainerRef}
-          className="overflow-x-auto overscroll-x-contain pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-          onScroll={handleStampCardScroll}
-        >
-          <div className="flex snap-x snap-mandatory scroll-smooth">
-            {visibleStampCards.map((cardRecords, index) => {
-              const cardNumber = index + 1;
-              return (
-                <StampCardView
-                  key={cardNumber}
-                  records={cardRecords}
-                  cardNumber={cardNumber}
-                  turnAmount={index - scrollProgress}
-                />
-              );
-            })}
-          </div>
-        </div>
-        {stampCards.length > 1 ? (
-          <div className="mt-1 flex justify-center gap-1.5" aria-hidden="true">
-            {visibleStampCards.map((_, index) => (
-              <span
-                key={index}
-                className={cn(
-                  "block h-1.5 rounded-full",
-                  index === activeCardIndex ? "w-5 bg-emerald-500" : "w-1.5 bg-slate-200"
-                )}
-              />
-            ))}
-          </div>
-        ) : null}
+        <StampCardView totalStampCount={stampCount} />
 
         <div className="mt-5 px-3">
           <div className="overflow-hidden rounded-[26px] bg-slate-950 p-5 text-white shadow-[0_18px_44px_rgba(15,23,42,0.22)]">

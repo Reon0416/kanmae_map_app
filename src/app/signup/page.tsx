@@ -10,7 +10,7 @@ function getSafeRedirectPath(next?: string) {
   return next;
 }
 
-export default async function LoginPage({
+export default async function SignUpPage({
   searchParams
 }: {
   searchParams: Promise<{ next?: string }>;
@@ -31,12 +31,12 @@ export default async function LoginPage({
       <section className="mx-auto flex min-h-[calc(100dvh-4rem)] max-w-md flex-col justify-center">
         <div className="mb-6">
           <p className="text-sm font-black tracking-[0.22em] text-slate-500">KANMAE</p>
-          <h1 className="mt-2 text-3xl font-black text-slate-950">ログイン</h1>
+          <h1 className="mt-2 text-3xl font-black text-slate-950">新規アカウント作成</h1>
           <p className="mt-3 text-sm leading-6 text-slate-600">
-            メールアドレスとパスワードでアカウントを作成し、来店回数とスタンプを保存します。
+            メールアドレスとパスワードを登録して、来店回数とスタンプを保存します。
           </p>
         </div>
-        <AuthForm mode="sign-in" redirectTo={redirectTo} />
+        <AuthForm mode="sign-up" redirectTo={redirectTo} />
         <p className="mt-5 text-xs leading-6 text-slate-500">
           パスワードは Supabase Auth 側で安全に管理され、アプリのテーブルには保存しません。
         </p>
