@@ -1,4 +1,5 @@
 import { AuthForm } from "@/components/auth/AuthForm";
+import { ensureProfileAndGetRole, getRoleHomePath } from "@/features/auth/auth-server";
 import { createSupabaseServerClient, hasSupabaseEnvironment } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 
@@ -25,7 +26,8 @@ export default async function LoginPage({
     } = await supabase.auth.getUser();
 
     if (user) {
-      redirect(redirectTo);
+      const role = await ensureProfileAndGetRole(supabase, user);
+      redirect(redirectTo === "/my" ? getRoleHomePath(role) : redirectTo);
     }
   }
 

@@ -5,8 +5,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, LogIn, UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ROLE_STORAGE_KEY, USER_ROLE } from "@/features/auth/roles";
-import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import type { AuthApiResponse } from "@/features/auth/auth-validation";
+import { ROLE_STORAGE_KEY } from "@/features/auth/roles";
 
 type AuthMode = "sign-in" | "sign-up";
 
@@ -33,40 +33,36 @@ export function AuthForm({
     setMessage(null);
     setIsSubmitting(true);
 
-    const supabase = createSupabaseBrowserClient();
-    const callbackUrl = new URL("/auth/callback", window.location.origin);
-    callbackUrl.searchParams.set("next", redirectTo);
+    const response = await fetch(isSignUp ? "/api/auth/signup" : "/api/auth/login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        email,
+        password,
+        displayName,
+        redirectTo
+      })
+    });
 
-    const result = isSignUp
-      ? await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            emailRedirectTo: callbackUrl.toString(),
-            data: {
-              display_name: displayName,
-              role: USER_ROLE.USER
-            }
-          }
-        })
-      : await supabase.auth.signInWithPassword({ email, password });
+    const result = (await response.json()) as AuthApiResponse;
 
     setIsSubmitting(false);
 
-    if (result.error) {
-      setError(result.error.message);
+    if (!result.ok) {
+      setError(result.message);
       return;
     }
 
-    window.localStorage.setItem(ROLE_STORAGE_KEY, USER_ROLE.USER);
-
-    if (isSignUp && !result.data.session) {
-      setMessage("確認メールを送信しました。メール内のリンクを開いてからログインしてください。");
+    if (result.status === "confirmation_required") {
+      setMessage(result.message);
       return;
     }
 
+    window.localStorage.setItem(ROLE_STORAGE_KEY, result.role);
     router.refresh();
-    router.push(redirectTo);
+    router.push(result.redirectTo);
   }
 
   return (

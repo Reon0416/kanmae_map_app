@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { ensureProfileAndGetRole, getClientIp, getRoleHomePath, logAuthEvent } from "@/features/auth/auth-server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 function getSafeRedirectPath(next: string | null) {
@@ -16,7 +17,23 @@ export async function GET(request: NextRequest) {
 
   if (code) {
     const supabase = await createSupabaseServerClient();
-    await supabase.auth.exchangeCodeForSession(code);
+    const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+    const role = data.user ? await ensureProfileAndGetRole(supabase, data.user) : undefined;
+
+    await logAuthEvent(supabase, {
+      eventType: "email_callback",
+      status: error ? "failed" : "session_exchanged",
+      userId: data.user?.id,
+      role,
+      errorCode: error?.code,
+      errorMessage: error?.message,
+      ipAddress: getClientIp(request),
+      userAgent: request.headers.get("user-agent") ?? undefined
+    });
+
+    if (role && redirectTo === "/my") {
+      return NextResponse.redirect(new URL(getRoleHomePath(role), request.url));
+    }
   }
 
   return NextResponse.redirect(new URL(redirectTo, request.url));

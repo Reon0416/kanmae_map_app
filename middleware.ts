@@ -4,14 +4,33 @@ import { type NextRequest, NextResponse } from "next/server";
 import { supabaseAuthCookieOptions } from "@/lib/supabase/auth-config";
 
 const protectedUserPaths = ["/my", "/record"];
+const protectedStorePaths = ["/store-admin"];
+const protectedAdminPaths = ["/admin"];
 const authPaths = ["/login", "/signup"];
 
-function isProtectedUserPath(pathname: string) {
-  return protectedUserPaths.some((path) => pathname === path || pathname.startsWith(`${path}/`));
+const roleHomePaths = {
+  user: "/my",
+  store: "/store-admin",
+  admin: "/admin"
+} as const;
+
+function matchesAnyPath(pathname: string, paths: string[]) {
+  return paths.some((path) => pathname === path || pathname.startsWith(`${path}/`));
+}
+
+function getRequiredRole(pathname: string) {
+  if (matchesAnyPath(pathname, protectedAdminPaths)) return "admin";
+  if (matchesAnyPath(pathname, protectedStorePaths)) return "store";
+  if (matchesAnyPath(pathname, protectedUserPaths)) return "user";
+  return null;
 }
 
 function isAuthPath(pathname: string) {
   return authPaths.includes(pathname);
+}
+
+function isValidRole(role: string | null | undefined): role is keyof typeof roleHomePaths {
+  return role === "user" || role === "store" || role === "admin";
 }
 
 export async function middleware(request: NextRequest) {
@@ -45,8 +64,9 @@ export async function middleware(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   const pathname = request.nextUrl.pathname;
+  const requiredRole = getRequiredRole(pathname);
 
-  if (!user && isProtectedUserPath(pathname)) {
+  if (!user && requiredRole) {
     const loginUrl = request.nextUrl.clone();
     loginUrl.pathname = "/login";
     loginUrl.searchParams.set("next", `${request.nextUrl.pathname}${request.nextUrl.search}`);
@@ -56,9 +76,27 @@ export async function middleware(request: NextRequest) {
     return redirectResponse;
   }
 
+  let role: keyof typeof roleHomePaths = "user";
+
+  if (user && (requiredRole || isAuthPath(pathname))) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    role = isValidRole(profile?.role) ? profile.role : "user";
+  }
+
+  if (user && requiredRole && role !== requiredRole) {
+    const redirectResponse = NextResponse.redirect(new URL(roleHomePaths[role], request.url));
+    cookiesToApply.forEach(({ name, value, options }) => redirectResponse.cookies.set(name, value, options));
+    return redirectResponse;
+  }
+
   if (user && isAuthPath(pathname)) {
     const nextPath = request.nextUrl.searchParams.get("next");
-    const redirectPath = nextPath?.startsWith("/") && !nextPath.startsWith("//") ? nextPath : "/my";
+    const redirectPath = nextPath?.startsWith("/") && !nextPath.startsWith("//") ? nextPath : roleHomePaths[role];
     const redirectUrl = new URL(redirectPath, request.url);
 
     const redirectResponse = NextResponse.redirect(redirectUrl);
