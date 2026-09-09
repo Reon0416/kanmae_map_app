@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 
 function getSafeRedirectPath(next?: string) {
   if (!next?.startsWith("/") || next.startsWith("//")) {
-    return "/my";
+    return "/";
   }
 
   return next;
@@ -27,7 +27,7 @@ export default async function SignUpPage({
 
     if (user) {
       const role = await ensureProfileAndGetRole(supabase, user);
-      redirect(redirectTo === "/my" ? getRoleHomePath(role) : redirectTo);
+      redirect(redirectTo === "/" ? "/" : redirectTo === "/my" ? getRoleHomePath(role) : redirectTo);
     }
   }
 

@@ -85,6 +85,6 @@ export async function POST(request: NextRequest) {
     ok: true,
     status: "signed_in",
     role,
-    redirectTo: redirectTo === "/my" ? getRoleHomePath(role) : redirectTo
+    redirectTo: redirectTo === "/" ? "/" : redirectTo === "/my" ? getRoleHomePath(role) : redirectTo
   });
 }

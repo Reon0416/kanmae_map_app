@@ -4,7 +4,7 @@ import { getAuthCallbackUrl, getClientIp, hashEmail, logAuthEvent } from "@/feat
 import { checkRateLimit } from "@/lib/security/rate-limit";
 import { createSupabaseServerClient, hasSupabaseEnvironment } from "@/lib/supabase/server";
 
-const confirmationMessage = "確認メールを送信しました。メール内のリンクを開いてログインを完了してください。";
+const emailConfirmationEnabledMessage = "SupabaseのConfirm emailをOFFにすると、アカウント作成後すぐにログインできます。";
 
 export async function POST(request: NextRequest) {
   if (!hasSupabaseEnvironment()) {
@@ -73,10 +73,6 @@ export async function POST(request: NextRequest) {
       }
     });
 
-    if (!resendResult.error) {
-      return NextResponse.json<AuthApiResponse>({ ok: true, status: "confirmation_required", message: confirmationMessage });
-    }
-
     return NextResponse.json<AuthApiResponse>(
       { ok: false, status: "failed", message: "登録処理に失敗しました。時間を置いてからもう一度お試しください。" },
       { status: 400 }
@@ -124,7 +120,10 @@ export async function POST(request: NextRequest) {
   });
 
   if (!signupResult.data.session) {
-    return NextResponse.json<AuthApiResponse>({ ok: true, status: "confirmation_required", message: confirmationMessage });
+    return NextResponse.json<AuthApiResponse>(
+      { ok: false, status: "failed", message: emailConfirmationEnabledMessage },
+      { status: 409 }
+    );
   }
 
   return NextResponse.json<AuthApiResponse>({

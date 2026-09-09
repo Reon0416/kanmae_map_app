@@ -9,7 +9,7 @@ const protectedAdminPaths = ["/admin"];
 const authPaths = ["/login", "/signup"];
 
 const roleHomePaths = {
-  user: "/my",
+  user: "/",
   store: "/store-admin",
   admin: "/admin"
 } as const;

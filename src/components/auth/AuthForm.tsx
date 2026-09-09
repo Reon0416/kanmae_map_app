@@ -12,7 +12,7 @@ type AuthMode = "sign-in" | "sign-up";
 
 export function AuthForm({
   mode,
-  redirectTo = "/my"
+  redirectTo = "/"
 }: {
   mode: AuthMode;
   redirectTo?: string;
@@ -52,11 +52,6 @@ export function AuthForm({
 
     if (!result.ok) {
       setError(result.message);
-      return;
-    }
-
-    if (result.status === "confirmation_required") {
-      setMessage(result.message);
       return;
     }
 
