@@ -1,3 +1,5 @@
+import { ACTIVE_MAP_LAYOUT } from "./map-layout";
+
 export const KANDAI_MAE_CENTER = {
   lat: 34.7734,
   lng: 135.5074
@@ -5,14 +7,9 @@ export const KANDAI_MAE_CENTER = {
 
 export const DEFAULT_VISIT_RADIUS_METERS = 100;
 
-export const KANMAE_MAP_IMAGE = "/maps/サンプル完成図.png";
+export const KANMAE_MAP_IMAGE = ACTIVE_MAP_LAYOUT.background;
 
-export const KANMAE_MAP_CORNERS = {
-  topLeft: { lat: 34.772735, lng: 135.505862 },
-  topRight: { lat: 34.774043, lng: 135.505792 },
-  bottomRight: { lat: 34.773958, lng: 135.509021 },
-  bottomLeft: { lat: 34.772797, lng: 135.509036 }
-};
+export const KANMAE_MAP_CORNERS = ACTIVE_MAP_LAYOUT.corners;
 
 type LatLng = {
   lat: number;

@@ -3,6 +3,7 @@
 import { LocateFixed } from "lucide-react";
 import Image from "next/image";
 import type { Store } from "@/features/stores/store-types";
+import { MAP_STORE_PLACEMENTS, fitMapViewport } from "@/lib/map/map-layout";
 import { KANMAE_MAP_IMAGE, latLngToMapPosition } from "@/lib/map/map-config";
 import { PointerEvent, WheelEvent, useCallback, useEffect, useRef, useState } from "react";
 
@@ -29,10 +30,11 @@ const INITIAL_OFFSET = { x: 0, y: 0 };
 const TAP_MOVE_THRESHOLD = 8;
 
 function getViewportMapSize(width: number, height: number): MapSize {
-  return { width, height };
+  return fitMapViewport(width, height);
 }
 
 export function StoreMap({
+  stores,
   fullscreen = false,
   onMapTap
 }: {
@@ -175,7 +177,7 @@ export function StoreMap({
       onWheel={handleWheel}
     >
       <div
-        className="absolute left-1/2 top-1/2"
+        className="absolute left-1/2 top-1/2 overflow-hidden"
         style={{
           width: mapSize.width || undefined,
           height: mapSize.height || undefined,
@@ -194,6 +196,23 @@ export function StoreMap({
           className="absolute inset-0 size-full select-none object-fill"
           draggable={false}
         />
+        {MAP_STORE_PLACEMENTS.filter((placement) => stores.some((store) => store.id === placement.storeId)).map((placement) => (
+          <div
+            key={placement.storeId}
+            className="pointer-events-none absolute"
+            style={{ left: `${placement.x}%`, top: `${placement.y}%`, width: `${placement.width}%`, height: `${placement.height}%`, zIndex: placement.zIndex }}
+          >
+            <Image
+              src={placement.image}
+              alt={stores.find((store) => store.id === placement.storeId)?.name ?? ""}
+              fill
+              unoptimized
+              sizes="100vw"
+              className="select-none object-contain object-bottom"
+              draggable={false}
+            />
+          </div>
+        ))}
         {userLocation ? (
           <div
             className="absolute z-20 -translate-x-1/2 -translate-y-1/2"
