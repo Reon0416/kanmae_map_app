@@ -1,6 +1,20 @@
 {
-  "activeLayoutId": "legacy",
+  "activeLayoutId": "kandai-v2",
   "layouts": {
+    "kandai-v2": {
+      "background": "/maps/kandai-background-v2.png",
+      "width": 1085,
+      "height": 1450,
+      "x": 0,
+      "y": 0,
+      "mode": "layered",
+      "corners": {
+        "topLeft": { "lat": 34.772735, "lng": 135.505862 },
+        "topRight": { "lat": 34.774043, "lng": 135.505792 },
+        "bottomRight": { "lat": 34.773958, "lng": 135.509021 },
+        "bottomLeft": { "lat": 34.772797, "lng": 135.509036 }
+      }
+    },
     "legacy": {
       "background": "/maps/サンプル完成図.png",
       "width": 1333,
