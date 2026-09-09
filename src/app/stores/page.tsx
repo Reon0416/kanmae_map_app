@@ -56,6 +56,10 @@ const storeThumbnailImages: Record<string, {
   butafuku: {
     src: "/stores/butafuku-storefront.png", width: 1536, height: 1024,
     bounds: { x: 34, y: 8, width: 1455, height: 1007 }
+  },
+  musou: {
+    src: "/stores/musou-storefront.jpg", width: 1368, height: 1150,
+    bounds: { x: 108, y: 32, width: 1233, height: 1067 }
   }
 };
 
