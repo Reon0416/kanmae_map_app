@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
+import { STAMP_EVENT_FETCH_LIMIT } from "@/features/visit-records/stamp-card-config";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-
-const STAMP_GOAL = 12;
 
 export async function GET() {
   const supabase = await createSupabaseServerClient();
@@ -30,7 +29,7 @@ export async function GET() {
     .select("id, store_key, store_name, created_at")
     .eq("user_id", user.id)
     .order("created_at", { ascending: false })
-    .limit(STAMP_GOAL);
+    .limit(STAMP_EVENT_FETCH_LIMIT);
 
   if (eventsError) {
     return NextResponse.json({ error: "Failed to load stamp events" }, { status: 500 });
@@ -44,16 +43,15 @@ export async function GET() {
   }));
 
   const totalStampCount = stores.reduce((total, item) => total + item.stampCount, 0);
-  const currentCardStampCount = totalStampCount === 0 ? 0 : totalStampCount % STAMP_GOAL || STAMP_GOAL;
-  const cardStamps = (events ?? [])
-    .slice(0, currentCardStampCount)
-    .reverse()
-    .map((event) => ({
-      id: event.id,
-      storeId: event.store_key,
-      storeName: event.store_name,
-      stampedAt: event.created_at
-    }));
+  const chronologicalCardStamps = (events ?? []).reverse();
+  const firstStampOrdinal = totalStampCount - chronologicalCardStamps.length + 1;
+  const cardStamps = chronologicalCardStamps.map((event, index) => ({
+    id: event.id,
+    storeId: event.store_key,
+    storeName: event.store_name,
+    stampedAt: event.created_at,
+    stampOrdinal: firstStampOrdinal + index
+  }));
 
   return NextResponse.json({
     stores,

@@ -6,10 +6,9 @@ import { useEffect, useMemo, useState } from "react";
 import type { CSSProperties } from "react";
 import { Loader2, LogIn, Sparkles } from "lucide-react";
 import type { Store } from "@/features/stores/store-types";
+import { MAX_VISIBLE_STAMP_CARDS, STAMPS_PER_CARD } from "@/features/visit-records/stamp-card-config";
 import { getStampImage } from "@/features/visit-records/stamp-images";
 import { cn } from "@/lib/utils";
-
-const STAMP_GOAL = 12;
 
 type StampCount = {
   storeId: string;
@@ -26,29 +25,18 @@ type StampResponse = {
     storeId: string;
     storeName: string;
     stampedAt: string;
+    stampOrdinal: number;
   }[];
 };
 
-function getCurrentCardStampCount(totalStampCount: number) {
-  if (totalStampCount === 0) {
-    return 0;
-  }
-
-  const remainder = totalStampCount % STAMP_GOAL;
-  return remainder === 0 ? STAMP_GOAL : remainder;
-}
-
 function StampCardView({
-  totalStampCount,
-  cardStamps
+  cardNumber,
+  stampsByOrdinal
 }: {
-  totalStampCount: number;
-  cardStamps: StampResponse["cardStamps"];
+  cardNumber: number;
+  stampsByOrdinal: Map<number, StampResponse["cardStamps"][number]>;
 }) {
-  const currentStampCount = getCurrentCardStampCount(totalStampCount);
-  const completedCards = Math.floor(totalStampCount / STAMP_GOAL);
-  const cardNumber = Math.max(1, completedCards + (currentStampCount === STAMP_GOAL ? 0 : 1));
-  const stampSlots = Array.from({ length: STAMP_GOAL }, (_, index) => index);
+  const stampSlots = Array.from({ length: STAMPS_PER_CARD }, (_, index) => index);
   const pageStyle = {
     "--stamp-page-turn": 0,
     "--stamp-page-fold": 1
@@ -72,7 +60,8 @@ function StampCardView({
 
         <div className="relative z-10 mt-4 grid grid-cols-4 gap-3">
           {stampSlots.map((index) => {
-            const stamp = cardStamps[index];
+            const stampOrdinal = (cardNumber - 1) * STAMPS_PER_CARD + index + 1;
+            const stamp = stampsByOrdinal.get(stampOrdinal);
             const stamped = Boolean(stamp);
             const stampImage = stamp ? getStampImage(stamp.storeId) : undefined;
 
@@ -87,7 +76,7 @@ function StampCardView({
                 )}
                 aria-label={stamped ? "スタンプ済み" : "未スタンプ"}
               >
-                {stamped && stampImage ? (
+                {stamp && stampImage ? (
                   <Image
                     src={stampImage}
                     alt={`${stamp.storeName}のスタンプ`}
@@ -177,6 +166,21 @@ export function VisitStampCard({ stores }: { stores: Store[] }) {
       });
   }, [stampData, stores]);
 
+  const visibleCardNumbers = useMemo(() => {
+    const totalStampCount = stampData?.totalStampCount ?? 0;
+    const totalCardCount = Math.max(1, Math.ceil(totalStampCount / STAMPS_PER_CARD));
+    const firstVisibleCard = Math.max(1, totalCardCount - MAX_VISIBLE_STAMP_CARDS + 1);
+
+    return Array.from(
+      { length: totalCardCount - firstVisibleCard + 1 },
+      (_, index) => firstVisibleCard + index
+    );
+  }, [stampData]);
+
+  const stampsByOrdinal = useMemo(() => {
+    return new Map((stampData?.cardStamps ?? []).map((stamp) => [stamp.stampOrdinal, stamp]));
+  }, [stampData]);
+
   if (isLoading) {
     return (
       <section className="flex min-h-72 items-center justify-center bg-white">
@@ -210,7 +214,22 @@ export function VisitStampCard({ stores }: { stores: Store[] }) {
   return (
     <section className="bg-white">
       <div className="py-5">
-        <StampCardView totalStampCount={stampCount} cardStamps={stampData?.cardStamps ?? []} />
+        <div className="overflow-x-auto overscroll-x-contain pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <div className="flex snap-x snap-mandatory scroll-smooth">
+            {visibleCardNumbers.map((cardNumber) => (
+              <div key={cardNumber} className="min-w-full snap-start">
+                <StampCardView cardNumber={cardNumber} stampsByOrdinal={stampsByOrdinal} />
+              </div>
+            ))}
+          </div>
+        </div>
+        {visibleCardNumbers.length > 1 ? (
+          <div className="mt-1 flex justify-center gap-1.5" aria-hidden="true">
+            {visibleCardNumbers.map((cardNumber) => (
+              <span key={cardNumber} className="block h-1.5 w-1.5 rounded-full bg-slate-200" />
+            ))}
+          </div>
+        ) : null}
 
         <div className="mt-5 px-3">
           <div className="overflow-hidden rounded-[26px] bg-slate-950 p-5 text-white shadow-[0_18px_44px_rgba(15,23,42,0.22)]">
