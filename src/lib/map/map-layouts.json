@@ -30,5 +30,15 @@
       }
     }
   },
-  "stores": []
+  "stores": [
+    {
+      "storeId": "suzume",
+      "image": "/maps/stores/suzume.png",
+      "x": 650,
+      "y": 860,
+      "width": 250,
+      "height": 245,
+      "zIndex": 1
+    }
+  ]
 }
