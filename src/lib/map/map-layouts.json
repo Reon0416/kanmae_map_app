@@ -2,9 +2,11 @@
   "activeLayoutId": "kandai-v2",
   "layouts": {
     "kandai-v2": {
-      "background": "/maps/kandai-background-v2.png",
+      "background": "/maps/kandai-background-v2@3x.webp",
       "width": 1085,
       "height": 1450,
+      "sourceWidth": 3255,
+      "sourceHeight": 4350,
       "x": 0,
       "y": 0,
       "mode": "layered",
@@ -32,12 +34,84 @@
   },
   "stores": [
     {
+      "storeId": "kokoro",
+      "image": "/maps/stores/kokoro.webp",
+      "x": 55,
+      "y": 28,
+      "width": 225,
+      "height": 190,
+      "zIndex": 1
+    },
+    {
+      "storeId": "musou",
+      "image": "/maps/stores/musou.webp",
+      "x": 330,
+      "y": 42,
+      "width": 225,
+      "height": 185,
+      "zIndex": 1
+    },
+    {
+      "storeId": "kirameki",
+      "image": "/maps/stores/kirameki.webp",
+      "x": 845,
+      "y": 38,
+      "width": 215,
+      "height": 180,
+      "zIndex": 1
+    },
+    {
+      "storeId": "kenpei",
+      "image": "/maps/stores/kenpei.webp",
+      "x": 790,
+      "y": 278,
+      "width": 225,
+      "height": 205,
+      "zIndex": 1
+    },
+    {
+      "storeId": "semi",
+      "image": "/maps/stores/semi.webp",
+      "x": 245,
+      "y": 405,
+      "width": 230,
+      "height": 205,
+      "zIndex": 1
+    },
+    {
+      "storeId": "butafuku",
+      "image": "/maps/stores/butafuku.webp",
+      "x": 760,
+      "y": 500,
+      "width": 225,
+      "height": 180,
+      "zIndex": 1
+    },
+    {
+      "storeId": "kirinji",
+      "image": "/maps/stores/kirinji.webp",
+      "x": 720,
+      "y": 690,
+      "width": 225,
+      "height": 185,
+      "zIndex": 1
+    },
+    {
       "storeId": "suzume",
-      "image": "/maps/stores/suzume.png",
-      "x": 650,
-      "y": 860,
-      "width": 250,
-      "height": 245,
+      "image": "/maps/stores/suzume.webp",
+      "x": 770,
+      "y": 885,
+      "width": 220,
+      "height": 200,
+      "zIndex": 1
+    },
+    {
+      "storeId": "toriton",
+      "image": "/maps/stores/toriton.webp",
+      "x": 175,
+      "y": 900,
+      "width": 230,
+      "height": 210,
       "zIndex": 1
     }
   ]

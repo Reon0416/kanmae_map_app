@@ -17,6 +17,8 @@ const layoutSchema = z.object({
   background: asset,
   width: z.number().positive(),
   height: z.number().positive(),
+  sourceWidth: z.number().positive().optional(),
+  sourceHeight: z.number().positive().optional(),
   x: coordinate,
   y: coordinate,
   mode: z.enum(["baked", "layered"]),
@@ -31,6 +33,10 @@ const config = z.object({ activeLayoutId: z.string(), layouts: z.record(layoutSc
 const activeLayout = config.layouts[config.activeLayoutId];
 if (!activeLayout) throw new Error("Active map layout does not exist");
 export const ACTIVE_MAP_LAYOUT = activeLayout;
+export const ACTIVE_MAP_SOURCE_SIZE = {
+  width: activeLayout.sourceWidth ?? activeLayout.width,
+  height: activeLayout.sourceHeight ?? activeLayout.height
+};
 
 // Store positions stay in the original map's coordinate system when the extent grows.
 export const MAP_STORE_PLACEMENTS = activeLayout.mode === "baked" ? [] : config.stores

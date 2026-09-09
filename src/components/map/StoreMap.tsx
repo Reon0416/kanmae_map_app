@@ -1,9 +1,9 @@
 "use client";
 
-import { LocateFixed } from "lucide-react";
+import { LocateFixed, Minus, Plus } from "lucide-react";
 import Image from "next/image";
 import type { Store } from "@/features/stores/store-types";
-import { MAP_STORE_PLACEMENTS, fitMapViewport } from "@/lib/map/map-layout";
+import { ACTIVE_MAP_SOURCE_SIZE, MAP_STORE_PLACEMENTS, fitMapViewport } from "@/lib/map/map-layout";
 import { KANMAE_MAP_IMAGE, latLngToMapPosition } from "@/lib/map/map-config";
 import { PointerEvent, WheelEvent, useCallback, useEffect, useRef, useState } from "react";
 
@@ -28,6 +28,24 @@ type MapSize = {
 const INITIAL_SCALE = 1;
 const INITIAL_OFFSET = { x: 0, y: 0 };
 const TAP_MOVE_THRESHOLD = 8;
+const ZOOM_STEP = 1.35;
+
+type PointerPosition = { x: number; y: number };
+
+type GestureState =
+  | {
+      kind: "drag";
+      pointerId: number;
+      start: PointerPosition;
+      startOffset: MapOffset;
+    }
+  | {
+      kind: "pinch";
+      startCenter: PointerPosition;
+      startDistance: number;
+      startOffset: MapOffset;
+      startScale: number;
+    };
 
 function getViewportMapSize(width: number, height: number): MapSize {
   return fitMapViewport(width, height);
@@ -45,16 +63,18 @@ export function StoreMap({
 }) {
   const [userLocation, setUserLocation] = useState<UserLocation | null>(null);
   const [locationMessage, setLocationMessage] = useState<string | null>(null);
-  const scale = INITIAL_SCALE;
+  const [scale, setScale] = useState(INITIAL_SCALE);
   const [offset, setOffset] = useState<MapOffset>(INITIAL_OFFSET);
   const [mapSize, setMapSize] = useState<MapSize>({ width: 0, height: 0 });
   const sectionRef = useRef<HTMLElement | null>(null);
-  const dragState = useRef<{
-    pointerId: number;
-    startX: number;
-    startY: number;
-    startOffset: MapOffset;
-  } | null>(null);
+  const pointers = useRef(new Map<number, PointerPosition>());
+  const gesture = useRef<GestureState | null>(null);
+
+  const maxScale = mapSize.width > 0 && mapSize.height > 0
+    ? Math.max(INITIAL_SCALE, Math.min(5,
+        ACTIVE_MAP_SOURCE_SIZE.width / mapSize.width,
+        ACTIVE_MAP_SOURCE_SIZE.height / mapSize.height))
+    : INITIAL_SCALE;
 
   const clampOffset = useCallback((nextOffset: MapOffset, nextScale = scale) => {
     const container = sectionRef.current;
@@ -71,6 +91,19 @@ export function StoreMap({
       y: Math.min(maxY, Math.max(-maxY, nextOffset.y))
     };
   }, [mapSize, scale]);
+
+  const zoomAt = useCallback((requestedScale: number, focus: PointerPosition) => {
+    const nextScale = Math.min(maxScale, Math.max(INITIAL_SCALE, requestedScale));
+    if (nextScale === scale) return;
+
+    const nextOffset = {
+      x: focus.x - ((focus.x - offset.x) / scale) * nextScale,
+      y: focus.y - ((focus.y - offset.y) / scale) * nextScale
+    };
+
+    setScale(nextScale);
+    setOffset(clampOffset(nextOffset, nextScale));
+  }, [clampOffset, maxScale, offset, scale]);
 
   useEffect(() => {
     const container = sectionRef.current;
@@ -92,6 +125,12 @@ export function StoreMap({
   useEffect(() => {
     setOffset((currentOffset) => clampOffset(currentOffset));
   }, [clampOffset]);
+
+  useEffect(() => {
+    if (scale <= maxScale) return;
+    setScale(maxScale);
+    setOffset((currentOffset) => clampOffset(currentOffset, maxScale));
+  }, [clampOffset, maxScale, scale]);
 
   const locateUser = () => {
     if (!navigator.geolocation) {
@@ -127,32 +166,76 @@ export function StoreMap({
     if (event.target instanceof Element && event.target.closest("a, button")) return;
 
     event.currentTarget.setPointerCapture(event.pointerId);
-    dragState.current = {
-      pointerId: event.pointerId,
-      startX: event.clientX,
-      startY: event.clientY,
-      startOffset: offset
+    pointers.current.set(event.pointerId, { x: event.clientX, y: event.clientY });
+
+    const activePointers = [...pointers.current.entries()];
+    if (activePointers.length === 1) {
+      gesture.current = {
+        kind: "drag",
+        pointerId: event.pointerId,
+        start: { x: event.clientX, y: event.clientY },
+        startOffset: offset
+      };
+      return;
+    }
+
+    const [, first] = activePointers[0];
+    const [, second] = activePointers[1];
+    gesture.current = {
+      kind: "pinch",
+      startCenter: { x: (first.x + second.x) / 2, y: (first.y + second.y) / 2 },
+      startDistance: Math.hypot(second.x - first.x, second.y - first.y),
+      startOffset: offset,
+      startScale: scale
     };
   };
 
   const handlePointerMove = (event: PointerEvent<HTMLElement>) => {
-    const drag = dragState.current;
+    if (!pointers.current.has(event.pointerId)) return;
+    pointers.current.set(event.pointerId, { x: event.clientX, y: event.clientY });
 
-    if (!drag || drag.pointerId !== event.pointerId) return;
+    const activePointers = [...pointers.current.values()];
+    const currentGesture = gesture.current;
+    if (activePointers.length >= 2 && currentGesture?.kind === "pinch") {
+      const [first, second] = activePointers;
+      const distance = Math.hypot(second.x - first.x, second.y - first.y);
+      const center = { x: (first.x + second.x) / 2, y: (first.y + second.y) / 2 };
+      const nextScale = Math.min(maxScale, Math.max(INITIAL_SCALE,
+        currentGesture.startScale * distance / Math.max(1, currentGesture.startDistance)));
+      const container = sectionRef.current;
+      if (!container) return;
+      const rect = container.getBoundingClientRect();
+      const startFocus = {
+        x: currentGesture.startCenter.x - rect.left - rect.width / 2,
+        y: currentGesture.startCenter.y - rect.top - rect.height / 2
+      };
+      const currentFocus = {
+        x: center.x - rect.left - rect.width / 2,
+        y: center.y - rect.top - rect.height / 2
+      };
+      const nextOffset = {
+        x: currentFocus.x - ((startFocus.x - currentGesture.startOffset.x) / currentGesture.startScale) * nextScale,
+        y: currentFocus.y - ((startFocus.y - currentGesture.startOffset.y) / currentGesture.startScale) * nextScale
+      };
+      setScale(nextScale);
+      setOffset(clampOffset(nextOffset, nextScale));
+      return;
+    }
 
-    setOffset(clampOffset({
-      x: drag.startOffset.x + event.clientX - drag.startX,
-      y: drag.startOffset.y + event.clientY - drag.startY
-    }));
+    if (currentGesture?.kind === "drag" && currentGesture.pointerId === event.pointerId) {
+      setOffset(clampOffset({
+        x: currentGesture.startOffset.x + event.clientX - currentGesture.start.x,
+        y: currentGesture.startOffset.y + event.clientY - currentGesture.start.y
+      }));
+    }
   };
 
   const handlePointerUp = (event: PointerEvent<HTMLElement>) => {
-    const drag = dragState.current;
+    const currentGesture = gesture.current;
+    pointers.current.delete(event.pointerId);
 
-    if (drag?.pointerId === event.pointerId) {
-      dragState.current = null;
-
-      const movedDistance = Math.hypot(event.clientX - drag.startX, event.clientY - drag.startY);
+    if (currentGesture?.kind === "drag" && currentGesture.pointerId === event.pointerId) {
+      const movedDistance = Math.hypot(event.clientX - currentGesture.start.x, event.clientY - currentGesture.start.y);
       if (
         movedDistance <= TAP_MOVE_THRESHOLD &&
         !(event.target instanceof Element && event.target.closest("a, button"))
@@ -160,10 +243,23 @@ export function StoreMap({
         onMapTap?.();
       }
     }
+
+    const remainingPointer = [...pointers.current.entries()][0];
+    gesture.current = remainingPointer ? {
+      kind: "drag",
+      pointerId: remainingPointer[0],
+      start: remainingPointer[1],
+      startOffset: offset
+    } : null;
   };
 
   const handleWheel = (event: WheelEvent<HTMLElement>) => {
     event.preventDefault();
+    const rect = event.currentTarget.getBoundingClientRect();
+    zoomAt(scale * Math.exp(-event.deltaY * 0.0015), {
+      x: event.clientX - rect.left - rect.width / 2,
+      y: event.clientY - rect.top - rect.height / 2
+    });
   };
 
   return (
@@ -229,6 +325,24 @@ export function StoreMap({
         <p className="text-sm font-bold text-slate-950">関大前エリア</p>
       </div>
       <div className={fullscreen ? "absolute right-4 top-32 z-20 grid gap-2" : "absolute right-5 top-5 z-10 flex gap-2"}>
+        <button
+          className="flex size-10 items-center justify-center rounded-md bg-white text-slate-700 shadow-sm disabled:text-slate-300"
+          aria-label="拡大"
+          onClick={() => zoomAt(scale * ZOOM_STEP, { x: 0, y: 0 })}
+          disabled={scale >= maxScale - 0.01}
+          type="button"
+        >
+          <Plus className="size-5" aria-hidden="true" />
+        </button>
+        <button
+          className="flex size-10 items-center justify-center rounded-md bg-white text-slate-700 shadow-sm disabled:text-slate-300"
+          aria-label="縮小"
+          onClick={() => zoomAt(scale / ZOOM_STEP, { x: 0, y: 0 })}
+          disabled={scale <= INITIAL_SCALE + 0.01}
+          type="button"
+        >
+          <Minus className="size-5" aria-hidden="true" />
+        </button>
         <button
           className="flex size-10 items-center justify-center rounded-md bg-white text-slate-700 shadow-sm"
           aria-label="現在地"
