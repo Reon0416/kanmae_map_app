@@ -26,7 +26,7 @@ export function getAuthCallbackUrl(request: NextRequest, redirectTo: string) {
 
 export function getRoleHomePath(role: UserRole) {
   if (role === USER_ROLE.USER) {
-    return "/my";
+    return "/";
   }
 
   return ROLE_HOME_PATH[role];

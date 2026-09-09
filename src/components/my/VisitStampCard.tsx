@@ -21,6 +21,12 @@ type StampCount = {
 type StampResponse = {
   stores: StampCount[];
   totalStampCount: number;
+  cardStamps: {
+    id: string;
+    storeId: string;
+    storeName: string;
+    stampedAt: string;
+  }[];
 };
 
 function getCurrentCardStampCount(totalStampCount: number) {
@@ -32,7 +38,13 @@ function getCurrentCardStampCount(totalStampCount: number) {
   return remainder === 0 ? STAMP_GOAL : remainder;
 }
 
-function StampCardView({ totalStampCount }: { totalStampCount: number }) {
+function StampCardView({
+  totalStampCount,
+  cardStamps
+}: {
+  totalStampCount: number;
+  cardStamps: StampResponse["cardStamps"];
+}) {
   const currentStampCount = getCurrentCardStampCount(totalStampCount);
   const completedCards = Math.floor(totalStampCount / STAMP_GOAL);
   const cardNumber = Math.max(1, completedCards + (currentStampCount === STAMP_GOAL ? 0 : 1));
@@ -60,7 +72,9 @@ function StampCardView({ totalStampCount }: { totalStampCount: number }) {
 
         <div className="relative z-10 mt-4 grid grid-cols-4 gap-3">
           {stampSlots.map((index) => {
-            const stamped = index < currentStampCount;
+            const stamp = cardStamps[index];
+            const stamped = Boolean(stamp);
+            const stampImage = stamp ? getStampImage(stamp.storeId) : undefined;
 
             return (
               <div
@@ -73,7 +87,15 @@ function StampCardView({ totalStampCount }: { totalStampCount: number }) {
                 )}
                 aria-label={stamped ? "スタンプ済み" : "未スタンプ"}
               >
-                {stamped ? (
+                {stamped && stampImage ? (
+                  <Image
+                    src={stampImage}
+                    alt={`${stamp.storeName}のスタンプ`}
+                    width={72}
+                    height={72}
+                    className="size-full rounded-full object-contain p-0.5"
+                  />
+                ) : stamped ? (
                   <Sparkles className="size-8 opacity-90" aria-hidden="true" />
                 ) : (
                   <span className="text-xl font-black leading-none">{index + 1}</span>
@@ -188,7 +210,7 @@ export function VisitStampCard({ stores }: { stores: Store[] }) {
   return (
     <section className="bg-white">
       <div className="py-5">
-        <StampCardView totalStampCount={stampCount} />
+        <StampCardView totalStampCount={stampCount} cardStamps={stampData?.cardStamps ?? []} />
 
         <div className="mt-5 px-3">
           <div className="overflow-hidden rounded-[26px] bg-slate-950 p-5 text-white shadow-[0_18px_44px_rgba(15,23,42,0.22)]">
