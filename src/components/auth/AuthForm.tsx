@@ -34,12 +34,15 @@ export function AuthForm({
     setIsSubmitting(true);
 
     const supabase = createSupabaseBrowserClient();
+    const callbackUrl = new URL("/auth/callback", window.location.origin);
+    callbackUrl.searchParams.set("next", redirectTo);
 
     const result = isSignUp
       ? await supabase.auth.signUp({
           email,
           password,
           options: {
+            emailRedirectTo: callbackUrl.toString(),
             data: {
               display_name: displayName,
               role: USER_ROLE.USER
