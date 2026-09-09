@@ -2,7 +2,6 @@
 
 import { LocateFixed } from "lucide-react";
 import Image from "next/image";
-import { StoreMarker } from "@/components/map/StoreMarker";
 import type { Store } from "@/features/stores/store-types";
 import { KANMAE_MAP_IMAGE, latLngToMapPosition } from "@/lib/map/map-config";
 import { PointerEvent, WheelEvent, useCallback, useEffect, useRef, useState } from "react";
@@ -34,10 +33,8 @@ function getViewportMapSize(width: number, height: number): MapSize {
 }
 
 export function StoreMap({
-  stores,
   fullscreen = false,
-  onMapTap,
-  onStoreSelect
+  onMapTap
 }: {
   stores: Store[];
   fullscreen?: boolean;
@@ -197,13 +194,6 @@ export function StoreMap({
           className="absolute inset-0 size-full select-none object-fill"
           draggable={false}
         />
-        {stores.map((store) => (
-          <StoreMarker
-            key={store.id}
-            store={store}
-            onSelect={(selectedStore) => onStoreSelect?.(selectedStore)}
-          />
-        ))}
         {userLocation ? (
           <div
             className="absolute z-20 -translate-x-1/2 -translate-y-1/2"
