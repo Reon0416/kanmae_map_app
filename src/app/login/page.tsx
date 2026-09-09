@@ -1,5 +1,5 @@
 import { AuthForm } from "@/components/auth/AuthForm";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseServerClient, hasSupabaseEnvironment } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 
 function getSafeRedirectPath(next?: string) {
@@ -17,13 +17,16 @@ export default async function LoginPage({
 }) {
   const { next } = await searchParams;
   const redirectTo = getSafeRedirectPath(next);
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user }
-  } = await supabase.auth.getUser();
 
-  if (user) {
-    redirect(redirectTo);
+  if (hasSupabaseEnvironment()) {
+    const supabase = await createSupabaseServerClient();
+    const {
+      data: { user }
+    } = await supabase.auth.getUser();
+
+    if (user) {
+      redirect(redirectTo);
+    }
   }
 
   return (
