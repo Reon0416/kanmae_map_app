@@ -9,7 +9,38 @@ export function RoleGate({ allowed, children }: { allowed: UserRole[]; children:
   const [role, setRole] = useState<UserRole | null>();
 
   useEffect(() => {
-    setRole(window.localStorage.getItem(ROLE_STORAGE_KEY) as UserRole | null);
+    let isMounted = true;
+    const storedRole = window.localStorage.getItem(ROLE_STORAGE_KEY) as UserRole | null;
+
+    async function syncRole() {
+      try {
+        const response = await fetch("/api/auth/role", {
+          cache: "no-store"
+        });
+        const result = (await response.json()) as { role: UserRole | null };
+
+        if (!isMounted) return;
+
+        if (result.role) {
+          window.localStorage.setItem(ROLE_STORAGE_KEY, result.role);
+          setRole(result.role);
+          return;
+        }
+
+        window.localStorage.removeItem(ROLE_STORAGE_KEY);
+        setRole(null);
+      } catch {
+        if (isMounted) {
+          setRole(storedRole);
+        }
+      }
+    }
+
+    syncRole();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   if (role === undefined) {
