@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { ensureProfileAndGetRole, getClientIp, getRoleHomePath, logAuthEvent } from "@/features/auth/auth-server";
+import { ensureProfileAndGetRole, getClientIp, getPostAuthRedirectPath, logAuthEvent } from "@/features/auth/auth-server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 function getSafeRedirectPath(next: string | null) {
@@ -31,8 +31,8 @@ export async function GET(request: NextRequest) {
       userAgent: request.headers.get("user-agent") ?? undefined
     });
 
-    if (role && redirectTo === "/my") {
-      return NextResponse.redirect(new URL(getRoleHomePath(role), request.url));
+    if (role) {
+      return NextResponse.redirect(new URL(getPostAuthRedirectPath(role, redirectTo), request.url));
     }
   }
 

@@ -32,6 +32,14 @@ export function getRoleHomePath(role: UserRole) {
   return ROLE_HOME_PATH[role];
 }
 
+export function getPostAuthRedirectPath(role: UserRole, redirectTo: string) {
+  if (redirectTo === "/" || redirectTo === "/my") {
+    return getRoleHomePath(role);
+  }
+
+  return redirectTo;
+}
+
 export async function logAuthEvent(
   supabase: SupabaseClient,
   input: {
