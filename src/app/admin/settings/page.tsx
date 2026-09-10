@@ -1,21 +1,28 @@
 import { KeyRound, Mail, Save, UserPlus, UsersRound } from "lucide-react";
 import { AdminShell } from "@/components/admin/AdminShell";
+import { createSupabaseServerClient, hasSupabaseEnvironment } from "@/lib/supabase/server";
 
-const operators = [
-  { name: "KANMAE 管理者", email: "admin@kanmae.example", role: "管理者", status: "有効" },
-  { name: "運営スタッフ A", email: "staff-a@kanmae.example", role: "スタッフ", status: "有効" },
-  { name: "運営スタッフ B", email: "staff-b@kanmae.example", role: "スタッフ", status: "有効" }
-];
+export default async function AdminSettingsPage() {
+  const supabase = hasSupabaseEnvironment() ? await createSupabaseServerClient() : null;
+  const {
+    data: { user }
+  } = supabase ? await supabase.auth.getUser() : { data: { user: null } };
+  const { data: profile } =
+    supabase && user
+      ? await supabase.from("profiles").select("display_name, role").eq("id", user.id).maybeSingle()
+      : { data: null };
+  const currentEmail = user?.email ?? "";
+  const currentName = profile?.display_name || user?.email || "運営者";
+  const currentRole = profile?.role === "admin" ? "管理者" : profile?.role === "store" ? "店舗担当" : "ユーザー";
 
-export default function AdminSettingsPage() {
   return (
-      <AdminShell
-        activePath="/admin/settings"
-        title="設定"
-        description="運営者アカウント情報の変更と、運営者アカウントの追加を行います。"
-      >
-        <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_420px]">
-          <section className="grid gap-4">
+    <AdminShell
+      activePath="/admin/settings"
+      title="設定"
+      description="運営者アカウント情報の変更と、運営者アカウントの追加を行います。"
+    >
+      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_420px]">
+        <section className="grid gap-4">
             <form className="border border-slate-200 bg-white p-5">
               <div className="flex items-center gap-3 border-b border-slate-200 pb-4">
                 <Mail className="size-5 text-slate-500" aria-hidden="true" />
@@ -26,7 +33,7 @@ export default function AdminSettingsPage() {
                   現在のメールアドレス
                   <input
                     readOnly
-                    value="admin@kanmae.example"
+                    value={currentEmail}
                     className="h-11 rounded-sm border border-slate-200 bg-slate-50 px-3 text-sm font-bold text-slate-600 outline-none"
                   />
                 </label>
@@ -91,9 +98,9 @@ export default function AdminSettingsPage() {
                 </button>
               </div>
             </form>
-          </section>
+        </section>
 
-          <aside className="grid gap-4">
+        <aside className="grid gap-4">
             <form className="border border-slate-200 bg-white p-5">
               <div className="flex items-center gap-3 border-b border-slate-200 pb-4">
                 <UserPlus className="size-5 text-slate-500" aria-hidden="true" />
@@ -145,30 +152,30 @@ export default function AdminSettingsPage() {
             <section className="border border-slate-200 bg-white">
               <div className="flex items-center gap-3 border-b border-slate-200 px-4 py-3">
                 <UsersRound className="size-5 text-slate-500" aria-hidden="true" />
-                <h2 className="text-sm font-black text-slate-950">運営者一覧</h2>
+                <h2 className="text-sm font-black text-slate-950">現在の運営者アカウント</h2>
               </div>
               <div className="divide-y divide-slate-200">
-                {operators.map((operator) => (
-                  <div key={operator.email} className="px-4 py-3">
+                {user ? (
+                  <div className="px-4 py-3">
                     <div className="flex items-start justify-between gap-3">
                       <div>
-                        <p className="text-sm font-black text-slate-950">{operator.name}</p>
-                        <p className="mt-1 text-xs font-bold text-slate-500">{operator.email}</p>
+                        <p className="text-sm font-black text-slate-950">{currentName}</p>
+                        <p className="mt-1 text-xs font-bold text-slate-500">{currentEmail}</p>
                       </div>
-                      <span className="rounded-sm bg-slate-100 px-2 py-1 text-xs font-black text-slate-700">{operator.role}</span>
+                      <span className="rounded-sm bg-slate-100 px-2 py-1 text-xs font-black text-slate-700">{currentRole}</span>
                     </div>
                     <div className="mt-3 flex items-center justify-between">
-                      <span className="text-xs font-black text-emerald-700">{operator.status}</span>
-                      <button type="button" className="text-xs font-black text-red-700 underline-offset-4 hover:underline">
-                        無効化
-                      </button>
+                      <span className="text-xs font-black text-emerald-700">ログイン中</span>
+                      <span className="text-xs font-bold text-slate-500">現在のアカウント</span>
                     </div>
                   </div>
-                ))}
+                ) : (
+                  <p className="px-4 py-5 text-sm font-bold text-slate-500">運営者情報を取得できませんでした。</p>
+                )}
               </div>
             </section>
-          </aside>
-        </div>
-      </AdminShell>
+        </aside>
+      </div>
+    </AdminShell>
   );
 }
