@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
-import { ClipboardList, Home, Map, PenLine, Settings, ShieldCheck, Store, User } from "lucide-react";
+import { Clock3, Home, Map, PenLine, Settings, ShieldCheck, Store, User } from "lucide-react";
 import { OPEN_STORE_DETAIL_RECORD_EVENT } from "@/components/stores/StoreDetailRecordSheet";
 import { ROLE_STORAGE_KEY, USER_ROLE, type UserRole } from "@/features/auth/roles";
 import { cn } from "@/lib/utils";
@@ -19,9 +19,9 @@ const itemsByRole = {
   ],
   admin: [
     { href: "/admin", label: "ホーム", icon: Home },
+    { href: "/admin/wait-times", label: "待ち時間", icon: Clock3 },
     { href: "/admin/stores", label: "店舗", icon: ShieldCheck },
-    { href: "/admin/reports", label: "報告", icon: ClipboardList },
-    { href: "/login", label: "切替", icon: User }
+    { href: "/admin/settings", label: "設定", icon: Settings }
   ]
 } as const;
 

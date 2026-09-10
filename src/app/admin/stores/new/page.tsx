@@ -1,21 +1,37 @@
+import { Save } from "lucide-react";
+import { AdminShell } from "@/components/admin/AdminShell";
 import { RoleGate } from "@/components/auth/RoleGate";
 import { USER_ROLE } from "@/features/auth/roles";
 
 export default function NewStorePage() {
   return (
     <RoleGate allowed={[USER_ROLE.ADMIN]}>
-      <main className="mx-auto max-w-3xl px-4 pb-24 pt-6 md:px-6 md:pb-10">
-        <h1 className="text-2xl font-black">店舗追加</h1>
-        <form className="mt-5 grid gap-4 rounded-lg border border-border bg-white p-5 shadow-sm">
-          {["店舗名", "ジャンル", "住所", "緯度", "経度", "営業時間", "価格帯"].map((label) => (
-            <label key={label} className="block">
-              <span className="text-sm font-bold text-slate-700">{label}</span>
-              <input className="mt-2 h-11 w-full rounded-md border border-border bg-muted px-3 text-sm outline-none focus:ring-2 focus:ring-slate-950" />
+      <AdminShell activePath="/admin/stores" title="店舗追加" description="新しい店舗を店舗名と営業時間だけで登録します。">
+        <form className="max-w-3xl border border-slate-200 bg-white p-5">
+          <div className="grid gap-4">
+            <label className="grid gap-1.5 text-sm font-bold text-slate-700">
+              店舗名
+              <input className="h-11 rounded-sm border border-slate-300 bg-white px-3 text-sm font-bold outline-none focus:border-blue-700 focus:ring-2 focus:ring-blue-100" />
             </label>
-          ))}
-          <button type="button" className="h-10 rounded-md bg-slate-950 px-4 text-sm font-bold text-white">登録</button>
+            <label className="grid gap-1.5 text-sm font-bold text-slate-700">
+              営業時間
+              <input
+                placeholder="例: 11:00-22:00"
+                className="h-11 rounded-sm border border-slate-300 bg-white px-3 text-sm font-bold outline-none focus:border-blue-700 focus:ring-2 focus:ring-blue-100"
+              />
+            </label>
+          </div>
+          <div className="mt-5 flex justify-end border-t border-slate-200 pt-4">
+            <button
+              type="button"
+              className="inline-flex h-10 items-center justify-center gap-2 rounded-sm bg-slate-950 px-4 text-sm font-black text-white transition hover:bg-slate-800"
+            >
+              <Save className="size-4" aria-hidden="true" />
+              登録
+            </button>
+          </div>
         </form>
-      </main>
+      </AdminShell>
     </RoleGate>
   );
 }
