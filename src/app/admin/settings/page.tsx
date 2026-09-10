@@ -1,7 +1,5 @@
 import { KeyRound, Mail, Save, UserPlus, UsersRound } from "lucide-react";
 import { AdminShell } from "@/components/admin/AdminShell";
-import { RoleGate } from "@/components/auth/RoleGate";
-import { USER_ROLE } from "@/features/auth/roles";
 
 const operators = [
   { name: "KANMAE 管理者", email: "admin@kanmae.example", role: "管理者", status: "有効" },
@@ -11,7 +9,6 @@ const operators = [
 
 export default function AdminSettingsPage() {
   return (
-    <RoleGate allowed={[USER_ROLE.ADMIN]}>
       <AdminShell
         activePath="/admin/settings"
         title="設定"
@@ -173,6 +170,5 @@ export default function AdminSettingsPage() {
           </aside>
         </div>
       </AdminShell>
-    </RoleGate>
   );
 }

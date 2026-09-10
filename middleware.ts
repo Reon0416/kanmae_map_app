@@ -96,7 +96,8 @@ export async function middleware(request: NextRequest) {
 
   if (user && isAuthPath(pathname)) {
     const nextPath = request.nextUrl.searchParams.get("next");
-    const redirectPath = nextPath?.startsWith("/") && !nextPath.startsWith("//") ? nextPath : roleHomePaths[role];
+    const redirectPath =
+      role === "user" && nextPath?.startsWith("/") && !nextPath.startsWith("//") ? nextPath : roleHomePaths[role];
     const redirectUrl = new URL(redirectPath, request.url);
 
     const redirectResponse = NextResponse.redirect(redirectUrl);
