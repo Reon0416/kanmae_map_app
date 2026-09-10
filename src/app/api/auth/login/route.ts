@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { ensureProfileAndGetRole, getClientIp, getPostAuthRedirectPath, hashEmail, logAuthEvent } from "@/features/auth/auth-server";
+import { ensureProfileAndGetRoleWithToken, getClientIp, getPostAuthRedirectPath, hashEmail, logAuthEvent } from "@/features/auth/auth-server";
 import { loginRequestSchema, type AuthApiResponse } from "@/features/auth/auth-validation";
 import { checkRateLimit } from "@/lib/security/rate-limit";
 import { createSupabaseServerClient, hasSupabaseEnvironment } from "@/lib/supabase/server";
@@ -66,7 +66,7 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const role = await ensureProfileAndGetRole(supabase, loginResult.data.user);
+  const role = await ensureProfileAndGetRoleWithToken(supabase, loginResult.data.user, loginResult.data.session.access_token);
 
   await logAuthEvent(supabase, {
     eventType: "login",

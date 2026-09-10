@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { createClient } from "@supabase/supabase-js";
 import type { SupabaseClient, User } from "@supabase/supabase-js";
 import type { NextRequest } from "next/server";
 import { ROLE_HOME_PATH, USER_ROLE, type UserRole } from "@/features/auth/roles";
@@ -33,7 +34,7 @@ export function getRoleHomePath(role: UserRole) {
 }
 
 export function getPostAuthRedirectPath(role: UserRole, redirectTo: string) {
-  if (redirectTo === "/" || redirectTo === "/my") {
+  if (role !== USER_ROLE.USER) {
     return getRoleHomePath(role);
   }
 
@@ -70,7 +71,33 @@ export async function logAuthEvent(
 }
 
 export async function ensureProfileAndGetRole(supabase: SupabaseClient, user: User) {
-  const { data: profileRows, error } = await supabase.rpc("ensure_current_profile", {
+  return ensureProfileAndGetRoleWithToken(supabase, user);
+}
+
+export async function ensureProfileAndGetRoleWithToken(supabase: SupabaseClient, user: User, accessToken?: string) {
+  const roleClient =
+    accessToken && process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+      ? createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY, {
+          auth: {
+            autoRefreshToken: false,
+            persistSession: false
+          },
+          global: {
+            headers: {
+              Authorization: `Bearer ${accessToken}`
+            }
+          }
+        })
+      : supabase;
+
+  const { data: profile } = await roleClient.from("profiles").select("role").eq("id", user.id).maybeSingle();
+  const directRole = profile?.role;
+
+  if (userRoles.has(directRole)) {
+    return directRole as UserRole;
+  }
+
+  const { data: profileRows, error } = await roleClient.rpc("ensure_current_profile", {
     p_display_name: user.user_metadata?.display_name ?? null
   });
 
