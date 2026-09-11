@@ -77,7 +77,56 @@ export async function updateWaitTimeAction(formData: FormData) {
   revalidatePath("/stores");
   revalidatePath("/admin");
   revalidatePath("/admin/wait-times");
-  redirect(`/admin/wait-times?saved=${parsed.storeId}`);
+}
+
+export async function updateWaitTimeFormAction(
+  _previousState: { ok: boolean; storeId?: string; waitTime?: string; savedAt?: string; error?: string },
+  formData: FormData
+) {
+  try {
+    const { supabase } = await requireAdmin();
+    const parsed = z
+      .object({
+        storeId: z.string().uuid(),
+        waitTime: z.enum([
+          WAIT_TIME_BUCKET.NO_WAIT,
+          WAIT_TIME_BUCKET.WITHIN_5,
+          WAIT_TIME_BUCKET.BETWEEN_5_10,
+          WAIT_TIME_BUCKET.BETWEEN_10_20,
+          WAIT_TIME_BUCKET.OVER_20
+        ])
+      })
+      .parse({
+        storeId: getString(formData, "storeId"),
+        waitTime: getString(formData, "waitTime")
+      });
+
+    const { error } = await supabase.rpc("admin_update_wait_time", {
+      p_store_id: parsed.storeId,
+      p_wait_time: parsed.waitTime
+    });
+
+    if (error) {
+      return { ok: false, storeId: parsed.storeId, waitTime: parsed.waitTime, error: error.message };
+    }
+
+    revalidatePath("/");
+    revalidatePath("/stores");
+    revalidatePath("/admin");
+    revalidatePath("/admin/wait-times");
+
+    return {
+      ok: true,
+      storeId: parsed.storeId,
+      waitTime: parsed.waitTime,
+      savedAt: new Date().toISOString()
+    };
+  } catch (error) {
+    return {
+      ok: false,
+      error: error instanceof Error ? error.message : "待ち時間を保存できませんでした。"
+    };
+  }
 }
 
 export async function updateStoreAction(formData: FormData) {

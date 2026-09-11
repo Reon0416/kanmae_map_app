@@ -1,14 +1,9 @@
-import { updateWaitTimeAction } from "@/app/admin/actions";
 import { AdminShell } from "@/components/admin/AdminShell";
-import { WaitTimeSubmitButton } from "@/components/admin/WaitTimeSubmitButton";
-import { WAIT_TIME_BUCKET, WAIT_TIME_LABELS } from "@/constants/wait-time-options";
+import { WaitTimeRowForm } from "@/components/admin/WaitTimeRowForm";
 import { getStores } from "@/features/stores/store-queries";
 
-const waitTimeOptions = Object.values(WAIT_TIME_BUCKET);
-
-export default async function AdminWaitTimesPage({ searchParams }: { searchParams?: Promise<{ saved?: string }> }) {
+export default async function AdminWaitTimesPage() {
   const stores = await getStores();
-  const savedStoreId = (await searchParams)?.saved;
 
   return (
     <AdminShell
@@ -21,63 +16,9 @@ export default async function AdminWaitTimesPage({ searchParams }: { searchParam
           <h2 className="text-sm font-black text-slate-950">店舗別の待ち時間</h2>
         </div>
         <div className="divide-y divide-slate-200">
-          {stores.map((store) => {
-            const saved = savedStoreId === store.id;
-
-            return (
-              <form
-                action={updateWaitTimeAction}
-                key={store.id}
-                className="grid gap-4 px-4 py-4 transition lg:grid-cols-[1.2fr_220px_180px_auto] lg:items-end"
-              >
-                <input name="storeId" type="hidden" value={store.id} />
-                <div>
-                  <p className="text-sm font-black text-slate-950">{store.name}</p>
-                  <p className="mt-1 text-xs font-bold text-slate-500">
-                    現在: {WAIT_TIME_LABELS[store.waitTime]} / 最終更新:{" "}
-                    {new Date(store.lastUpdatedAt).toLocaleString("ja-JP", {
-                      year: "numeric",
-                      month: "2-digit",
-                      day: "2-digit",
-                      hour: "2-digit",
-                      minute: "2-digit"
-                    })}
-                  </p>
-                  {saved ? (
-                    <p className="mt-2 inline-flex items-center rounded-sm bg-emerald-50 px-2 py-1 text-xs font-black text-emerald-700" aria-live="polite">
-                      保存しました
-                    </p>
-                  ) : null}
-                </div>
-
-                <label className="grid gap-1.5 text-sm font-bold text-slate-700">
-                  待ち時間
-                  <select
-                    defaultValue={store.waitTime}
-                    name="waitTime"
-                    className="h-10 rounded-sm border border-slate-300 bg-white px-3 text-sm font-bold outline-none focus:border-blue-700 focus:ring-2 focus:ring-blue-100"
-                  >
-                    {waitTimeOptions.map((option) => (
-                      <option key={option} value={option}>
-                        {WAIT_TIME_LABELS[option]}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-
-                <label className="grid gap-1.5 text-sm font-bold text-slate-700">
-                  表示確認
-                  <input
-                    readOnly
-                    value={WAIT_TIME_LABELS[store.waitTime]}
-                    className="h-10 rounded-sm border border-slate-200 bg-slate-50 px-3 text-sm font-bold text-slate-600 outline-none"
-                  />
-                </label>
-
-                <WaitTimeSubmitButton saved={saved} />
-              </form>
-            );
-          })}
+          {stores.map((store) => (
+            <WaitTimeRowForm key={store.id} store={store} />
+          ))}
         </div>
       </section>
     </AdminShell>
