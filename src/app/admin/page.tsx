@@ -6,7 +6,7 @@ import { getStores } from "@/features/stores/store-queries";
 
 export default async function AdminPage() {
   const stores = await getStores();
-  const latestStore = stores[0];
+  const latestStore = [...stores].sort((a, b) => new Date(b.lastUpdatedAt).getTime() - new Date(a.lastUpdatedAt).getTime())[0];
 
   return (
     <AdminShell
@@ -17,7 +17,7 @@ export default async function AdminPage() {
       <div className="grid gap-4 xl:grid-cols-[1fr_360px]">
         <section className="border border-slate-200 bg-white">
           <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3">
-            <h2 className="text-sm font-black text-slate-950">現在の待ち時間</h2>
+            <h2 className="text-sm font-black text-slate-950">現在の待ち時間（{stores.length}件）</h2>
             <Link className="text-sm font-black text-blue-700 underline-offset-4 hover:underline" href="/admin/wait-times">
               変更する
             </Link>
@@ -33,7 +33,7 @@ export default async function AdminPage() {
                 </tr>
               </thead>
               <tbody>
-                {stores.slice(0, 6).map((store) => (
+                {stores.map((store) => (
                   <tr key={store.id} className="border-t border-slate-200">
                     <td className="px-4 py-3 font-black">{store.name}</td>
                     <td className="px-4 py-3">
