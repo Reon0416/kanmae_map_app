@@ -77,6 +77,7 @@ export async function updateWaitTimeAction(formData: FormData) {
   revalidatePath("/stores");
   revalidatePath("/admin");
   revalidatePath("/admin/wait-times");
+  redirect(`/admin/wait-times?saved=${parsed.storeId}`);
 }
 
 export async function updateStoreAction(formData: FormData) {
