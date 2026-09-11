@@ -7,27 +7,9 @@ import type { CSSProperties } from "react";
 import { Loader2, LogIn, Sparkles } from "lucide-react";
 import type { Store } from "@/features/stores/store-types";
 import { MAX_VISIBLE_STAMP_CARDS, STAMPS_PER_CARD } from "@/features/visit-records/stamp-card-config";
+import type { StampResponse } from "@/features/visit-records/stamp-queries";
 import { getStampImage } from "@/features/visit-records/stamp-images";
 import { cn } from "@/lib/utils";
-
-type StampCount = {
-  storeId: string;
-  storeName: string;
-  stampCount: number;
-  lastStampedAt: string | null;
-};
-
-type StampResponse = {
-  stores: StampCount[];
-  totalStampCount: number;
-  cardStamps: {
-    id: string;
-    storeId: string;
-    storeName: string;
-    stampedAt: string;
-    stampOrdinal: number;
-  }[];
-};
 
 function StampCardView({
   cardNumber,
@@ -98,10 +80,10 @@ function StampCardView({
   );
 }
 
-export function VisitStampCard({ stores }: { stores: Store[] }) {
-  const [stampData, setStampData] = useState<StampResponse | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+export function VisitStampCard({ stores, initialStampData }: { stores: Store[]; initialStampData: StampResponse | null }) {
+  const [stampData, setStampData] = useState<StampResponse | null>(initialStampData);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(initialStampData ? null : "スタンプを見るにはログインしてください。");
 
   useEffect(() => {
     let ignore = false;
@@ -136,7 +118,6 @@ export function VisitStampCard({ stores }: { stores: Store[] }) {
       setIsLoading(false);
     }
 
-    loadStamps();
     window.addEventListener("kanmae:visit-record-created", loadStamps);
 
     return () => {
