@@ -61,13 +61,13 @@ export function AuthForm({
   }
 
   return (
-    <div className="rounded-lg border border-border bg-white p-4 shadow-sm">
-      <form className="grid gap-3" onSubmit={submitAuth}>
+    <div className="border border-white/70 bg-white/90 p-5 shadow-[0_24px_70px_rgba(15,23,42,0.16)] backdrop-blur">
+      <form className="grid gap-4" onSubmit={submitAuth}>
         {isSignUp ? (
-          <label className="grid gap-1.5 text-sm font-bold text-slate-700">
+          <label className="grid gap-1.5 text-xs font-black uppercase tracking-[0.14em] text-slate-500">
             表示名
             <input
-              className="h-12 rounded-md border border-border px-3 text-base font-semibold outline-none focus:border-emerald-500"
+              className="h-12 rounded-sm border border-slate-300 bg-white px-3 text-base font-bold text-slate-950 outline-none transition focus:border-emerald-600 focus:ring-4 focus:ring-emerald-100"
               value={displayName}
               onChange={(event) => setDisplayName(event.target.value)}
               placeholder="関大 太郎"
@@ -75,10 +75,10 @@ export function AuthForm({
           </label>
         ) : null}
 
-        <label className="grid gap-1.5 text-sm font-bold text-slate-700">
+        <label className="grid gap-1.5 text-xs font-black uppercase tracking-[0.14em] text-slate-500">
           メールアドレス
           <input
-            className="h-12 rounded-md border border-border px-3 text-base font-semibold outline-none focus:border-emerald-500"
+            className="h-12 rounded-sm border border-slate-300 bg-white px-3 text-base font-bold text-slate-950 outline-none transition focus:border-emerald-600 focus:ring-4 focus:ring-emerald-100"
             type="email"
             autoComplete="email"
             value={email}
@@ -88,10 +88,10 @@ export function AuthForm({
           />
         </label>
 
-        <label className="grid gap-1.5 text-sm font-bold text-slate-700">
+        <label className="grid gap-1.5 text-xs font-black uppercase tracking-[0.14em] text-slate-500">
           パスワード
           <input
-            className="h-12 rounded-md border border-border px-3 text-base font-semibold outline-none focus:border-emerald-500"
+            className="h-12 rounded-sm border border-slate-300 bg-white px-3 text-base font-bold text-slate-950 outline-none transition focus:border-emerald-600 focus:ring-4 focus:ring-emerald-100"
             type="password"
             autoComplete={isSignUp ? "new-password" : "current-password"}
             minLength={8}
@@ -105,7 +105,7 @@ export function AuthForm({
         {error ? <p className="rounded-md bg-red-50 px-3 py-2 text-sm font-bold text-red-700">{error}</p> : null}
         {message ? <p className="rounded-md bg-emerald-50 px-3 py-2 text-sm font-bold text-emerald-700">{message}</p> : null}
 
-        <Button className="mt-1 h-12 w-full font-black" type="submit" disabled={isSubmitting}>
+        <Button className="mt-1 h-12 w-full rounded-sm bg-slate-950 font-black text-white shadow-sm transition hover:bg-slate-800 active:translate-y-px active:scale-[0.99]" type="submit" disabled={isSubmitting}>
           {isSubmitting ? (
             <Loader2 className="size-4 animate-spin" aria-hidden="true" />
           ) : isSignUp ? (
@@ -117,17 +117,17 @@ export function AuthForm({
         </Button>
       </form>
 
-      <div className="mt-4 border-t border-border pt-4 text-center text-sm font-bold text-slate-600">
+      <div className="mt-5 border-t border-slate-200 pt-4 text-center text-sm font-black text-slate-700">
         {isSignUp ? (
           <>
-            すでにアカウントがある場合は{" "}
+            アカウントをお持ちの方は{" "}
             <Link className="text-emerald-700 underline-offset-4 hover:underline" href={`/login?next=${encodeURIComponent(redirectTo)}`}>
               ログイン
             </Link>
           </>
         ) : (
           <>
-            はじめて使う場合は{" "}
+            はじめての方は{" "}
             <Link className="text-emerald-700 underline-offset-4 hover:underline" href={`/signup?next=${encodeURIComponent(redirectTo)}`}>
               新規登録
             </Link>

@@ -32,19 +32,29 @@ export default async function SignUpPage({
   }
 
   return (
-    <main className="min-h-dvh bg-slate-100 px-4 py-8">
-      <section className="mx-auto flex min-h-[calc(100dvh-4rem)] max-w-md flex-col justify-center">
-        <div className="mb-6">
-          <p className="text-sm font-black tracking-[0.22em] text-slate-500">KANMAE</p>
-          <h1 className="mt-2 text-3xl font-black text-slate-950">新規アカウント作成</h1>
-          <p className="mt-3 text-sm leading-6 text-slate-600">
-            メールアドレスとパスワードを登録して、来店回数とスタンプを保存します。
-          </p>
+    <main className="min-h-dvh bg-[radial-gradient(circle_at_top_left,#ecfdf5_0,#f8fafc_34%,#e2e8f0_100%)] px-4 py-6">
+      <section className="mx-auto grid min-h-[calc(100dvh-3rem)] w-full max-w-5xl items-center gap-8 lg:grid-cols-[1fr_420px]">
+        <div className="hidden lg:block">
+          <div className="max-w-lg">
+            <p className="text-sm font-black tracking-[0.32em] text-emerald-700">KANMAE</p>
+            <h1 className="mt-4 text-6xl font-black leading-[0.95] tracking-normal text-slate-950">関前を<br />もっと軽く。</h1>
+            <div className="mt-8 grid grid-cols-3 gap-2">
+              {["MAP", "STAMP", "WAIT"].map((item) => (
+                <div key={item} className="border border-white/70 bg-white/75 px-4 py-5 shadow-sm backdrop-blur">
+                  <p className="text-xs font-black tracking-[0.18em] text-slate-500">{item}</p>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
-        <AuthForm mode="sign-up" redirectTo={redirectTo} />
-        <p className="mt-5 text-xs leading-6 text-slate-500">
-          パスワードは Supabase Auth 側で安全に管理され、アプリのテーブルには保存しません。
-        </p>
+
+        <div className="mx-auto w-full max-w-md">
+          <div className="mb-5">
+            <p className="text-sm font-black tracking-[0.28em] text-emerald-700 lg:hidden">KANMAE</p>
+            <h1 className="mt-2 text-4xl font-black tracking-normal text-slate-950">新規登録</h1>
+          </div>
+          <AuthForm mode="sign-up" redirectTo={redirectTo} />
+        </div>
       </section>
     </main>
   );
