@@ -1,6 +1,7 @@
 import { KeyRound, Mail, Save, UserPlus, UsersRound } from "lucide-react";
 import { createOperatorAction, updateCurrentUserEmailAction, updateCurrentUserPasswordAction } from "@/app/admin/actions";
 import { AdminShell } from "@/components/admin/AdminShell";
+import { getStores } from "@/features/stores/store-queries";
 import { createSupabaseAdminClient, hasSupabaseAdminEnvironment } from "@/lib/supabase/admin";
 import { createSupabaseServerClient, hasSupabaseEnvironment } from "@/lib/supabase/server";
 
@@ -13,6 +14,7 @@ type Operator = {
 };
 
 export default async function AdminSettingsPage() {
+  const stores = await getStores();
   const supabase = hasSupabaseEnvironment() ? await createSupabaseServerClient() : null;
   const {
     data: { user }
@@ -170,6 +172,17 @@ export default async function AdminSettingsPage() {
                   <select name="role" className="h-11 rounded-sm border border-slate-300 bg-white px-3 text-sm font-bold outline-none focus:border-blue-700 focus:ring-2 focus:ring-blue-100">
                     <option value="admin">管理者</option>
                     <option value="store">店舗担当</option>
+                  </select>
+                </label>
+                <label className="grid gap-1.5 text-sm font-bold text-slate-700">
+                  担当店舗
+                  <select name="storeId" className="h-11 rounded-sm border border-slate-300 bg-white px-3 text-sm font-bold outline-none focus:border-blue-700 focus:ring-2 focus:ring-blue-100">
+                    <option value="">管理者、または後で設定する場合は未選択</option>
+                    {stores.map((store) => (
+                      <option key={store.id} value={store.id}>
+                        {store.name}
+                      </option>
+                    ))}
                   </select>
                 </label>
               </div>

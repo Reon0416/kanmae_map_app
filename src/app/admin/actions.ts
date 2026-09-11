@@ -18,7 +18,8 @@ const operatorSchema = z.object({
   displayName: z.string().trim().min(1, "運営者名を入力してください。").max(40),
   email: z.string().trim().email("メールアドレスを確認してください。"),
   password: z.string().min(8, "パスワードは8文字以上で入力してください。"),
-  role: z.enum([USER_ROLE.ADMIN, USER_ROLE.STORE])
+  role: z.enum([USER_ROLE.ADMIN, USER_ROLE.STORE]),
+  storeId: z.string().uuid().optional().or(z.literal(""))
 });
 
 async function requireAdmin() {
@@ -139,8 +140,14 @@ export async function createOperatorAction(formData: FormData) {
     displayName: getString(formData, "displayName"),
     email: getString(formData, "email"),
     password: getString(formData, "password"),
-    role: getString(formData, "role")
+    role: getString(formData, "role"),
+    storeId: getString(formData, "storeId")
   });
+
+  if (parsed.role === USER_ROLE.STORE && !parsed.storeId) {
+    throw new Error("店舗担当アカウントには担当店舗を選択してください。");
+  }
+
   const adminSupabase = createSupabaseAdminClient();
   const { data, error } = await adminSupabase.auth.admin.createUser({
     email: parsed.email,
@@ -165,6 +172,17 @@ export async function createOperatorAction(formData: FormData) {
 
   if (profileError) {
     throw new Error(`運営者権限を保存できませんでした: ${profileError.message}`);
+  }
+
+  if (parsed.role === USER_ROLE.STORE && parsed.storeId) {
+    const { error: storeAdminError } = await adminSupabase.from("store_admins").upsert({
+      store_id: parsed.storeId,
+      user_id: data.user.id
+    });
+
+    if (storeAdminError) {
+      throw new Error(`担当店舗を保存できませんでした: ${storeAdminError.message}`);
+    }
   }
 
   revalidatePath("/admin/settings");

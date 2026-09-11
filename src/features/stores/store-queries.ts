@@ -241,26 +241,26 @@ function mapStoreRow(row: StoreRow): Store {
 
 export async function getStores() {
   if (!hasSupabaseEnvironment()) {
-    return demoStores;
-  }
-
-  try {
-    const supabase = await createSupabaseServerClient();
-    const { data, error } = await supabase
-      .from("stores")
-      .select(
-        "id, name, description, genre, price_band, address, lat, lng, walk_minutes, hours, closed, accepts_takeout, has_student_discount, updated_at, current_store_status(display_status, wait_time, updated_at)"
-      )
-      .order("created_at", { ascending: true });
-
-    if (error || !data) {
-      return demoStores;
+    if (process.env.NODE_ENV === "production") {
+      throw new Error("Supabase environment variables are not configured.");
     }
 
-    return (data as StoreRow[]).map(mapStoreRow);
-  } catch {
     return demoStores;
   }
+
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase
+    .from("stores")
+    .select(
+      "id, name, description, genre, price_band, address, lat, lng, walk_minutes, hours, closed, accepts_takeout, has_student_discount, updated_at, current_store_status(display_status, wait_time, updated_at)"
+    )
+    .order("created_at", { ascending: true });
+
+  if (error || !data) {
+    throw new Error(`Failed to load stores: ${error?.message ?? "No data returned."}`);
+  }
+
+  return (data as StoreRow[]).map(mapStoreRow);
 }
 
 export async function getStoreById(storeId: string) {

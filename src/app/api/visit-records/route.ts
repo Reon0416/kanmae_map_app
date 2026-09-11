@@ -70,6 +70,15 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Failed to save visit record" }, { status: 500 });
   }
 
+  const { error: crowdError } = await supabase.rpc("report_crowd_wait_time", {
+    p_store_id: store.id,
+    p_wait_time: body.data.waitTime
+  });
+
+  if (crowdError) {
+    return NextResponse.json({ error: "Failed to update crowd status" }, { status: 500 });
+  }
+
   return NextResponse.json({
     id: data[0].event_id,
     storeId: store.id,
