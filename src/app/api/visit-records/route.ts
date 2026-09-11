@@ -33,7 +33,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid visit payload" }, { status: 400 });
   }
 
-  const store = getStoreById(body.data.storeId);
+  const store = await getStoreById(body.data.storeId);
   if (!store) {
     return NextResponse.json({ error: "Store not found" }, { status: 404 });
   }

@@ -1,5 +1,6 @@
 import type { Store } from "@/features/stores/store-types";
 import { latLngToMapPosition } from "@/lib/map/map-config";
+import { createSupabaseServerClient, hasSupabaseEnvironment } from "@/lib/supabase/server";
 
 const now = Date.now();
 
@@ -124,11 +125,146 @@ export const demoStores: Store[] = [
   })
 ];
 
-export function getStores() {
-  return demoStores;
+type StoreRow = {
+  id: string;
+  name: string;
+  description?: string | null;
+  genre?: string | null;
+  price_band?: string | null;
+  address?: string | null;
+  lat?: number | null;
+  lng?: number | null;
+  walk_minutes?: number | null;
+  hours?: string | null;
+  closed?: string | null;
+  accepts_takeout?: boolean | null;
+  has_student_discount?: boolean | null;
+  updated_at?: string | null;
+  current_store_status?: StoreStatusRow | StoreStatusRow[] | null;
+};
+
+type StoreStatusRow = {
+  display_status?: string | null;
+  wait_time?: string | null;
+  updated_at?: string | null;
+};
+
+const assetMatchers: { assetKey: string; includes: string[] }[] = [
+  { assetKey: "toriton", includes: ["とりとん"] },
+  { assetKey: "suzume", includes: ["雀"] },
+  { assetKey: "kirinji", includes: ["きりん寺"] },
+  { assetKey: "butafuku", includes: ["豚福"] },
+  { assetKey: "kenpei", includes: ["憲兵"] },
+  { assetKey: "kirameki", includes: ["キラメキ"] },
+  { assetKey: "semi", includes: ["蝉"] },
+  { assetKey: "kokoro", includes: ["こころ"] },
+  { assetKey: "musou", includes: ["武双", "むそう"] }
+];
+
+const assetImages: Record<string, string> = {
+  toriton: "/stores/toriton-sign.png",
+  suzume: "/stores/suzume-sign.png",
+  kirinji: "/stores/kirinji-sign.png",
+  butafuku: "/stores/butafuku-sign.png",
+  kenpei: "/stores/kenpei-sign.png",
+  kirameki: "/stores/kirameki-sign.png",
+  semi: "/stores/semi-sign.png",
+  kokoro: "/stores/kokoro-sign.png",
+  musou: "/stores/musou-sign.png"
+};
+
+function getAssetKey(name: string) {
+  return assetMatchers.find((matcher) => matcher.includes.some((item) => name.includes(item)))?.assetKey;
 }
 
-export function getStoreById(storeId: string) {
-  return demoStores.find((store) => store.id === storeId);
+function normalizePriceBand(value?: string | null): Store["priceBand"] {
+  if (value === "under_800" || value === "800_1200" || value === "1200_1800" || value === "over_1800") {
+    return value;
+  }
+
+  return "800_1200";
+}
+
+function normalizeDisplayStatus(value?: string | null): Store["status"] {
+  if (
+    value === "available" ||
+    value === "limited" ||
+    value === "slightly_crowded" ||
+    value === "full" ||
+    value === "stale" ||
+    value === "unknown"
+  ) {
+    return value;
+  }
+
+  return "unknown";
+}
+
+function normalizeWaitTime(value?: string | null): Store["waitTime"] {
+  if (value === "no_wait" || value === "within_5" || value === "between_5_10" || value === "between_10_20" || value === "over_20") {
+    return value;
+  }
+
+  return "no_wait";
+}
+
+function mapStoreRow(row: StoreRow): Store {
+  const lat = row.lat ?? 34.7732;
+  const lng = row.lng ?? 135.5073;
+  const assetKey = getAssetKey(row.name);
+  const currentStatus = Array.isArray(row.current_store_status)
+    ? row.current_store_status[0]
+    : row.current_store_status;
+
+  return {
+    id: row.id,
+    assetKey,
+    name: row.name,
+    description: row.description || "関大前エリアの飲食店です。",
+    heroImage: assetKey ? assetImages[assetKey] : undefined,
+    genre: row.genre || "未設定",
+    priceBand: normalizePriceBand(row.price_band),
+    address: row.address || "大阪府吹田市千里山東",
+    lat,
+    lng,
+    walkMinutes: row.walk_minutes ?? 5,
+    hours: row.hours || "未設定",
+    closed: row.closed || "未設定",
+    acceptsTakeout: row.accepts_takeout ?? false,
+    hasStudentDiscount: row.has_student_discount ?? false,
+    status: normalizeDisplayStatus(currentStatus?.display_status),
+    waitTime: normalizeWaitTime(currentStatus?.wait_time),
+    lastUpdatedAt: currentStatus?.updated_at ?? row.updated_at ?? new Date().toISOString(),
+    mapPosition: latLngToMapPosition({ lat, lng })
+  };
+}
+
+export async function getStores() {
+  if (!hasSupabaseEnvironment()) {
+    return demoStores;
+  }
+
+  try {
+    const supabase = await createSupabaseServerClient();
+    const { data, error } = await supabase
+      .from("stores")
+      .select(
+        "id, name, description, genre, price_band, address, lat, lng, walk_minutes, hours, closed, accepts_takeout, has_student_discount, updated_at, current_store_status(display_status, wait_time, updated_at)"
+      )
+      .order("created_at", { ascending: true });
+
+    if (error || !data) {
+      return demoStores;
+    }
+
+    return (data as StoreRow[]).map(mapStoreRow);
+  } catch {
+    return demoStores;
+  }
+}
+
+export async function getStoreById(storeId: string) {
+  const stores = await getStores();
+  return stores.find((store) => store.id === storeId || store.assetKey === storeId);
 }
 

@@ -3,8 +3,8 @@ import { Plus } from "lucide-react";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { getStores } from "@/features/stores/store-queries";
 
-export default function AdminStoresPage() {
-  const stores = getStores();
+export default async function AdminStoresPage() {
+  const stores = await getStores();
 
   return (
     <AdminShell

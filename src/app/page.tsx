@@ -2,8 +2,8 @@ import { Suspense } from "react";
 import { MapHome } from "@/components/map/MapHome";
 import { getStores } from "@/features/stores/store-queries";
 
-export default function HomePage() {
-  const stores = getStores();
+export default async function HomePage() {
+  const stores = await getStores();
 
   return (
     <Suspense fallback={null}>

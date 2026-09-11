@@ -4,8 +4,8 @@ import { AdminShell } from "@/components/admin/AdminShell";
 import { WAIT_TIME_LABELS } from "@/constants/wait-time-options";
 import { getStores } from "@/features/stores/store-queries";
 
-export default function AdminPage() {
-  const stores = getStores();
+export default async function AdminPage() {
+  const stores = await getStores();
   const latestStore = stores[0];
 
   return (

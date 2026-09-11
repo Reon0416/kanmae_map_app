@@ -87,7 +87,7 @@ export default async function StoresPage({
 }) {
   const params = await searchParams;
   const sortOrder: StoreSortOrder = params.sort === "wait_desc" ? "wait_desc" : "wait_asc";
-  const stores = [...getStores()].sort((a, b) => compareStores(a, b, sortOrder));
+  const stores = [...(await getStores())].sort((a, b) => compareStores(a, b, sortOrder));
 
   return (
     <main className="min-h-dvh bg-slate-100 pb-24">
@@ -109,7 +109,7 @@ export default async function StoresPage({
       <div className="overflow-hidden bg-white">
         {stores.map((store) => {
           const isFull = store.status === DISPLAY_STATUS.FULL;
-          const thumbnailImage = storeThumbnailImages[store.id];
+          const thumbnailImage = storeThumbnailImages[store.assetKey ?? store.id];
           const thumbnailScale = thumbnailImage ? 78 / thumbnailImage.bounds.width : 1;
           return (
           <Link

@@ -10,7 +10,7 @@ import { formatRelativeTime, priceBandLabel } from "@/lib/utils";
 
 export default async function StoreDetailPage({ params }: { params: Promise<{ storeId: string }> }) {
   const { storeId } = await params;
-  const store = getStoreById(storeId);
+  const store = await getStoreById(storeId);
 
   if (!store) notFound();
 

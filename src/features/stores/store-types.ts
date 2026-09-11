@@ -9,6 +9,7 @@ export type PriceBand = "under_800" | "800_1200" | "1200_1800" | "over_1800";
 
 export type Store = {
   id: string;
+  assetKey?: string;
   name: string;
   description: string;
   heroImage?: string;

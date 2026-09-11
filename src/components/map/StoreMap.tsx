@@ -292,7 +292,9 @@ export function StoreMap({
           className="absolute inset-0 size-full select-none object-fill"
           draggable={false}
         />
-        {MAP_STORE_PLACEMENTS.filter((placement) => stores.some((store) => store.id === placement.storeId)).map((placement) => (
+        {MAP_STORE_PLACEMENTS.filter((placement) =>
+          stores.some((store) => (store.assetKey ?? store.id) === placement.storeId)
+        ).map((placement) => (
           <div
             key={placement.storeId}
             className="pointer-events-none absolute"
@@ -300,7 +302,7 @@ export function StoreMap({
           >
             <Image
               src={placement.image}
-              alt={stores.find((store) => store.id === placement.storeId)?.name ?? ""}
+              alt={stores.find((store) => (store.assetKey ?? store.id) === placement.storeId)?.name ?? ""}
               fill
               unoptimized
               sizes="100vw"

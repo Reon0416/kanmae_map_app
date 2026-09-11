@@ -5,8 +5,8 @@ import { QuickRecordPanel } from "@/components/visit-records/QuickRecordPanel";
 import { USER_ROLE } from "@/features/auth/roles";
 import { getStores } from "@/features/stores/store-queries";
 
-export default function RecordPage() {
-  const stores = getStores();
+export default async function RecordPage() {
+  const stores = await getStores();
 
   return (
     <RoleGate allowed={[USER_ROLE.USER]}>

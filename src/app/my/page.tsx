@@ -4,8 +4,8 @@ import { VisitStampCard } from "@/components/my/VisitStampCard";
 import { USER_ROLE } from "@/features/auth/roles";
 import { getStores } from "@/features/stores/store-queries";
 
-export default function MyPage() {
-  const stores = getStores();
+export default async function MyPage() {
+  const stores = await getStores();
 
   return (
     <RoleGate allowed={[USER_ROLE.USER]}>

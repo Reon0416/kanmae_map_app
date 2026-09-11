@@ -1,22 +1,25 @@
 import { notFound } from "next/navigation";
 import { Save } from "lucide-react";
+import { updateStoreAction } from "@/app/admin/actions";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { getStoreById } from "@/features/stores/store-queries";
 
 export default async function AdminStoreEditPage({ params }: { params: Promise<{ storeId: string }> }) {
   const { storeId } = await params;
-  const store = getStoreById(storeId);
+  const store = await getStoreById(storeId);
 
   if (!store) notFound();
 
   return (
     <AdminShell activePath="/admin/stores" title="店舗情報編集" description={`${store.name} の店舗名と営業時間を修正します。`}>
-      <form className="max-w-3xl border border-slate-200 bg-white p-5">
+      <form action={updateStoreAction} className="max-w-3xl border border-slate-200 bg-white p-5">
+        <input name="storeId" type="hidden" value={store.id} />
         <div className="grid gap-4">
           <label className="grid gap-1.5 text-sm font-bold text-slate-700">
             店舗名
             <input
               defaultValue={store.name}
+              name="name"
               className="h-11 rounded-sm border border-slate-300 bg-white px-3 text-sm font-bold outline-none focus:border-blue-700 focus:ring-2 focus:ring-blue-100"
             />
           </label>
@@ -24,6 +27,7 @@ export default async function AdminStoreEditPage({ params }: { params: Promise<{
             営業時間
             <input
               defaultValue={store.hours}
+              name="hours"
               placeholder="例: 11:00-22:00"
               className="h-11 rounded-sm border border-slate-300 bg-white px-3 text-sm font-bold outline-none focus:border-blue-700 focus:ring-2 focus:ring-blue-100"
             />
@@ -34,7 +38,7 @@ export default async function AdminStoreEditPage({ params }: { params: Promise<{
             キャンセル
           </button>
           <button
-            type="button"
+            type="submit"
             className="inline-flex h-10 items-center justify-center gap-2 rounded-sm bg-slate-950 px-4 text-sm font-black text-white transition hover:bg-slate-800"
           >
             <Save className="size-4" aria-hidden="true" />
