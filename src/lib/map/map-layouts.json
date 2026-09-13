@@ -34,6 +34,15 @@
   },
   "stores": [
     {
+      "storeId": "butafuku",
+      "image": "/maps/stores/butafuku-v2.webp",
+      "x": 611,
+      "y": 500,
+      "width": 220,
+      "height": 200,
+      "zIndex": 1
+    },
+    {
       "storeId": "musou",
       "image": "/maps/stores/musou-no-vehicles.webp",
       "x": 330,
