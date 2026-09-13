@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { StampRewardOverlay } from "@/components/visit-records/StampRewardOverlay";
 import { WaitTimeSelector } from "@/components/visit-records/WaitTimeSelector";
 import type { Store, WaitTimeBucket } from "@/features/stores/store-types";
-import { getCurrentPosition, saveVisitRecord } from "@/features/visit-records/save-visit-record";
+import { saveVisitRecord } from "@/features/visit-records/save-visit-record";
 import { playStampSound } from "@/features/visit-records/stamp-sound";
 
 export const OPEN_STORE_DETAIL_RECORD_EVENT = "kanmae:open-store-detail-record";
@@ -46,18 +46,10 @@ export function StoreRecordSheet({
     setIsSaving(true);
     setError(null);
 
-    const position = await getCurrentPosition();
-
     try {
       await saveVisitRecord({
         storeId: store.id,
-        waitTime,
-        location: position
-          ? {
-              lat: position.coords.latitude,
-              lng: position.coords.longitude
-            }
-          : undefined
+        waitTime
       });
       playStampSound();
       setSaved(true);

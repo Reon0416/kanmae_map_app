@@ -5,7 +5,7 @@ import { CheckCircle2, Navigation } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { WaitTimeSelector } from "@/components/visit-records/WaitTimeSelector";
 import type { Store, WaitTimeBucket } from "@/features/stores/store-types";
-import { getCurrentPosition, saveVisitRecord } from "@/features/visit-records/save-visit-record";
+import { saveVisitRecord } from "@/features/visit-records/save-visit-record";
 
 export function VisitRecordButton({ store }: { store: Store }) {
   const [waitTime, setWaitTime] = useState<WaitTimeBucket>("within_5");
@@ -17,18 +17,10 @@ export function VisitRecordButton({ store }: { store: Store }) {
     setIsSaving(true);
     setError(null);
 
-    const position = await getCurrentPosition();
-
     try {
       await saveVisitRecord({
         storeId: store.id,
-        waitTime,
-        location: position
-          ? {
-              lat: position.coords.latitude,
-              lng: position.coords.longitude
-            }
-          : undefined
+        waitTime
       });
       setSaved(true);
     } catch (saveError) {
@@ -41,7 +33,7 @@ export function VisitRecordButton({ store }: { store: Store }) {
   return (
     <div className="bg-white p-4 md:rounded-lg">
       <h2 className="text-base font-bold text-slate-950">来店記録</h2>
-      <p className="mt-1 text-sm text-slate-600">{store.name}の近くにいる場合、待ち時間目安を選んで記録できます。</p>
+      <p className="mt-1 text-sm text-slate-600">{store.name}の待ち時間目安を選んで記録できます。</p>
       <div className="mt-4">
         <WaitTimeSelector value={waitTime} onChange={setWaitTime} />
       </div>

@@ -2,8 +2,6 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { WAIT_TIME_BUCKET } from "@/constants/wait-time-options";
 import { getStoreById } from "@/features/stores/store-queries";
-import { validateVisitLocation } from "@/features/visit-records/validate-location";
-import { DEFAULT_VISIT_RADIUS_METERS } from "@/lib/map/map-config";
 import { checkRateLimit } from "@/lib/security/rate-limit";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -36,18 +34,6 @@ export async function POST(request: Request) {
   const store = await getStoreById(body.data.storeId);
   if (!store) {
     return NextResponse.json({ error: "Store not found" }, { status: 404 });
-  }
-
-  if (body.data.location) {
-    const locationResult = validateVisitLocation(
-      body.data.location,
-      { lat: store.lat, lng: store.lng },
-      DEFAULT_VISIT_RADIUS_METERS
-    );
-
-    if (!locationResult.isValid) {
-      return NextResponse.json({ error: "Store is too far from current location", distance: locationResult.distance }, { status: 403 });
-    }
   }
 
   const supabase = await createSupabaseServerClient();
