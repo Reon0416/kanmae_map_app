@@ -58,6 +58,15 @@
   },
   "stores": [
     {
+      "storeId": "toriton",
+      "image": "/maps/stores/toriton-v2.webp",
+      "x": 302,
+      "y": 900,
+      "width": 220,
+      "height": 200,
+      "zIndex": 1
+    },
+    {
       "storeId": "kokoro",
       "image": "/maps/stores/kokoro-v2.webp",
       "x": 55,
