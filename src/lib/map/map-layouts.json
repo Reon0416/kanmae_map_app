@@ -34,6 +34,15 @@
   },
   "stores": [
     {
+      "storeId": "musou",
+      "image": "/maps/stores/musou-no-vehicles.webp",
+      "x": 330,
+      "y": 103,
+      "width": 225,
+      "height": 210,
+      "zIndex": 1
+    },
+    {
       "storeId": "suzume",
       "image": "/maps/stores/suzume.webp",
       "x": 645,
