@@ -58,6 +58,15 @@
   },
   "stores": [
     {
+      "storeId": "kenpei",
+      "image": "/maps/stores/kenpei-v3.webp",
+      "x": 698,
+      "y": 278,
+      "width": 220,
+      "height": 200,
+      "zIndex": 1
+    },
+    {
       "storeId": "semi",
       "image": "/maps/stores/semi-v2.webp",
       "x": 325,
