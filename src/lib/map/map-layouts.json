@@ -11,10 +11,22 @@
       "y": 0,
       "mode": "layered",
       "corners": {
-        "topLeft": { "lat": 34.772735, "lng": 135.505862 },
-        "topRight": { "lat": 34.774043, "lng": 135.505792 },
-        "bottomRight": { "lat": 34.773958, "lng": 135.509021 },
-        "bottomLeft": { "lat": 34.772797, "lng": 135.509036 }
+        "topLeft": {
+          "lat": 34.772735,
+          "lng": 135.505862
+        },
+        "topRight": {
+          "lat": 34.774043,
+          "lng": 135.505792
+        },
+        "bottomRight": {
+          "lat": 34.773958,
+          "lng": 135.509021
+        },
+        "bottomLeft": {
+          "lat": 34.772797,
+          "lng": 135.509036
+        }
       }
     },
     "legacy": {
@@ -25,14 +37,35 @@
       "y": 0,
       "mode": "baked",
       "corners": {
-        "topLeft": { "lat": 34.772735, "lng": 135.505862 },
-        "topRight": { "lat": 34.774043, "lng": 135.505792 },
-        "bottomRight": { "lat": 34.773958, "lng": 135.509021 },
-        "bottomLeft": { "lat": 34.772797, "lng": 135.509036 }
+        "topLeft": {
+          "lat": 34.772735,
+          "lng": 135.505862
+        },
+        "topRight": {
+          "lat": 34.774043,
+          "lng": 135.505792
+        },
+        "bottomRight": {
+          "lat": 34.773958,
+          "lng": 135.509021
+        },
+        "bottomLeft": {
+          "lat": 34.772797,
+          "lng": 135.509036
+        }
       }
     }
   },
   "stores": [
+    {
+      "storeId": "kirinji",
+      "image": "/maps/stores/kirinji-v2.webp",
+      "x": 592,
+      "y": 690,
+      "width": 220,
+      "height": 200,
+      "zIndex": 1
+    },
     {
       "storeId": "butafuku",
       "image": "/maps/stores/butafuku-v2.webp",
@@ -62,4 +95,3 @@
     }
   ]
 }
-
