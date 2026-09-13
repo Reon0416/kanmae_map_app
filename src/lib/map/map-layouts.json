@@ -58,6 +58,15 @@
   },
   "stores": [
     {
+      "storeId": "semi",
+      "image": "/maps/stores/semi-v2.webp",
+      "x": 325,
+      "y": 405,
+      "width": 220,
+      "height": 200,
+      "zIndex": 1
+    },
+    {
       "storeId": "toriton",
       "image": "/maps/stores/toriton-v2.webp",
       "x": 175,
