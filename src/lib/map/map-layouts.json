@@ -60,8 +60,8 @@
     {
       "storeId": "toriton",
       "image": "/maps/stores/toriton-v2.webp",
-      "x": 302,
-      "y": 900,
+      "x": 175,
+      "y": 1015,
       "width": 220,
       "height": 200,
       "zIndex": 1
