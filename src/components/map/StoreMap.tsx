@@ -3,9 +3,9 @@
 import { LocateFixed, Minus, Plus } from "lucide-react";
 import Image from "next/image";
 import type { Store } from "@/features/stores/store-types";
-import { ACTIVE_MAP_SOURCE_SIZE, MAP_STORE_PLACEMENTS, fitMapViewport } from "@/lib/map/map-layout";
+import { ACTIVE_MAP_LAYOUT, ACTIVE_MAP_SOURCE_SIZE, ACTIVE_MAP_TILES, MAP_STORE_PLACEMENTS } from "@/lib/map/map-layout";
 import { KANMAE_MAP_IMAGE, latLngToMapPosition } from "@/lib/map/map-config";
-import { PointerEvent, WheelEvent, useCallback, useEffect, useRef, useState } from "react";
+import { PointerEvent, WheelEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 type UserLocation = {
   position: {
@@ -29,6 +29,7 @@ const INITIAL_SCALE = 1;
 const INITIAL_OFFSET = { x: 0, y: 0 };
 const TAP_MOVE_THRESHOLD = 8;
 const ZOOM_STEP = 1.35;
+const LANDMARK_PLACEMENT_IDS = new Set(["kandai"]);
 
 type PointerPosition = { x: number; y: number };
 
@@ -48,13 +49,97 @@ type GestureState =
     };
 
 function getViewportMapSize(width: number, height: number): MapSize {
-  return fitMapViewport(width, height);
+  if (ACTIVE_MAP_LAYOUT.mode === "baked") return { width, height };
+
+  const scale = Math.max(width / ACTIVE_MAP_LAYOUT.width, height / ACTIVE_MAP_LAYOUT.height);
+  return {
+    width: ACTIVE_MAP_LAYOUT.width * scale,
+    height: ACTIVE_MAP_LAYOUT.height * scale
+  };
+}
+
+function getTileLevel(scale: number, mapSize: MapSize) {
+  if (!ACTIVE_MAP_TILES) return null;
+
+  const displayWidth = Math.max(mapSize.width, mapSize.height) * scale;
+  const desiredPixels = displayWidth * (typeof window === "undefined" ? 1 : window.devicePixelRatio || 1);
+  const levels = [...ACTIVE_MAP_TILES.levels].sort((a, b) => Math.max(a.width, a.height) - Math.max(b.width, b.height));
+
+  return levels.find((level) => Math.max(level.width, level.height) >= desiredPixels) ?? levels[levels.length - 1];
+}
+
+function TiledMapBackground({ scale, mapSize }: { scale: number; mapSize: MapSize }) {
+  const level = getTileLevel(scale, mapSize);
+
+  if (!ACTIVE_MAP_TILES || !level) {
+    return (
+      <Image
+        src={KANMAE_MAP_IMAGE}
+        alt=""
+        fill
+        priority
+        unoptimized
+        quality={100}
+        sizes="100vw"
+        className="absolute inset-0 size-full select-none object-fill"
+        draggable={false}
+      />
+    );
+  }
+
+  const columns = Math.ceil(level.width / ACTIVE_MAP_TILES.tileSize);
+  const rows = Math.ceil(level.height / ACTIVE_MAP_TILES.tileSize);
+  const tiles = [];
+
+  for (let y = 0; y < rows; y += 1) {
+    for (let x = 0; x < columns; x += 1) {
+      const tileWidth = Math.min(ACTIVE_MAP_TILES.tileSize, level.width - x * ACTIVE_MAP_TILES.tileSize);
+      const tileHeight = Math.min(ACTIVE_MAP_TILES.tileSize, level.height - y * ACTIVE_MAP_TILES.tileSize);
+
+      tiles.push({
+        key: `${level.z}-${x}-${y}`,
+        src: `${ACTIVE_MAP_TILES.basePath}/z${level.z}/${x}-${y}.webp`,
+        left: x * ACTIVE_MAP_TILES.tileSize / level.width * 100,
+        top: y * ACTIVE_MAP_TILES.tileSize / level.height * 100,
+        width: tileWidth / level.width * 100,
+        height: tileHeight / level.height * 100
+      });
+    }
+  }
+
+  return (
+    <div className="absolute inset-0 overflow-hidden bg-[#d9eee8]" aria-hidden="true">
+      {tiles.map((tile) => (
+        <div
+          key={tile.key}
+          className="absolute"
+          style={{
+            left: `${tile.left}%`,
+            top: `${tile.top}%`,
+            width: `${tile.width}%`,
+            height: `${tile.height}%`
+          }}
+        >
+          <Image
+            src={tile.src}
+            alt=""
+            fill
+            unoptimized
+            sizes="100vw"
+            className="select-none object-fill"
+            draggable={false}
+          />
+        </div>
+      ))}
+    </div>
+  );
 }
 
 export function StoreMap({
   stores,
   fullscreen = false,
-  onMapTap
+  onMapTap,
+  onStoreSelect
 }: {
   stores: Store[];
   fullscreen?: boolean;
@@ -70,8 +155,17 @@ export function StoreMap({
   const pointers = useRef(new Map<number, PointerPosition>());
   const gesture = useRef<GestureState | null>(null);
 
+  const visiblePlacements = useMemo(() => {
+    return MAP_STORE_PLACEMENTS
+      .map((placement) => ({
+        placement,
+        store: stores.find((store) => (store.assetKey ?? store.id) === placement.storeId)
+      }))
+      .filter(({ placement, store }) => store || LANDMARK_PLACEMENT_IDS.has(placement.storeId));
+  }, [stores]);
+
   const maxScale = mapSize.width > 0 && mapSize.height > 0
-    ? Math.max(INITIAL_SCALE, Math.min(5,
+    ? Math.max(INITIAL_SCALE, Math.min(10,
         ACTIVE_MAP_SOURCE_SIZE.width / mapSize.width,
         ACTIVE_MAP_SOURCE_SIZE.height / mapSize.height))
     : INITIAL_SCALE;
@@ -281,34 +375,41 @@ export function StoreMap({
           transformOrigin: "center"
         }}
       >
-        <Image
-          src={KANMAE_MAP_IMAGE}
-          alt=""
-          fill
-          priority
-          unoptimized
-          quality={100}
-          sizes="100vw"
-          className="absolute inset-0 size-full select-none object-fill"
-          draggable={false}
-        />
-        {MAP_STORE_PLACEMENTS.filter((placement) =>
-          stores.some((store) => (store.assetKey ?? store.id) === placement.storeId)
-        ).map((placement) => (
+        <TiledMapBackground scale={scale} mapSize={mapSize} />
+        {visiblePlacements.map(({ placement, store }) => (
           <div
             key={placement.storeId}
-            className="pointer-events-none absolute"
+            className="absolute"
             style={{ left: `${placement.x}%`, top: `${placement.y}%`, width: `${placement.width}%`, height: `${placement.height}%`, zIndex: placement.zIndex }}
           >
-            <Image
-              src={placement.image}
-              alt={stores.find((store) => (store.assetKey ?? store.id) === placement.storeId)?.name ?? ""}
-              fill
-              unoptimized
-              sizes="100vw"
-              className="select-none object-contain object-bottom"
-              draggable={false}
-            />
+            {store ? (
+              <button
+                type="button"
+                className="relative block size-full transition duration-150 hover:scale-[1.03] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-slate-900"
+                aria-label={`${store.name}の詳細を開く`}
+                onClick={() => onStoreSelect?.(store)}
+              >
+                <Image
+                  src={placement.image}
+                  alt=""
+                  fill
+                  unoptimized
+                  sizes="100vw"
+                  className="select-none object-contain object-bottom drop-shadow-[0_18px_18px_rgba(52,73,65,0.18)]"
+                  draggable={false}
+                />
+              </button>
+            ) : (
+              <Image
+                src={placement.image}
+                alt=""
+                fill
+                unoptimized
+                sizes="100vw"
+                className="pointer-events-none select-none object-contain object-bottom drop-shadow-[0_22px_22px_rgba(52,73,65,0.2)]"
+                draggable={false}
+              />
+            )}
           </div>
         ))}
         {userLocation ? (

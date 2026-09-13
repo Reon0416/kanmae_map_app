@@ -1,6 +1,33 @@
 {
-  "activeLayoutId": "kandai-v2",
+  "activeLayoutId": "oblique-depth-tiled",
   "layouts": {
+    "oblique-depth-tiled": {
+      "background": "/maps/map-background-8000-oblique-depth.png",
+      "width": 8000,
+      "height": 8000,
+      "sourceWidth": 8000,
+      "sourceHeight": 8000,
+      "x": 0,
+      "y": 0,
+      "mode": "layered",
+      "tiles": {
+        "basePath": "/maps/tiles/oblique-depth",
+        "tileSize": 512,
+        "levels": [
+          { "z": 0, "width": 500, "height": 500 },
+          { "z": 1, "width": 1000, "height": 1000 },
+          { "z": 2, "width": 2000, "height": 2000 },
+          { "z": 3, "width": 4000, "height": 4000 },
+          { "z": 4, "width": 8000, "height": 8000 }
+        ]
+      },
+      "corners": {
+        "topLeft": { "lat": 34.772735, "lng": 135.505862 },
+        "topRight": { "lat": 34.774043, "lng": 135.505792 },
+        "bottomRight": { "lat": 34.773958, "lng": 135.509021 },
+        "bottomLeft": { "lat": 34.772797, "lng": 135.509036 }
+      }
+    },
     "kandai-v2": {
       "background": "/maps/kandai-background-v2@3x.webp",
       "width": 1085,
@@ -58,76 +85,94 @@
   },
   "stores": [
     {
-      "storeId": "kenpei",
-      "image": "/maps/stores/kenpei-v3.webp",
-      "x": 698,
-      "y": 278,
-      "width": 220,
-      "height": 200,
-      "zIndex": 1
-    },
-    {
-      "storeId": "semi",
-      "image": "/maps/stores/semi-v2.webp",
-      "x": 325,
-      "y": 405,
-      "width": 220,
-      "height": 200,
-      "zIndex": 1
-    },
-    {
-      "storeId": "toriton",
-      "image": "/maps/stores/toriton-v2.webp",
-      "x": 175,
-      "y": 1015,
-      "width": 220,
-      "height": 200,
-      "zIndex": 1
-    },
-    {
       "storeId": "kokoro",
-      "image": "/maps/stores/kokoro-v2.webp",
-      "x": 55,
-      "y": 62,
-      "width": 220,
-      "height": 200,
-      "zIndex": 1
-    },
-    {
-      "storeId": "kirinji",
-      "image": "/maps/stores/kirinji-v2.webp",
-      "x": 592,
-      "y": 690,
-      "width": 220,
-      "height": 200,
-      "zIndex": 1
-    },
-    {
-      "storeId": "butafuku",
-      "image": "/maps/stores/butafuku-v2.webp",
-      "x": 611,
-      "y": 500,
-      "width": 220,
-      "height": 200,
-      "zIndex": 1
+      "image": "/maps/stores/kokoro-map.webp",
+      "x": 720,
+      "y": 1850,
+      "width": 760,
+      "height": 950,
+      "zIndex": 2
     },
     {
       "storeId": "musou",
-      "image": "/maps/stores/musou-no-vehicles.webp",
-      "x": 330,
-      "y": 103,
-      "width": 225,
-      "height": 210,
-      "zIndex": 1
+      "image": "/maps/stores/musou-map.webp",
+      "x": 2200,
+      "y": 2000,
+      "width": 730,
+      "height": 912,
+      "zIndex": 2
+    },
+    {
+      "storeId": "kirameki",
+      "image": "/maps/stores/kirameki-map.webp",
+      "x": 5750,
+      "y": 2300,
+      "width": 760,
+      "height": 950,
+      "zIndex": 3
+    },
+    {
+      "storeId": "kenpei",
+      "image": "/maps/stores/kenpei-map.webp",
+      "x": 6000,
+      "y": 3300,
+      "width": 780,
+      "height": 975,
+      "zIndex": 4
+    },
+    {
+      "storeId": "semi",
+      "image": "/maps/stores/semi-map.webp",
+      "x": 2100,
+      "y": 3720,
+      "width": 800,
+      "height": 1000,
+      "zIndex": 4
+    },
+    {
+      "storeId": "butafuku",
+      "image": "/maps/stores/butafuku-map.webp",
+      "x": 5320,
+      "y": 4280,
+      "width": 790,
+      "height": 988,
+      "zIndex": 5
+    },
+    {
+      "storeId": "kirinji",
+      "image": "/maps/stores/kirinji-map.webp",
+      "x": 5250,
+      "y": 5300,
+      "width": 820,
+      "height": 1025,
+      "zIndex": 6
     },
     {
       "storeId": "suzume",
-      "image": "/maps/stores/suzume.webp",
-      "x": 645,
-      "y": 885,
-      "width": 220,
-      "height": 200,
-      "zIndex": 1
+      "image": "/maps/stores/suzume-map.webp",
+      "x": 5550,
+      "y": 6150,
+      "width": 850,
+      "height": 1063,
+      "zIndex": 7
+    },
+    {
+      "storeId": "toriton",
+      "image": "/maps/stores/toriton-map.webp",
+      "x": 1320,
+      "y": 5850,
+      "width": 860,
+      "height": 1075,
+      "zIndex": 7
+    },
+    {
+      "storeId": "kandai",
+      "image": "/maps/stores/kandai-map.webp",
+      "x": 4300,
+      "y": 5850,
+      "width": 1500,
+      "height": 1875,
+      "zIndex": 8
     }
   ]
 }

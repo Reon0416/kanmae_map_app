@@ -13,6 +13,16 @@ const placement = z.object({
   height: z.number().finite().positive(),
   zIndex: z.number().int().min(0).max(10).default(0)
 });
+const tileLevel = z.object({
+  z: z.number().int().min(0),
+  width: z.number().positive(),
+  height: z.number().positive()
+});
+const tiles = z.object({
+  basePath: asset,
+  tileSize: z.number().int().positive(),
+  levels: z.array(tileLevel).min(1)
+});
 const layoutSchema = z.object({
   background: asset,
   width: z.number().positive(),
@@ -22,6 +32,7 @@ const layoutSchema = z.object({
   x: coordinate,
   y: coordinate,
   mode: z.enum(["baked", "layered"]),
+  tiles: tiles.optional(),
   corners: z.object({ topLeft: point, topRight: point, bottomRight: point, bottomLeft: point })
 });
 const config = z.object({ activeLayoutId: z.string(), layouts: z.record(layoutSchema), stores: z.array(placement) }).superRefine((data, ctx) => {
@@ -37,6 +48,7 @@ export const ACTIVE_MAP_SOURCE_SIZE = {
   width: activeLayout.sourceWidth ?? activeLayout.width,
   height: activeLayout.sourceHeight ?? activeLayout.height
 };
+export const ACTIVE_MAP_TILES = activeLayout.tiles;
 
 // Store positions stay in the original map's coordinate system when the extent grows.
 export const MAP_STORE_PLACEMENTS = activeLayout.mode === "baked" ? [] : config.stores
@@ -51,8 +63,7 @@ export const MAP_STORE_PLACEMENTS = activeLayout.mode === "baked" ? [] : config.
   }));
 
 export function fitMapViewport(width: number, height: number) {
-  // Keep the current baked map presentation until the new background is ready.
   if (ACTIVE_MAP_LAYOUT.mode === "baked") return { width, height };
-  const scale = Math.min(width / ACTIVE_MAP_LAYOUT.width, height / ACTIVE_MAP_LAYOUT.height);
+  const scale = Math.max(width / ACTIVE_MAP_LAYOUT.width, height / ACTIVE_MAP_LAYOUT.height);
   return { width: ACTIVE_MAP_LAYOUT.width * scale, height: ACTIVE_MAP_LAYOUT.height * scale };
 }
