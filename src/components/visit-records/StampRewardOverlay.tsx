@@ -15,7 +15,7 @@ export function StampRewardOverlay({
   store: Store;
   onClose: () => void;
 }) {
-  const stampImage = getStampImage(store.id);
+  const stampImage = getStampImage(store.id, store.name, store.assetKey);
   const [canDismiss, setCanDismiss] = useState(false);
 
   useEffect(() => {
@@ -64,6 +64,7 @@ export function StampRewardOverlay({
               alt={`${store.name}のスタンプ`}
               width={132}
               height={132}
+              unoptimized
               className="relative z-10 size-32 rounded-full object-contain"
             />
           ) : (

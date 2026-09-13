@@ -46,8 +46,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Authentication required" }, { status: 401 });
   }
 
+  const stampStoreKey = store.assetKey ?? store.id;
+
   const { data, error } = await supabase.rpc("record_visit_stamp", {
-    p_store_key: store.id,
+    p_store_key: stampStoreKey,
     p_store_name: store.name,
     p_wait_time: body.data.waitTime
   });
@@ -67,7 +69,7 @@ export async function POST(request: Request) {
 
   return NextResponse.json({
     id: data[0].event_id,
-    storeId: store.id,
+    storeId: stampStoreKey,
     storeName: store.name,
     waitTime: body.data.waitTime,
     stampCount: data[0].stamp_count,

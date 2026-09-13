@@ -45,7 +45,7 @@ function StampCardView({
             const stampOrdinal = (cardNumber - 1) * STAMPS_PER_CARD + index + 1;
             const stamp = stampsByOrdinal.get(stampOrdinal);
             const stamped = Boolean(stamp);
-            const stampImage = stamp ? getStampImage(stamp.storeId) : undefined;
+            const stampImage = stamp ? getStampImage(stamp.storeId, stamp.storeName) : undefined;
 
             return (
               <div
@@ -64,6 +64,7 @@ function StampCardView({
                     alt={`${stamp.storeName}のスタンプ`}
                     width={72}
                     height={72}
+                    unoptimized
                     className="size-full rounded-full object-contain p-0.5"
                   />
                 ) : stamped ? (
@@ -131,9 +132,10 @@ export function VisitStampCard({ stores, initialStampData }: { stores: Store[]; 
 
     return stores
       .map((store) => {
-        const count = counts.get(store.id);
+        const count = counts.get(store.id) ?? (store.assetKey ? counts.get(store.assetKey) : undefined);
         return {
           id: store.id,
+          assetKey: store.assetKey,
           name: store.name,
           genre: store.genre,
           count: count?.stampCount ?? 0
@@ -241,12 +243,13 @@ export function VisitStampCard({ stores, initialStampData }: { stores: Store[]; 
                   </span>
                 ) : null}
                 <div className="mx-auto flex size-24 items-center justify-center rounded-full bg-gradient-to-br from-emerald-50 to-cyan-50 shadow-inner">
-                  {getStampImage(store.id) ? (
+                  {getStampImage(store.id, store.name, store.assetKey) ? (
                     <Image
-                      src={getStampImage(store.id) ?? ""}
+                      src={getStampImage(store.id, store.name, store.assetKey) ?? ""}
                       alt={`${store.name}のスタンプ`}
                       width={92}
                       height={92}
+                      unoptimized
                       className="size-[88px] rounded-full object-contain"
                     />
                   ) : (
@@ -264,12 +267,13 @@ export function VisitStampCard({ stores, initialStampData }: { stores: Store[]; 
                     "flex items-center gap-1 rounded-full px-3 py-1.5 text-lg font-black",
                     store.count > 0 ? "bg-slate-950 text-white" : "bg-slate-100 text-slate-400"
                   )}>
-                    {store.count > 0 && getStampImage(store.id) ? (
+                    {store.count > 0 && getStampImage(store.id, store.name, store.assetKey) ? (
                       <Image
-                        src={getStampImage(store.id) ?? ""}
+                        src={getStampImage(store.id, store.name, store.assetKey) ?? ""}
                         alt={`${store.name}のスタンプ`}
                         width={22}
                         height={22}
+                        unoptimized
                         className="size-6 rounded-full object-contain"
                       />
                     ) : (
