@@ -66,6 +66,7 @@ function StampCardView({
                     height={72}
                     sizes="(max-width: 767px) 20vw, 160px"
                     className="size-full rounded-full object-contain p-0.5"
+                    draggable={false}
                   />
                 ) : stamped ? (
                   <Sparkles className="size-8 opacity-90" aria-hidden="true" />
@@ -206,7 +207,12 @@ export function VisitStampCard({ stores, initialStampData }: { stores: StoreSumm
   const stampCount = stampData?.totalStampCount ?? 0;
 
   return (
-    <section className="bg-white">
+    <section
+      data-image-callout-disabled
+      className="bg-white"
+      onContextMenu={(event) => event.preventDefault()}
+      onDragStart={(event) => event.preventDefault()}
+    >
       <div className="py-5">
         <StampCardView cardNumber={currentCardNumber} stampsByOrdinal={stampsByOrdinal} />
 
@@ -248,6 +254,7 @@ export function VisitStampCard({ stores, initialStampData }: { stores: StoreSumm
                       height={92}
                       sizes="88px"
                       className="size-[88px] rounded-full object-contain"
+                      draggable={false}
                     />
                   ) : (
                     <Sparkles className="size-10 text-emerald-400" aria-hidden="true" />
@@ -272,6 +279,7 @@ export function VisitStampCard({ stores, initialStampData }: { stores: StoreSumm
                         height={22}
                         sizes="88px"
                         className="size-6 rounded-full object-contain"
+                        draggable={false}
                       />
                     ) : (
                       <Sparkles className="size-5 text-emerald-300" aria-hidden="true" />
