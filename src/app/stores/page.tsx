@@ -7,7 +7,7 @@ import { WAIT_TIME_BUCKET, WAIT_TIME_LABELS, WAIT_TIME_SCORE } from "@/constants
 import { StoreSortSelect, type StoreSortOrder } from "@/components/stores/StoreSortSelect";
 import { getStores } from "@/features/stores/store-queries";
 import type { DisplayStatus, Store } from "@/features/stores/store-types";
-import { cn, priceBandLabel } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 
 const statusPriority: Record<DisplayStatus, number> = {
   available: 0,
@@ -103,7 +103,7 @@ export default async function StoresPage({
             <div className="min-w-0 self-center py-1">
               <h2 className="mt-1 truncate text-base font-black text-blue-700">{store.name}</h2>
               <p className="mt-1.5 text-xs font-bold text-slate-500">
-                {store.genre} / {priceBandLabel(store.priceBand)}
+                {store.genre}
               </p>
             </div>
             <div className="flex min-w-[86px] flex-col items-end justify-center">
