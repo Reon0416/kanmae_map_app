@@ -55,17 +55,50 @@ function getMapWaitTimeValueTone(waitTime: Store["waitTime"]) {
   return "text-[#0b3b60]";
 }
 
-function StoreWaitTimeMarker({ store }: { store: Store }) {
+function formatLockCountdown(remainingMs: number) {
+  const totalSeconds = Math.max(0, Math.ceil(remainingMs / 1000));
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${minutes}:${seconds.toString().padStart(2, "0")}`;
+}
+
+function getOwnerLockRemainingMs(store: Store, nowMs: number) {
+  if (!store.ownerWaitTimeLockUntil) return 0;
+  const lockUntil = new Date(store.ownerWaitTimeLockUntil).getTime();
+  if (Number.isNaN(lockUntil)) return 0;
+  return Math.max(0, lockUntil - nowMs);
+}
+
+function StoreWaitTimeMarker({ store, lockRemainingMs }: { store: Store; lockRemainingMs: number }) {
+  const isOwnerLocked = lockRemainingMs > 0;
+
   return (
     <span
-      className="pointer-events-none absolute z-0 flex min-w-[3.8rem] flex-col items-center justify-center rounded-[16px] border border-white/90 bg-white/88 px-2 pb-1.5 pt-1 text-center shadow-[0_8px_18px_rgba(15,23,42,0.14),inset_0_0_0_1px_rgba(15,23,42,0.035)]"
+      className={`pointer-events-none absolute z-0 flex min-w-[3.8rem] flex-col items-center justify-center rounded-[16px] border px-2 pb-1.5 pt-1 text-center shadow-[0_8px_18px_rgba(15,23,42,0.14),inset_0_0_0_1px_rgba(15,23,42,0.035)] ${
+        isOwnerLocked ? "border-emerald-200 bg-emerald-50/95" : "border-white/90 bg-white/88"
+      }`}
       aria-hidden="true"
     >
-      <span className="absolute bottom-[-0.46rem] left-1/2 size-4 -translate-x-1/2 rotate-45 border-b border-r border-white/90 bg-white/88 shadow-[5px_5px_10px_rgba(15,23,42,0.06)]" />
-      <span className={`relative z-10 whitespace-nowrap text-[1.35rem] font-black leading-none tracking-normal ${getMapWaitTimeValueTone(store.waitTime)}`}>
-        {getMapWaitTimeValue(store.waitTime)}
-      </span>
-      <span className="relative z-10 mt-0.5 text-[0.5rem] font-black leading-none tracking-normal text-slate-500">分待ち</span>
+      <span
+        className={`absolute bottom-[-0.46rem] left-1/2 size-4 -translate-x-1/2 rotate-45 border-b border-r shadow-[5px_5px_10px_rgba(15,23,42,0.06)] ${
+          isOwnerLocked ? "border-emerald-200 bg-emerald-50/95" : "border-white/90 bg-white/88"
+        }`}
+      />
+      {isOwnerLocked ? (
+        <>
+          <span className="relative z-10 whitespace-nowrap text-[0.58rem] font-black leading-none tracking-normal text-emerald-700">公式空席</span>
+          <span className="relative z-10 mt-1 whitespace-nowrap text-[1rem] font-black leading-none tracking-normal text-emerald-700">
+            {formatLockCountdown(lockRemainingMs)}
+          </span>
+        </>
+      ) : (
+        <>
+          <span className={`relative z-10 whitespace-nowrap text-[1.35rem] font-black leading-none tracking-normal ${getMapWaitTimeValueTone(store.waitTime)}`}>
+            {getMapWaitTimeValue(store.waitTime)}
+          </span>
+          <span className="relative z-10 mt-0.5 text-[0.5rem] font-black leading-none tracking-normal text-slate-500">分待ち</span>
+        </>
+      )}
     </span>
   );
 }
@@ -190,6 +223,7 @@ export function StoreMap({
   const [scale, setScale] = useState(INITIAL_SCALE);
   const [offset, setOffset] = useState<MapOffset>(INITIAL_OFFSET);
   const [mapSize, setMapSize] = useState<MapSize>({ width: 0, height: 0 });
+  const [nowMs, setNowMs] = useState(() => Date.now());
   const sectionRef = useRef<HTMLElement | null>(null);
   const pointers = useRef(new Map<number, PointerPosition>());
   const gesture = useRef<GestureState | null>(null);
@@ -266,6 +300,13 @@ export function StoreMap({
     setScale(maxScale);
     setOffset((currentOffset) => clampOffset(currentOffset, maxScale));
   }, [clampOffset, maxScale, scale]);
+
+  useEffect(() => {
+    const hasActiveLock = stores.some((store) => getOwnerLockRemainingMs(store, nowMs) > 0);
+    if (!hasActiveLock) return;
+    const intervalId = window.setInterval(() => setNowMs(Date.now()), 1000);
+    return () => window.clearInterval(intervalId);
+  }, [nowMs, stores]);
 
   const locateUser = useCallback(() => {
     if (!navigator.geolocation) {
@@ -427,20 +468,25 @@ export function StoreMap({
         }}
       >
         <TiledMapBackground scale={scale} mapSize={mapSize} />
-        {visiblePlacements.map(({ placement, store }) => store ? (
-          <div
-            key={`${placement.storeId}-wait`}
-            className="pointer-events-none absolute"
-            style={{
-              left: `${placement.waitBubble?.x ?? placement.x + placement.width / 2}%`,
-              top: `${placement.waitBubble?.y ?? placement.y}%`,
-              transform: "translate(-50%, -50%)",
-              zIndex: placement.zIndex + 30
-            }}
-          >
-            <StoreWaitTimeMarker store={store} />
-          </div>
-        ) : null)}
+        {visiblePlacements.map(({ placement, store }) => {
+          if (!store) return null;
+          const lockRemainingMs = getOwnerLockRemainingMs(store, nowMs);
+
+          return (
+            <div
+              key={`${placement.storeId}-wait`}
+              className="pointer-events-none absolute"
+              style={{
+                left: `${placement.waitBubble?.x ?? placement.x + placement.width / 2}%`,
+                top: `${placement.waitBubble?.y ?? placement.y}%`,
+                transform: "translate(-50%, -50%)",
+                zIndex: placement.zIndex + 30
+              }}
+            >
+              <StoreWaitTimeMarker store={store} lockRemainingMs={lockRemainingMs} />
+            </div>
+          );
+        })}
         {visiblePlacements.map(({ placement, store }) => (
           <div
             key={placement.storeId}
@@ -448,30 +494,42 @@ export function StoreMap({
             style={{ left: `${placement.x}%`, top: `${placement.y}%`, width: `${placement.width}%`, height: `${placement.height}%`, zIndex: placement.zIndex + 10 }}
           >
             {store ? (
-              <button
-                type="button"
-                className="relative block size-full transition duration-150 hover:scale-[1.03] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-slate-900"
-                aria-label={`${store.name}の詳細を開く`}
-                onClick={(event) => {
-                  if (suppressNextStoreClick.current) {
-                    suppressNextStoreClick.current = false;
-                    event.preventDefault();
-                    return;
-                  }
+              <>
+                {getOwnerLockRemainingMs(store, nowMs) > 0 ? (
+                  <span
+                    className="pointer-events-none absolute inset-x-[4%] bottom-[-6%] top-[8%] rounded-[30%] bg-emerald-300/45 blur-md animate-pulse"
+                    aria-hidden="true"
+                  />
+                ) : null}
+                <button
+                  type="button"
+                  className="relative block size-full transition duration-150 hover:scale-[1.03] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-slate-900"
+                  aria-label={`${store.name}の詳細を開く`}
+                  onClick={(event) => {
+                    if (suppressNextStoreClick.current) {
+                      suppressNextStoreClick.current = false;
+                      event.preventDefault();
+                      return;
+                    }
 
-                  onStoreSelect?.(store);
-                }}
-              >
-                <Image
-                  src={placement.image}
-                  alt=""
-                  fill
-                  unoptimized
-                  sizes="100vw"
-                  className="z-10 select-none object-contain object-bottom drop-shadow-[0_18px_18px_rgba(52,73,65,0.18)]"
-                  draggable={false}
-                />
-              </button>
+                    onStoreSelect?.(store);
+                  }}
+                >
+                  <Image
+                    src={placement.image}
+                    alt=""
+                    fill
+                    unoptimized
+                    sizes="100vw"
+                    className={`z-10 select-none object-contain object-bottom ${
+                      getOwnerLockRemainingMs(store, nowMs) > 0
+                        ? "drop-shadow-[0_0_18px_rgba(16,185,129,0.75)]"
+                        : "drop-shadow-[0_18px_18px_rgba(52,73,65,0.18)]"
+                    }`}
+                    draggable={false}
+                  />
+                </button>
+              </>
             ) : (
               <Image
                 src={placement.image}

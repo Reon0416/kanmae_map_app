@@ -152,6 +152,7 @@ type StoreStatusRow = {
   wait_time?: string | null;
   source?: string | null;
   updated_at?: string | null;
+  owner_wait_time_lock_until?: string | null;
 };
 
 const assetMatchers: { assetKey: string; includes: string[] }[] = [
@@ -222,6 +223,13 @@ function isExpiredReportStatus(status?: StoreStatusRow | null) {
   return Date.now() - updatedAt >= REPORT_STATUS_EXPIRES_MINUTES * 60 * 1000;
 }
 
+function getActiveOwnerWaitTimeLockUntil(status?: StoreStatusRow | null) {
+  if (!status?.owner_wait_time_lock_until) return null;
+  const lockUntil = new Date(status.owner_wait_time_lock_until).getTime();
+  if (Number.isNaN(lockUntil) || lockUntil <= Date.now()) return null;
+  return status.owner_wait_time_lock_until;
+}
+
 function mapStoreRow(row: StoreRow): Store {
   const lat = row.lat ?? 34.7732;
   const lng = row.lng ?? 135.5073;
@@ -249,6 +257,7 @@ function mapStoreRow(row: StoreRow): Store {
     status: isExpiredReportStatus(currentStatus) ? "available" : normalizeDisplayStatus(currentStatus?.display_status),
     waitTime: isExpiredReportStatus(currentStatus) ? "no_wait" : normalizeWaitTime(currentStatus?.wait_time),
     lastUpdatedAt: currentStatus?.updated_at ?? row.updated_at ?? new Date().toISOString(),
+    ownerWaitTimeLockUntil: getActiveOwnerWaitTimeLockUntil(currentStatus),
     mapPosition: latLngToMapPosition({ lat, lng })
   };
 }
@@ -295,7 +304,7 @@ export const getStores = cache(async function getStores() {
       getPublicStoreDetails(),
       createSupabasePublicClient()
         .from("current_store_status")
-        .select("store_id, display_status, wait_time, source, updated_at")
+        .select("store_id, display_status, wait_time, source, updated_at, owner_wait_time_lock_until")
     ]);
     const { data: statuses, error } = statusResult;
 
@@ -361,7 +370,7 @@ export const getStoreLiveStatus = cache(async (storeId: string) => {
   if (!hasSupabaseEnvironment()) throw new Error("Supabase environment variables are not configured.");
   const { data, error } = await createSupabasePublicClient()
     .from("current_store_status")
-    .select("store_id, display_status, wait_time, source, updated_at")
+    .select("store_id, display_status, wait_time, source, updated_at, owner_wait_time_lock_until")
     .eq("store_id", storeId)
     .maybeSingle();
   if (error) throw new Error(`Failed to load store status: ${error.message}`);
@@ -370,7 +379,8 @@ export const getStoreLiveStatus = cache(async (storeId: string) => {
   return {
     status: expired ? "available" as const : normalizeDisplayStatus(data.display_status),
     waitTime: expired ? "no_wait" as const : normalizeWaitTime(data.wait_time),
-    lastUpdatedAt: data.updated_at
+    lastUpdatedAt: data.updated_at,
+    ownerWaitTimeLockUntil: getActiveOwnerWaitTimeLockUntil(data)
   };
 });
 

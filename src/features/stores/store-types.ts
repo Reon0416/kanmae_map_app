@@ -26,6 +26,7 @@ export type Store = {
   status: DisplayStatus;
   waitTime: WaitTimeBucket;
   lastUpdatedAt: string;
+  ownerWaitTimeLockUntil?: string | null;
   ownerStatus?: StoreStatus;
   mapPosition: {
     x: number;
