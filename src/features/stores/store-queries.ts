@@ -150,6 +150,7 @@ type StoreStatusRow = {
   store_id?: string;
   display_status?: string | null;
   wait_time?: string | null;
+  source?: string | null;
   updated_at?: string | null;
 };
 
@@ -212,6 +213,17 @@ function normalizeWaitTime(value?: string | null): Store["waitTime"] {
   return "no_wait";
 }
 
+const REPORT_STATUS_EXPIRES_MINUTES = 30;
+
+function isExpiredReportStatus(status?: StoreStatusRow | null) {
+  if (status?.source !== "reports" || !status.updated_at) return false;
+
+  const updatedAt = new Date(status.updated_at).getTime();
+  if (Number.isNaN(updatedAt)) return false;
+
+  return Date.now() - updatedAt >= REPORT_STATUS_EXPIRES_MINUTES * 60 * 1000;
+}
+
 function mapStoreRow(row: StoreRow): Store {
   const lat = row.lat ?? 34.7732;
   const lng = row.lng ?? 135.5073;
@@ -219,6 +231,8 @@ function mapStoreRow(row: StoreRow): Store {
   const currentStatus = Array.isArray(row.current_store_status)
     ? row.current_store_status[0]
     : row.current_store_status;
+  const displayStatus = isExpiredReportStatus(currentStatus) ? "available" : normalizeDisplayStatus(currentStatus?.display_status);
+  const waitTime = isExpiredReportStatus(currentStatus) ? "no_wait" : normalizeWaitTime(currentStatus?.wait_time);
 
   return {
     id: row.id,
@@ -236,8 +250,8 @@ function mapStoreRow(row: StoreRow): Store {
     closed: row.closed || "未設定",
     acceptsTakeout: row.accepts_takeout ?? false,
     hasStudentDiscount: row.has_student_discount ?? false,
-    status: normalizeDisplayStatus(currentStatus?.display_status),
-    waitTime: normalizeWaitTime(currentStatus?.wait_time),
+    status: displayStatus,
+    waitTime,
     lastUpdatedAt: currentStatus?.updated_at ?? row.updated_at ?? new Date().toISOString(),
     mapPosition: latLngToMapPosition({ lat, lng })
   };
@@ -285,7 +299,7 @@ export const getStores = cache(async function getStores() {
       getPublicStoreDetails(),
       createSupabasePublicClient()
         .from("current_store_status")
-        .select("store_id, display_status, wait_time, updated_at")
+        .select("store_id, display_status, wait_time, source, updated_at")
     ]);
     const { data: statuses, error } = statusResult;
 

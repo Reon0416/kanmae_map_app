@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
+
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
@@ -114,9 +116,19 @@ test("map and store list still request live status", async () => {
     { id: "id", name: "蝉", current_store_status: { display_status: "full", wait_time: "over_20" } }
   ] });
   const [store] = await exports.getStores();
-  assert.ok(selections.includes("store_id, display_status, wait_time, updated_at"));
+  assert.ok(selections.includes("store_id, display_status, wait_time, source, updated_at"));
   assert.equal(store.status, "full");
   assert.equal(store.waitTime, "over_20");
+});
+
+test("stale report-sourced wait times expire to no wait", async () => {
+  const oldTimestamp = new Date(Date.now() - 31 * 60000).toISOString();
+  const { exports } = loadQueries({ rows: [
+    { id: "id", name: "蝉", current_store_status: { display_status: "full", wait_time: "over_20", source: "reports", updated_at: oldTimestamp } }
+  ] });
+  const [store] = await exports.getStores();
+  assert.equal(store.status, "available");
+  assert.equal(store.waitTime, "no_wait");
 });
 
 test("production summary failures do not expose demo records", async () => {
