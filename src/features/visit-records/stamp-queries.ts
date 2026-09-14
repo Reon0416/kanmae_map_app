@@ -1,4 +1,4 @@
-import { STAMP_EVENT_FETCH_LIMIT } from "@/features/visit-records/stamp-card-config";
+import { getCurrentStampCardNumber, STAMP_EVENT_FETCH_LIMIT, STAMPS_PER_CARD } from "@/features/visit-records/stamp-card-config";
 import { createSupabaseServerClient, getSupabaseServerUser } from "@/lib/supabase/server";
 
 export type StampCount = {
@@ -28,10 +28,13 @@ export type StampDisplayData = {
 
 export function toStampDisplayData(data: StampResponse | null): StampDisplayData | null {
   if (!data) return null;
+  const firstOrdinal = (getCurrentStampCardNumber(data.totalStampCount) - 1) * STAMPS_PER_CARD + 1;
   return {
     totalStampCount: data.totalStampCount,
     stores: data.stores.map(({ storeId, stampCount }) => ({ storeId, stampCount })),
-    cardStamps: data.cardStamps.map(({ storeId, storeName, stampOrdinal }) => ({ storeId, storeName, stampOrdinal }))
+    cardStamps: data.cardStamps
+      .filter(stamp => stamp.stampOrdinal >= firstOrdinal)
+      .map(({ storeId, storeName, stampOrdinal }) => ({ storeId, storeName, stampOrdinal }))
   };
 }
 

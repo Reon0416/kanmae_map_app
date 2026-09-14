@@ -6,7 +6,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 import { Loader2, LogIn, Sparkles } from "lucide-react";
 import type { StoreSummary } from "@/features/stores/store-types";
-import { MAX_VISIBLE_STAMP_CARDS, STAMPS_PER_CARD } from "@/features/visit-records/stamp-card-config";
+import { getCurrentStampCardNumber, STAMPS_PER_CARD } from "@/features/visit-records/stamp-card-config";
 import type { StampDisplayData } from "@/features/visit-records/stamp-queries";
 import { getStampImage } from "@/features/visit-records/stamp-images";
 import { cn } from "@/lib/utils";
@@ -168,16 +168,7 @@ export function VisitStampCard({ stores, initialStampData }: { stores: StoreSumm
       });
   }, [stampData, stores]);
 
-  const visibleCardNumbers = useMemo(() => {
-    const totalStampCount = stampData?.totalStampCount ?? 0;
-    const totalCardCount = Math.max(1, Math.ceil(totalStampCount / STAMPS_PER_CARD));
-    const firstVisibleCard = Math.max(1, totalCardCount - MAX_VISIBLE_STAMP_CARDS + 1);
-
-    return Array.from(
-      { length: totalCardCount - firstVisibleCard + 1 },
-      (_, index) => firstVisibleCard + index
-    );
-  }, [stampData]);
+  const currentCardNumber = getCurrentStampCardNumber(stampData?.totalStampCount ?? 0);
 
   const stampsByOrdinal = useMemo(() => {
     return new Map((stampData?.cardStamps ?? []).map((stamp) => [stamp.stampOrdinal, stamp]));
@@ -217,22 +208,7 @@ export function VisitStampCard({ stores, initialStampData }: { stores: StoreSumm
   return (
     <section className="bg-white">
       <div className="py-5">
-        <div className="overflow-x-auto overscroll-x-contain pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          <div className="flex snap-x snap-mandatory scroll-smooth">
-            {visibleCardNumbers.map((cardNumber) => (
-              <div key={cardNumber} className="min-w-full snap-start" style={{ contentVisibility: "auto", containIntrinsicSize: "auto 420px" }}>
-                <StampCardView cardNumber={cardNumber} stampsByOrdinal={stampsByOrdinal} />
-              </div>
-            ))}
-          </div>
-        </div>
-        {visibleCardNumbers.length > 1 ? (
-          <div className="mt-1 flex justify-center gap-1.5" aria-hidden="true">
-            {visibleCardNumbers.map((cardNumber) => (
-              <span key={cardNumber} className="block h-1.5 w-1.5 rounded-full bg-slate-200" />
-            ))}
-          </div>
-        ) : null}
+        <StampCardView cardNumber={currentCardNumber} stampsByOrdinal={stampsByOrdinal} />
 
         <div className="mt-5 px-3">
           <div className="overflow-hidden rounded-[26px] bg-slate-950 p-5 text-white shadow-[0_18px_44px_rgba(15,23,42,0.22)]">

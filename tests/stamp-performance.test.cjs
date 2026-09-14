@@ -7,6 +7,11 @@ const test = require("node:test");
 const vm = require("node:vm");
 const ts = require("typescript");
 
+const config = {};
+vm.runInNewContext(ts.transpileModule(fs.readFileSync(path.join(__dirname, "../src/features/visit-records/stamp-card-config.ts"), "utf8"), {
+  compilerOptions: { module: ts.ModuleKind.CommonJS }
+}).outputText, { exports: config });
+
 function loadStampQueries(user, events = []) {
   const calls = [];
   const exports = {};
@@ -14,7 +19,7 @@ function loadStampQueries(user, events = []) {
   vm.runInNewContext(ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS } }).outputText, {
     exports,
     require(name) {
-      if (name.endsWith("stamp-card-config")) return { STAMP_EVENT_FETCH_LIMIT: 36 };
+      if (name.endsWith("stamp-card-config")) return config;
       if (name.endsWith("supabase/server")) return {
         getSupabaseServerUser: async () => ({ data: { user }, error: null }),
         createSupabaseServerClient: async () => ({ from(table) {
@@ -24,7 +29,7 @@ function loadStampQueries(user, events = []) {
             select() { return query; },
             eq(key, value) { assert.equal(key, "user_id"); assert.equal(value, user.id); return query; },
             order() { return query; },
-            limit(value) { assert.equal(value, 36); return query; },
+            limit(value) { assert.equal(value, 12); return query; },
             then: result.then.bind(result)
           };
           return query;
@@ -40,6 +45,25 @@ test("anonymous stamp requests do not query personal tables", async () => {
   const { exports, calls } = loadStampQueries(null);
   assert.equal(await exports.getCurrentUserStampData(), null);
   assert.equal(calls.length, 0);
+});
+
+test("only the latest card is transferred while cumulative counts are preserved", () => {
+  const { exports } = loadStampQueries(null);
+  for (const total of [0, 1, 12, 13, 24, 25, 36, 37, 100]) {
+    const original = {
+      totalStampCount: total,
+      stores: [{ storeId: "semi", stampCount: total }],
+      cardStamps: Array.from({ length: total }, (_, index) => ({ storeId: "semi", storeName: "蝉", stampOrdinal: index + 1 }))
+    };
+    const result = exports.toStampDisplayData(original);
+    const expectedCard = Math.max(1, Math.ceil(total / 12));
+    assert.equal(config.getCurrentStampCardNumber(total), expectedCard);
+    assert.equal(result.totalStampCount, total);
+    assert.equal(result.stores[0].stampCount, total);
+    assert.equal(result.cardStamps.length, total === 0 ? 0 : (total - 1) % 12 + 1);
+    assert.ok(result.cardStamps.every(stamp => Math.ceil(stamp.stampOrdinal / 12) === expectedCard));
+    if (total > 12) assert.ok(JSON.stringify(result).length < JSON.stringify(original).length);
+  }
 });
 
 test("display payload omits unused metadata without losing stamps or ordinal order", async () => {
