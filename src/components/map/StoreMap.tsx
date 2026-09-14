@@ -86,7 +86,7 @@ function StoreWaitTimeMarker({ store, lockRemainingMs }: { store: Store; lockRem
       />
       {isOwnerLocked ? (
         <>
-          <span className="relative z-10 whitespace-nowrap text-[0.55rem] font-black leading-none tracking-normal text-amber-700">今すぐ空席</span>
+          <span className="relative z-10 whitespace-nowrap text-[0.55rem] font-black leading-none tracking-normal text-amber-700">今なら空席</span>
           <span className="relative z-10 mt-1 whitespace-nowrap text-[1.08rem] font-black leading-none tracking-normal text-red-600">
             {formatLockCountdown(lockRemainingMs)}
           </span>
