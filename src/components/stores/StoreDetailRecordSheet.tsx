@@ -39,7 +39,7 @@ function OfficialVacancyCallout() {
         className="size-[4.4rem] object-contain"
         priority={false}
       />
-      <p className="text-center text-[1.35rem] font-black leading-tight tracking-normal text-red-800">
+      <p className="text-center text-[1.35rem] font-black leading-tight tracking-normal text-[#ff0000]">
         店舗が空席を
         <br />
         表示しています
