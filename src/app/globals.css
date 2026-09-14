@@ -32,6 +32,18 @@ a {
   -webkit-tap-highlight-color: transparent;
 }
 
+[data-map-surface],
+[data-map-surface] * {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+[data-map-surface] img {
+  -webkit-user-drag: none;
+  pointer-events: none;
+}
+
 @keyframes kanmae-stamp-float {
   0% {
     opacity: 0;
