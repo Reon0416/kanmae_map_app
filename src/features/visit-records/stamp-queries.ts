@@ -20,6 +20,21 @@ export type StampResponse = {
   }[];
 };
 
+export type StampDisplayData = {
+  stores: Pick<StampCount, "storeId" | "stampCount">[];
+  totalStampCount: number;
+  cardStamps: Pick<StampResponse["cardStamps"][number], "storeId" | "storeName" | "stampOrdinal">[];
+};
+
+export function toStampDisplayData(data: StampResponse | null): StampDisplayData | null {
+  if (!data) return null;
+  return {
+    totalStampCount: data.totalStampCount,
+    stores: data.stores.map(({ storeId, stampCount }) => ({ storeId, stampCount })),
+    cardStamps: data.cardStamps.map(({ storeId, storeName, stampOrdinal }) => ({ storeId, storeName, stampOrdinal }))
+  };
+}
+
 export async function getCurrentUserStampData(): Promise<StampResponse | null> {
   const supabase = await createSupabaseServerClient();
   const {

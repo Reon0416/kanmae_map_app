@@ -2,12 +2,12 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 import { Loader2, LogIn, Sparkles } from "lucide-react";
 import type { StoreSummary } from "@/features/stores/store-types";
 import { MAX_VISIBLE_STAMP_CARDS, STAMPS_PER_CARD } from "@/features/visit-records/stamp-card-config";
-import type { StampResponse } from "@/features/visit-records/stamp-queries";
+import type { StampDisplayData } from "@/features/visit-records/stamp-queries";
 import { getStampImage } from "@/features/visit-records/stamp-images";
 import { cn } from "@/lib/utils";
 
@@ -16,7 +16,7 @@ function StampCardView({
   stampsByOrdinal
 }: {
   cardNumber: number;
-  stampsByOrdinal: Map<number, StampResponse["cardStamps"][number]>;
+  stampsByOrdinal: Map<number, StampDisplayData["cardStamps"][number]>;
 }) {
   const stampSlots = Array.from({ length: STAMPS_PER_CARD }, (_, index) => index);
   const pageStyle = {
@@ -81,42 +81,61 @@ function StampCardView({
   );
 }
 
-export function VisitStampCard({ stores, initialStampData }: { stores: StoreSummary[]; initialStampData: StampResponse | null }) {
-  const [stampData, setStampData] = useState<StampResponse | null>(initialStampData);
+export function VisitStampCard({ stores, initialStampData }: { stores: StoreSummary[]; initialStampData: StampDisplayData | null }) {
+  const [stampData, setStampData] = useState<StampDisplayData | null>(initialStampData);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(initialStampData ? null : "スタンプを見るにはログインしてください。");
+  const collectionRef = useRef<HTMLDivElement>(null);
+  const [collectionVisible, setCollectionVisible] = useState(false);
+
+  useEffect(() => {
+    const element = collectionRef.current;
+    if (!element) return;
+    if (!("IntersectionObserver" in window)) {
+      setCollectionVisible(true);
+      return;
+    }
+    const observer = new IntersectionObserver(entries => {
+      if (entries.some(entry => entry.isIntersecting)) {
+        setCollectionVisible(true);
+        observer.disconnect();
+      }
+    }, { rootMargin: "150px" });
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, [stampData, error, isLoading]);
 
   useEffect(() => {
     let ignore = false;
 
     async function loadStamps() {
+      if (ignore) return;
       setIsLoading(true);
       setError(null);
 
-      const response = await fetch("/api/stamps", {
-        cache: "no-store"
-      });
-
-      if (ignore) {
-        return;
-      }
-
-      if (response.status === 401) {
-        setStampData(null);
-        setError("スタンプを見るにはログインしてください。");
+      try {
+        const response = await fetch("/api/stamps", { cache: "no-store" });
+        if (ignore) return;
+        if (response.status === 401) {
+          setStampData(null);
+          setError("スタンプを見るにはログインしてください。");
+          setIsLoading(false);
+          return;
+        }
+        if (!response.ok) {
+          setError("スタンプを読み込めませんでした。");
+          setIsLoading(false);
+          return;
+        }
+        const data: StampDisplayData = await response.json();
+        if (ignore) return;
+        setStampData(data);
         setIsLoading(false);
-        return;
-      }
-
-      if (!response.ok) {
-        setStampData(null);
+      } catch {
+        if (ignore) return;
         setError("スタンプを読み込めませんでした。");
         setIsLoading(false);
-        return;
       }
-
-      setStampData(await response.json());
-      setIsLoading(false);
     }
 
     window.addEventListener("kanmae:visit-record-created", loadStamps);
@@ -201,7 +220,7 @@ export function VisitStampCard({ stores, initialStampData }: { stores: StoreSumm
         <div className="overflow-x-auto overscroll-x-contain pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           <div className="flex snap-x snap-mandatory scroll-smooth">
             {visibleCardNumbers.map((cardNumber) => (
-              <div key={cardNumber} className="min-w-full snap-start">
+              <div key={cardNumber} className="min-w-full snap-start" style={{ contentVisibility: "auto", containIntrinsicSize: "auto 420px" }}>
                 <StampCardView cardNumber={cardNumber} stampsByOrdinal={stampsByOrdinal} />
               </div>
             ))}
@@ -229,10 +248,11 @@ export function VisitStampCard({ stores, initialStampData }: { stores: StoreSumm
             </div>
           </div>
 
-          <div className="mt-3 grid grid-cols-2 gap-2.5">
+          <div ref={collectionRef} className="mt-3 grid grid-cols-2 gap-2.5">
             {stampCountsByStore.map((store, index) => (
               <div
                 key={store.id}
+                style={{ contentVisibility: "auto", containIntrinsicSize: "auto 220px" }}
                 className={cn(
                   "relative overflow-hidden rounded-[22px] border bg-white p-3 shadow-sm",
                   store.count > 0 ? "border-emerald-100" : "border-slate-100 opacity-45 grayscale"
@@ -244,7 +264,7 @@ export function VisitStampCard({ stores, initialStampData }: { stores: StoreSumm
                   </span>
                 ) : null}
                 <div className="mx-auto flex size-24 items-center justify-center rounded-full bg-gradient-to-br from-emerald-50 to-cyan-50 shadow-inner">
-                  {getStampImage(store.id, store.name, store.assetKey) ? (
+                  {collectionVisible && getStampImage(store.id, store.name, store.assetKey) ? (
                     <Image
                       src={getStampImage(store.id, store.name, store.assetKey) ?? ""}
                       alt={`${store.name}のスタンプ`}
@@ -268,13 +288,13 @@ export function VisitStampCard({ stores, initialStampData }: { stores: StoreSumm
                     "flex items-center gap-1 rounded-full px-3 py-1.5 text-lg font-black",
                     store.count > 0 ? "bg-slate-950 text-white" : "bg-slate-100 text-slate-400"
                   )}>
-                    {store.count > 0 && getStampImage(store.id, store.name, store.assetKey) ? (
+                    {collectionVisible && store.count > 0 && getStampImage(store.id, store.name, store.assetKey) ? (
                       <Image
                         src={getStampImage(store.id, store.name, store.assetKey) ?? ""}
                         alt={`${store.name}のスタンプ`}
                         width={22}
                         height={22}
-                        sizes="24px"
+                        sizes="88px"
                         className="size-6 rounded-full object-contain"
                       />
                     ) : (
