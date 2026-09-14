@@ -39,6 +39,8 @@ export async function middleware(request: NextRequest) {
   const isPublicStorePage = pathname === "/" || pathname === "/filters" ||
     pathname === "/stores" || pathname.startsWith("/stores/");
   if (isPublicStorePage) return response;
+  // This POST route verifies the user itself; no roles are checked here for API routes.
+  if (pathname === "/api/visit-records" && request.method === "POST") return response;
   let cookiesToApply: { name: string; value: string; options: CookieOptions }[] = [];
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;

@@ -16,6 +16,7 @@ export type SavedVisitRecord = {
   waitTime: WaitTimeBucket;
   stampCount: number;
   visitedAt: string;
+  crowdStatusUpdated?: boolean;
 };
 
 export async function saveVisitRecord(input: SaveVisitRecordInput) {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { CheckCircle2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -9,12 +9,11 @@ import { WaitTimeSelector } from "@/components/visit-records/WaitTimeSelector";
 import type { Store, WaitTimeBucket } from "@/features/stores/store-types";
 import { saveVisitRecord } from "@/features/visit-records/save-visit-record";
 import { playStampSound } from "@/features/visit-records/stamp-sound";
+import { loadStampReward, prepareStampReward } from "@/features/visit-records/stamp-reward-loader";
 
 export { OPEN_STORE_DETAIL_RECORD_EVENT } from "@/features/visit-records/record-events";
 
-const StampRewardOverlay = dynamic(() =>
-  import("@/components/visit-records/StampRewardOverlay").then((module) => module.StampRewardOverlay)
-);
+const StampRewardOverlay = dynamic(loadStampReward);
 
 export function StoreRecordSheet({
   store,
@@ -30,6 +29,7 @@ export function StoreRecordSheet({
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showStampReward, setShowStampReward] = useState(false);
+  const savingRef = useRef(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -40,7 +40,12 @@ export function StoreRecordSheet({
     }
   }, [isOpen, store.id]);
 
+  useEffect(() => {
+    if (isOpen) prepareStampReward({ id: store.id, name: store.name, assetKey: store.assetKey });
+  }, [isOpen, store.id, store.name, store.assetKey]);
+
   const closeSheet = () => {
+    if (savingRef.current) return;
     setSaved(false);
     setError(null);
     setShowStampReward(false);
@@ -48,20 +53,24 @@ export function StoreRecordSheet({
   };
 
   const saveRecord = async () => {
+    if (savingRef.current || saved) return;
+    savingRef.current = true;
     setIsSaving(true);
     setError(null);
 
     try {
-      await saveVisitRecord({
+      const result = await saveVisitRecord({
         storeId: store.id,
         waitTime
       });
+      if (result.crowdStatusUpdated === false) setError("スタンプは保存しましたが、待ち時間の更新に失敗しました。");
       playStampSound();
       setSaved(true);
       setShowStampReward(true);
     } catch (saveError) {
       setError(saveError instanceof Error ? saveError.message : "来店記録を保存できませんでした。");
     } finally {
+      savingRef.current = false;
       setIsSaving(false);
     }
   };
@@ -93,7 +102,7 @@ export function StoreRecordSheet({
             <Button
               className="mt-5 h-14 w-full rounded-2xl bg-emerald-500 text-base font-black text-white shadow-[0_16px_34px_rgba(16,185,129,0.35)] hover:bg-emerald-600"
               onClick={saveRecord}
-              disabled={isSaving}
+              disabled={isSaving || saved}
             >
               {saved ? <CheckCircle2 className="size-5" aria-hidden="true" /> : null}
               {isSaving ? "保存中" : saved ? "記録しました" : "記録する"}

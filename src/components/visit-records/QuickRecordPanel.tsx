@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import { storeThumbnailImages } from "@/features/stores/store-thumbnail-images";
@@ -11,10 +11,9 @@ import type { StoreSummary, WaitTimeBucket } from "@/features/stores/store-types
 import { saveVisitRecord } from "@/features/visit-records/save-visit-record";
 import { playStampSound } from "@/features/visit-records/stamp-sound";
 import { cn } from "@/lib/utils";
+import { loadStampReward, prepareStampReward } from "@/features/visit-records/stamp-reward-loader";
 
-const StampRewardOverlay = dynamic(() =>
-  import("@/components/visit-records/StampRewardOverlay").then((module) => module.StampRewardOverlay)
-);
+const StampRewardOverlay = dynamic(loadStampReward);
 
 export function QuickRecordPanel({ stores }: { stores: StoreSummary[] }) {
   const [storeId, setStoreId] = useState<string | null>(null);
@@ -23,9 +22,13 @@ export function QuickRecordPanel({ stores }: { stores: StoreSummary[] }) {
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showStampReward, setShowStampReward] = useState(false);
+  const savingRef = useRef(false);
   const selectedStore = stores.find((store) => store.id === storeId) ?? null;
 
   const openWaitTimeSheet = (nextStoreId: string) => {
+    if (savingRef.current) return;
+    const store = stores.find(store => store.id === nextStoreId);
+    if (store) prepareStampReward(store);
     setStoreId(nextStoreId);
     setWaitTime("within_5");
     setSaved(false);
@@ -34,6 +37,7 @@ export function QuickRecordPanel({ stores }: { stores: StoreSummary[] }) {
   };
 
   const closeWaitTimeSheet = () => {
+    if (savingRef.current) return;
     setStoreId(null);
     setSaved(false);
     setError(null);
@@ -41,24 +45,27 @@ export function QuickRecordPanel({ stores }: { stores: StoreSummary[] }) {
   };
 
   const saveRecord = async () => {
-    if (!selectedStore) {
+    if (!selectedStore || savingRef.current || saved) {
       return;
     }
 
+    savingRef.current = true;
     setIsSaving(true);
     setError(null);
 
     try {
-      await saveVisitRecord({
+      const result = await saveVisitRecord({
         storeId: selectedStore.id,
         waitTime
       });
+      if (result.crowdStatusUpdated === false) setError("スタンプは保存しましたが、待ち時間の更新に失敗しました。");
       playStampSound();
       setSaved(true);
       setShowStampReward(true);
     } catch (saveError) {
       setError(saveError instanceof Error ? saveError.message : "来店記録を保存できませんでした。");
     } finally {
+      savingRef.current = false;
       setIsSaving(false);
     }
   };
@@ -148,7 +155,7 @@ export function QuickRecordPanel({ stores }: { stores: StoreSummary[] }) {
             <Button
               className="mt-5 h-14 w-full rounded-2xl bg-emerald-500 text-base font-black text-white shadow-[0_16px_34px_rgba(16,185,129,0.35)] hover:bg-emerald-600"
               onClick={saveRecord}
-              disabled={isSaving}
+              disabled={isSaving || saved}
             >
               {saved ? <CheckCircle2 className="size-5" aria-hidden="true" /> : null}
               {isSaving ? "保存中" : saved ? "記録しました" : "記録する"}
