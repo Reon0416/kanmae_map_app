@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { Sparkles, X } from "lucide-react";
-import type { Store } from "@/features/stores/store-types";
+import type { StoreSummary } from "@/features/stores/store-types";
 import { getStampImage } from "@/features/visit-records/stamp-images";
 
 const DISMISS_DELAY_MS = 1400;
@@ -12,7 +12,7 @@ export function StampRewardOverlay({
   store,
   onClose
 }: {
-  store: Store;
+  store: StoreSummary;
   onClose: () => void;
 }) {
   const stampImage = getStampImage(store.id, store.name, store.assetKey);
@@ -64,7 +64,7 @@ export function StampRewardOverlay({
               alt={`${store.name}のスタンプ`}
               width={132}
               height={132}
-              unoptimized
+              sizes="128px"
               className="relative z-10 size-32 rounded-full object-contain"
             />
           ) : (

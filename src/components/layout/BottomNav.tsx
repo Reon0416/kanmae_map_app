@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { Clock3, Home, Map, PenLine, Settings, ShieldCheck, Store, User } from "lucide-react";
-import { OPEN_STORE_DETAIL_RECORD_EVENT } from "@/components/stores/StoreDetailRecordSheet";
+import { OPEN_STORE_DETAIL_RECORD_EVENT } from "@/features/visit-records/record-events";
 import { ROLE_STORAGE_KEY, USER_ROLE, type UserRole } from "@/features/auth/roles";
 import { cn } from "@/lib/utils";
 
@@ -122,14 +122,14 @@ export function BottomNav() {
             }
 
             return (
-              <Link key={item.href} href={item.href} className={featuredClassName}>
+              <Link key={item.href} href={item.href} prefetch={false} className={featuredClassName}>
                 {featuredContent}
               </Link>
             );
           }
 
           return (
-            <Link key={item.href} href={item.href} className="flex flex-col items-center justify-center gap-1 text-xs font-semibold text-slate-600">
+            <Link key={item.href} href={item.href} prefetch={false} className="flex flex-col items-center justify-center gap-1 text-xs font-semibold text-slate-600">
               <Icon className="size-5" aria-hidden="true" />
               {item.label}
             </Link>

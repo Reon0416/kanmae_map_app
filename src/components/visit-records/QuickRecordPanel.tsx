@@ -1,18 +1,22 @@
 "use client";
 
 import { useState } from "react";
+import dynamic from "next/dynamic";
 import Image from "next/image";
 import { storeThumbnailImages } from "@/features/stores/store-thumbnail-images";
 import { CheckCircle2, Utensils, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { StampRewardOverlay } from "@/components/visit-records/StampRewardOverlay";
 import { WaitTimeSelector } from "@/components/visit-records/WaitTimeSelector";
-import type { Store, WaitTimeBucket } from "@/features/stores/store-types";
+import type { StoreSummary, WaitTimeBucket } from "@/features/stores/store-types";
 import { saveVisitRecord } from "@/features/visit-records/save-visit-record";
 import { playStampSound } from "@/features/visit-records/stamp-sound";
 import { cn } from "@/lib/utils";
 
-export function QuickRecordPanel({ stores }: { stores: Store[] }) {
+const StampRewardOverlay = dynamic(() =>
+  import("@/components/visit-records/StampRewardOverlay").then((module) => module.StampRewardOverlay)
+);
+
+export function QuickRecordPanel({ stores }: { stores: StoreSummary[] }) {
   const [storeId, setStoreId] = useState<string | null>(null);
   const [waitTime, setWaitTime] = useState<WaitTimeBucket>("within_5");
   const [saved, setSaved] = useState(false);

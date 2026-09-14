@@ -4,7 +4,6 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { LogOut } from "lucide-react";
 import { ROLE_STORAGE_KEY } from "@/features/auth/roles";
-import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
 export function SignOutButton() {
   const router = useRouter();
@@ -12,6 +11,7 @@ export function SignOutButton() {
 
   async function signOut() {
     setIsSigningOut(true);
+    const { createSupabaseBrowserClient } = await import("@/lib/supabase/client");
     const supabase = createSupabaseBrowserClient();
     await supabase.auth.signOut();
     window.localStorage.removeItem(ROLE_STORAGE_KEY);

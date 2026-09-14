@@ -1,11 +1,15 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
+import dynamic from "next/dynamic";
 import { TOGGLE_MAP_BOTTOM_NAV_EVENT } from "@/components/layout/BottomNav";
 import { StoreMap } from "@/components/map/StoreMap";
-import { StoreRecordSheet } from "@/components/stores/StoreDetailRecordSheet";
 import type { DisplayStatus, Store, WaitTimeBucket } from "@/features/stores/store-types";
 import { useMemo, useState } from "react";
+
+const StoreRecordSheet = dynamic(() =>
+  import("@/components/stores/StoreDetailRecordSheet").then((module) => module.StoreRecordSheet)
+);
 
 export function MapHome({ stores }: { stores: Store[] }) {
   const [selectedStore, setSelectedStore] = useState<Store | null>(null);

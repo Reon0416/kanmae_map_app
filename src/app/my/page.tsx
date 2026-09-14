@@ -1,10 +1,10 @@
 import { SignOutButton } from "@/components/auth/SignOutButton";
 import { VisitStampCard } from "@/components/my/VisitStampCard";
-import { getStores } from "@/features/stores/store-queries";
+import { getStoreSummaries } from "@/features/stores/store-queries";
 import { getCurrentUserStampData } from "@/features/visit-records/stamp-queries";
 
 export default async function MyPage() {
-  const [stores, stampData] = await Promise.all([getStores(), getCurrentUserStampData()]);
+  const [stores, stampData] = await Promise.all([getStoreSummaries(), getCurrentUserStampData()]);
 
   return (
     <main className="pb-24 pt-6 md:mx-auto md:max-w-4xl md:pb-10">

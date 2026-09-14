@@ -53,7 +53,7 @@ export default async function StoresPage({
       <div className="px-3 pt-5">
       <div className="mb-4 flex items-center justify-between gap-3 px-1">
         <div>
-          <Link href="/" className="inline-flex items-center gap-1 text-sm font-bold text-slate-500">
+          <Link href="/" prefetch={false} className="inline-flex items-center gap-1 text-sm font-bold text-slate-500">
             <ArrowLeft className="size-4" aria-hidden="true" />
             マップ
           </Link>
@@ -74,6 +74,7 @@ export default async function StoresPage({
           <Link
             key={store.id}
             href={`/stores/${store.id}`}
+            prefetch={false}
             className="grid grid-cols-[86px_1fr_auto] gap-3 border-b border-dashed border-slate-200 bg-white p-3 transition last:border-b-0 hover:bg-slate-50"
           >
             <div className={cn(
@@ -130,6 +131,7 @@ export default async function StoresPage({
 
       <Link
         href="/"
+        prefetch={false}
         aria-label="マップへ戻る"
         className="fixed bottom-28 right-4 z-30 flex h-12 items-center gap-2 rounded-full border border-slate-950/10 bg-white/10 px-4 text-sm font-black text-slate-950 backdrop-blur-[2px] transition hover:bg-white/20"
       >

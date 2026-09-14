@@ -33,6 +33,8 @@ export type Store = {
   };
 };
 
+export type StoreSummary = Pick<Store, "id" | "assetKey" | "name" | "genre">;
+
 export type StoreStatusUpdate = {
   storeId: string;
   status: StoreStatus;

@@ -1,4 +1,5 @@
-import type { Store } from "@/features/stores/store-types";
+import { cache } from "react";
+import type { Store, StoreSummary } from "@/features/stores/store-types";
 import { latLngToMapPosition } from "@/lib/map/map-config";
 import { createSupabaseServerClient, hasSupabaseEnvironment } from "@/lib/supabase/server";
 
@@ -239,7 +240,7 @@ function mapStoreRow(row: StoreRow): Store {
   };
 }
 
-export async function getStores() {
+export const getStores = cache(async function getStores() {
   if (process.env.NODE_ENV !== "production" && process.env.KANMAE_USE_SUPABASE !== "true") {
     return demoStores;
   }
@@ -277,7 +278,38 @@ export async function getStores() {
 
     throw error;
   }
-}
+});
+
+// Record and collection screens do not need live status or store-detail fields.
+export const getStoreSummaries = cache(async (): Promise<StoreSummary[]> => {
+  if (process.env.NODE_ENV !== "production" && process.env.KANMAE_USE_SUPABASE !== "true") {
+    return demoStores.map(({ id, name, genre }) => ({ id, name, genre, assetKey: getAssetKey(name) }));
+  }
+
+  if (!hasSupabaseEnvironment()) {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error("Supabase environment variables are not configured.");
+    }
+    return demoStores.map(({ id, name, genre }) => ({ id, name, genre, assetKey: getAssetKey(name) }));
+  }
+
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase
+    .from("stores")
+    .select("id, name, genre")
+    .order("created_at", { ascending: true });
+
+  if (error || !data) {
+    throw new Error(`Failed to load store summaries: ${error?.message ?? "No data returned."}`);
+  }
+
+  return data.map((row) => ({
+    id: row.id,
+    assetKey: getAssetKey(row.name),
+    name: row.name,
+    genre: row.genre || "未設定"
+  }));
+});
 
 export async function getStoreById(storeId: string) {
   const stores = await getStores();

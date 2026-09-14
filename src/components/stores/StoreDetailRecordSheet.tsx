@@ -1,15 +1,20 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import dynamic from "next/dynamic";
 import { CheckCircle2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { StampRewardOverlay } from "@/components/visit-records/StampRewardOverlay";
+import { OPEN_STORE_DETAIL_RECORD_EVENT } from "@/features/visit-records/record-events";
 import { WaitTimeSelector } from "@/components/visit-records/WaitTimeSelector";
 import type { Store, WaitTimeBucket } from "@/features/stores/store-types";
 import { saveVisitRecord } from "@/features/visit-records/save-visit-record";
 import { playStampSound } from "@/features/visit-records/stamp-sound";
 
-export const OPEN_STORE_DETAIL_RECORD_EVENT = "kanmae:open-store-detail-record";
+export { OPEN_STORE_DETAIL_RECORD_EVENT } from "@/features/visit-records/record-events";
+
+const StampRewardOverlay = dynamic(() =>
+  import("@/components/visit-records/StampRewardOverlay").then((module) => module.StampRewardOverlay)
+);
 
 export function StoreRecordSheet({
   store,

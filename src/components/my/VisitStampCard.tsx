@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import type { CSSProperties } from "react";
 import { Loader2, LogIn, Sparkles } from "lucide-react";
-import type { Store } from "@/features/stores/store-types";
+import type { StoreSummary } from "@/features/stores/store-types";
 import { MAX_VISIBLE_STAMP_CARDS, STAMPS_PER_CARD } from "@/features/visit-records/stamp-card-config";
 import type { StampResponse } from "@/features/visit-records/stamp-queries";
 import { getStampImage } from "@/features/visit-records/stamp-images";
@@ -64,7 +64,7 @@ function StampCardView({
                     alt={`${stamp.storeName}のスタンプ`}
                     width={72}
                     height={72}
-                    unoptimized
+                    sizes="(max-width: 767px) 20vw, 160px"
                     className="size-full rounded-full object-contain p-0.5"
                   />
                 ) : stamped ? (
@@ -81,7 +81,7 @@ function StampCardView({
   );
 }
 
-export function VisitStampCard({ stores, initialStampData }: { stores: Store[]; initialStampData: StampResponse | null }) {
+export function VisitStampCard({ stores, initialStampData }: { stores: StoreSummary[]; initialStampData: StampResponse | null }) {
   const [stampData, setStampData] = useState<StampResponse | null>(initialStampData);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(initialStampData ? null : "スタンプを見るにはログインしてください。");
@@ -182,6 +182,7 @@ export function VisitStampCard({ stores, initialStampData }: { stores: Store[]; 
           <h2 className="text-lg font-black text-slate-950">{error}</h2>
           <Link
             href="/login"
+            prefetch={false}
             className="mt-4 inline-flex h-10 items-center gap-2 rounded-md bg-slate-950 px-4 text-sm font-bold text-white"
           >
             <LogIn className="size-4" aria-hidden="true" />
@@ -249,7 +250,7 @@ export function VisitStampCard({ stores, initialStampData }: { stores: Store[]; 
                       alt={`${store.name}のスタンプ`}
                       width={92}
                       height={92}
-                      unoptimized
+                      sizes="88px"
                       className="size-[88px] rounded-full object-contain"
                     />
                   ) : (
@@ -273,7 +274,7 @@ export function VisitStampCard({ stores, initialStampData }: { stores: Store[]; 
                         alt={`${store.name}のスタンプ`}
                         width={22}
                         height={22}
-                        unoptimized
+                        sizes="24px"
                         className="size-6 rounded-full object-contain"
                       />
                     ) : (
