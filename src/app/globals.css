@@ -33,13 +33,16 @@ a {
 }
 
 [data-map-surface],
-[data-map-surface] * {
+[data-map-surface] *,
+[data-image-callout-disabled],
+[data-image-callout-disabled] * {
   -webkit-touch-callout: none;
   -webkit-user-select: none;
   user-select: none;
 }
 
-[data-map-surface] img {
+[data-map-surface] img,
+[data-image-callout-disabled] img {
   -webkit-user-drag: none;
   pointer-events: none;
 }

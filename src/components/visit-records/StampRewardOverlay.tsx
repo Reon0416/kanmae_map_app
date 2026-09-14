@@ -33,7 +33,10 @@ export function StampRewardOverlay({
 
   return (
     <div
+      data-image-callout-disabled
       className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-950/72 px-6 backdrop-blur-sm"
+      onContextMenu={(event) => event.preventDefault()}
+      onDragStart={(event) => event.preventDefault()}
       onClick={closeIfReady}
       onKeyDown={(event) => {
         if (event.key === "Escape") {
@@ -68,6 +71,7 @@ export function StampRewardOverlay({
               height={132}
               sizes="128px"
               className="relative z-10 size-32 rounded-full object-contain"
+              draggable={false}
             />
           ) : (
             <div className="relative z-10 flex size-32 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">

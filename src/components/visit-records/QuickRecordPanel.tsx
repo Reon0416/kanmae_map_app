@@ -71,7 +71,12 @@ export function QuickRecordPanel({ stores }: { stores: StoreSummary[] }) {
 
   return (
     <>
-      <section className="overflow-hidden bg-white">
+      <section
+        data-image-callout-disabled
+        className="overflow-hidden bg-white"
+        onContextMenu={(event) => event.preventDefault()}
+        onDragStart={(event) => event.preventDefault()}
+      >
         <div className="bg-gradient-to-br from-emerald-500 to-cyan-500 px-5 pb-6 pt-5 text-white">
           <p className="text-sm font-black opacity-80">待ち時間を記録</p>
           <h1 className="mt-1 text-3xl font-black tracking-normal">店を選ぶ</h1>
@@ -104,6 +109,7 @@ export function QuickRecordPanel({ stores }: { stores: StoreSummary[] }) {
                     height={thumbnail.height}
                     sizes="72px"
                     className="absolute max-w-none bg-white"
+                    draggable={false}
                     style={{
                       width: thumbnail.width * scale,
                       height: thumbnail.height * scale,
