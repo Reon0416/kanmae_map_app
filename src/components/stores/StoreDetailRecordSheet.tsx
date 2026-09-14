@@ -126,7 +126,7 @@ export function StoreRecordSheet({
 
             <div className="mt-5">
               {ownerWaitTimeLocked ? (
-                <p className="rounded-2xl bg-red-50 px-4 py-5 text-center text-base font-black text-red-600">
+                <p className="px-4 py-5 text-center text-base font-black text-red-600">
                   店舗が空席を表示しています
                 </p>
               ) : (
@@ -145,7 +145,7 @@ export function StoreRecordSheet({
                 : saved
                   ? "記録しました"
                   : canSaveWithLocation
-                    ? ownerWaitTimeLocked ? "来店を記録する" : "記録する"
+                    ? ownerWaitTimeLocked ? "スタンプを押す" : "記録する"
                     : "位置情報を取得してください"}
             </Button>
             {!canSaveWithLocation ? (
