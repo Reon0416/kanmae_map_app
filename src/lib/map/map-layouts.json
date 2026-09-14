@@ -98,9 +98,9 @@
       "storeId": "musou",
       "image": "/maps/stores/musou-map.webp",
       "x": 2300,
-      "y": 1600,
-      "width": 1400,
-      "height": 1300,
+      "y": 1680,
+      "width": 1200,
+      "height": 1100,
       "waitBubble": { "x": 2700, "y": 1200 },
       "zIndex": 2
     },
