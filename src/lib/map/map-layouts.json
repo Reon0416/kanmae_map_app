@@ -166,7 +166,7 @@
     },
     {
       "storeId": "toriton",
-      "image": "/maps/stores/toriton-map.webp",
+      "image": "/maps/stores/toriton-map-opaque-v2.webp",
       "x": 3400,
       "y": 5300,
       "width": 1500,
