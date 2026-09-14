@@ -131,7 +131,7 @@ export async function markCurrentStoreAvailableFormAction(
 
     return {
       ok: true,
-      message: "できました。待ち時間を0分にしました。",
+      message: "反映しました。",
       savedAt: new Date().toISOString()
     };
   } catch (error) {
