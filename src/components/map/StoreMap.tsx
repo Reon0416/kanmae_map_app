@@ -404,7 +404,6 @@ export function StoreMap({
       ref={sectionRef}
       data-map-surface
       className={fullscreen ? "absolute inset-0 cursor-grab touch-none overflow-hidden bg-[#d9eadb] active:cursor-grabbing" : "relative min-h-[620px] cursor-grab touch-none overflow-hidden rounded-lg border border-border bg-[#d9eadb] shadow-sm active:cursor-grabbing"}
-      onContextMenu={(event) => event.preventDefault()}
       onDragStart={(event) => event.preventDefault()}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
