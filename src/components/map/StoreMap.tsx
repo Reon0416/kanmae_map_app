@@ -2,6 +2,7 @@
 
 import { LocateFixed, Minus, Plus } from "lucide-react";
 import Image from "next/image";
+import { WAIT_TIME_BUCKET, WAIT_TIME_LABELS } from "@/constants/wait-time-options";
 import type { Store } from "@/features/stores/store-types";
 import { ACTIVE_MAP_LAYOUT, ACTIVE_MAP_SOURCE_SIZE, ACTIVE_MAP_TILES, MAP_STORE_PLACEMENTS } from "@/lib/map/map-layout";
 import { KANMAE_MAP_IMAGE, latLngToMapPosition } from "@/lib/map/map-config";
@@ -30,6 +31,63 @@ const INITIAL_OFFSET = { x: 0, y: 0 };
 const TAP_MOVE_THRESHOLD = 8;
 const ZOOM_STEP = 1.35;
 const LANDMARK_PLACEMENT_IDS = new Set(["kandai"]);
+const WAIT_TIME_MARKER_POSITIONS: Record<string, { left: string; bottom: string }> = {
+  kokoro: { left: "38%", bottom: "68%" },
+  musou: { left: "58%", bottom: "68%" },
+  kirameki: { left: "60%", bottom: "70%" },
+  kenpei: { left: "34%", bottom: "72%" },
+  semi: { left: "50%", bottom: "70%" },
+  butafuku: { left: "42%", bottom: "72%" },
+  kirinji: { left: "58%", bottom: "70%" },
+  suzume: { left: "48%", bottom: "68%" },
+  toriton: { left: "50%", bottom: "72%" }
+};
+
+function getMapWaitTimeValue(waitTime: Store["waitTime"]) {
+  if (waitTime === WAIT_TIME_BUCKET.NO_WAIT) return "0";
+  if (waitTime === WAIT_TIME_BUCKET.WITHIN_5) return "5";
+  if (waitTime === WAIT_TIME_BUCKET.OVER_20) return "20+";
+
+  return WAIT_TIME_LABELS[waitTime].replace("分", "");
+}
+
+function getMapWaitTimeValueTone(waitTime: Store["waitTime"]) {
+  if (waitTime === WAIT_TIME_BUCKET.NO_WAIT || waitTime === WAIT_TIME_BUCKET.WITHIN_5) {
+    return "text-emerald-600";
+  }
+
+  if (waitTime === WAIT_TIME_BUCKET.BETWEEN_5_10) {
+    return "text-cyan-700";
+  }
+
+  if (waitTime === WAIT_TIME_BUCKET.BETWEEN_10_20) {
+    return "text-orange-600";
+  }
+
+  return "text-[#0b3b60]";
+}
+
+function StoreWaitTimeMarker({ placementId, store }: { placementId: string; store: Store }) {
+  const position = WAIT_TIME_MARKER_POSITIONS[placementId] ?? { left: "50%", bottom: "70%" };
+
+  return (
+    <span
+      className="pointer-events-none absolute z-20 flex min-w-[4.8rem] flex-col items-center justify-center rounded-[18px] border border-white/85 bg-white/72 px-2.5 pb-2 pt-1.5 text-center shadow-[0_8px_18px_rgba(15,23,42,0.16),inset_0_0_0_1px_rgba(15,23,42,0.035)] backdrop-blur-[1px]"
+      style={{
+        left: position.left,
+        bottom: position.bottom,
+        transform: "translate(-50%, -0.35rem)"
+      }}
+      aria-hidden="true"
+    >
+      <span className="absolute bottom-[-0.46rem] left-1/2 size-4 -translate-x-1/2 rotate-45 border-b border-r border-white/85 bg-white/72 shadow-[5px_5px_10px_rgba(15,23,42,0.07)]" />
+      <span className={`relative z-10 whitespace-nowrap text-[1.8rem] font-black leading-none tracking-normal ${getMapWaitTimeValueTone(store.waitTime)}`}>
+        {getMapWaitTimeValue(store.waitTime)}
+      </span>
+      <span className="relative z-10 mt-1 text-[0.63rem] font-black leading-none tracking-normal text-slate-500">分待ち</span>
+    </span>
+  );
+}
 
 type PointerPosition = { x: number; y: number };
 
@@ -154,6 +212,7 @@ export function StoreMap({
   const sectionRef = useRef<HTMLElement | null>(null);
   const pointers = useRef(new Map<number, PointerPosition>());
   const gesture = useRef<GestureState | null>(null);
+  const suppressNextStoreClick = useRef(false);
 
   const visiblePlacements = useMemo(() => {
     return MAP_STORE_PLACEMENTS
@@ -257,10 +316,11 @@ export function StoreMap({
 
   const handlePointerDown = (event: PointerEvent<HTMLElement>) => {
     if (event.button !== 0) return;
-    if (event.target instanceof Element && event.target.closest("a, button")) return;
+    if (event.target instanceof Element && event.target.closest("[data-map-control]")) return;
 
     event.currentTarget.setPointerCapture(event.pointerId);
     pointers.current.set(event.pointerId, { x: event.clientX, y: event.clientY });
+    suppressNextStoreClick.current = false;
 
     const activePointers = [...pointers.current.entries()];
     if (activePointers.length === 1) {
@@ -330,9 +390,10 @@ export function StoreMap({
 
     if (currentGesture?.kind === "drag" && currentGesture.pointerId === event.pointerId) {
       const movedDistance = Math.hypot(event.clientX - currentGesture.start.x, event.clientY - currentGesture.start.y);
+      suppressNextStoreClick.current = movedDistance > TAP_MOVE_THRESHOLD;
       if (
         movedDistance <= TAP_MOVE_THRESHOLD &&
-        !(event.target instanceof Element && event.target.closest("a, button"))
+        !(event.target instanceof Element && event.target.closest("[data-map-control]"))
       ) {
         onMapTap?.();
       }
@@ -387,7 +448,15 @@ export function StoreMap({
                 type="button"
                 className="relative block size-full transition duration-150 hover:scale-[1.03] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-slate-900"
                 aria-label={`${store.name}の詳細を開く`}
-                onClick={() => onStoreSelect?.(store)}
+                onClick={(event) => {
+                  if (suppressNextStoreClick.current) {
+                    suppressNextStoreClick.current = false;
+                    event.preventDefault();
+                    return;
+                  }
+
+                  onStoreSelect?.(store);
+                }}
               >
                 <Image
                   src={placement.image}
@@ -398,6 +467,7 @@ export function StoreMap({
                   className="select-none object-contain object-bottom drop-shadow-[0_18px_18px_rgba(52,73,65,0.18)]"
                   draggable={false}
                 />
+                <StoreWaitTimeMarker placementId={placement.storeId} store={store} />
               </button>
             ) : (
               <Image
@@ -429,6 +499,7 @@ export function StoreMap({
       </div>
       <div className={fullscreen ? "absolute right-4 top-32 z-20 grid gap-2" : "absolute right-5 top-5 z-10 flex gap-2"}>
         <button
+          data-map-control
           className="flex size-10 items-center justify-center rounded-md bg-white text-slate-700 shadow-sm disabled:text-slate-300"
           aria-label="拡大"
           onClick={() => zoomAt(scale * ZOOM_STEP, { x: 0, y: 0 })}
@@ -438,6 +509,7 @@ export function StoreMap({
           <Plus className="size-5" aria-hidden="true" />
         </button>
         <button
+          data-map-control
           className="flex size-10 items-center justify-center rounded-md bg-white text-slate-700 shadow-sm disabled:text-slate-300"
           aria-label="縮小"
           onClick={() => zoomAt(scale / ZOOM_STEP, { x: 0, y: 0 })}
@@ -447,6 +519,7 @@ export function StoreMap({
           <Minus className="size-5" aria-hidden="true" />
         </button>
         <button
+          data-map-control
           className="flex size-10 items-center justify-center rounded-md bg-white text-slate-700 shadow-sm"
           aria-label="現在地"
           onClick={locateUser}
