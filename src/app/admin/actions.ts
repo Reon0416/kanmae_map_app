@@ -22,6 +22,11 @@ const operatorSchema = z.object({
   storeId: z.string().uuid().optional().or(z.literal(""))
 });
 
+export type CreateOperatorActionState = {
+  ok: boolean;
+  message?: string;
+};
+
 async function requireAdmin() {
   const supabase = await createSupabaseServerClient();
   const {
@@ -236,6 +241,113 @@ export async function createOperatorAction(formData: FormData) {
   }
 
   revalidatePath("/admin/settings");
+}
+
+function getOperatorValidationMessage(error: z.ZodError) {
+  return error.issues[0]?.message ?? "入力内容を確認してください。";
+}
+
+function getCreateUserErrorMessage(message?: string) {
+  const normalized = (message ?? "").toLowerCase();
+
+  if (
+    normalized.includes("already registered") ||
+    normalized.includes("already exists") ||
+    normalized.includes("duplicate") ||
+    normalized.includes("user exists")
+  ) {
+    return "このメールアドレスはすでに登録されています。別のメールアドレスを入力してください。";
+  }
+
+  if (normalized.includes("password")) {
+    return "パスワードの条件を満たしていません。8文字以上で入力してください。";
+  }
+
+  return `アカウントを作成できませんでした。${message ? `理由: ${message}` : "時間をおいて再度お試しください。"}`;
+}
+
+export async function createOperatorFormAction(
+  _previousState: CreateOperatorActionState,
+  formData: FormData
+): Promise<CreateOperatorActionState> {
+  await requireAdmin();
+
+  try {
+    if (!hasSupabaseAdminEnvironment()) {
+      return {
+        ok: false,
+        message:
+          "店舗・運営アカウントを追加するには、Vercelの環境変数に SUPABASE_SERVICE_ROLE_KEY を設定してください。"
+      };
+    }
+
+    const parsedResult = operatorSchema.safeParse({
+      displayName: getString(formData, "displayName"),
+      email: getString(formData, "email"),
+      password: getString(formData, "password"),
+      role: getString(formData, "role"),
+      storeId: getString(formData, "storeId")
+    });
+
+    if (!parsedResult.success) {
+      return { ok: false, message: getOperatorValidationMessage(parsedResult.error) };
+    }
+
+    const parsed = parsedResult.data;
+
+    if (parsed.role === USER_ROLE.STORE && !parsed.storeId) {
+      return { ok: false, message: "店舗担当アカウントには担当店舗を選択してください。" };
+    }
+
+    const adminSupabase = createSupabaseAdminClient();
+    const { data, error } = await adminSupabase.auth.admin.createUser({
+      email: parsed.email,
+      password: parsed.password,
+      email_confirm: true,
+      user_metadata: {
+        display_name: parsed.displayName,
+        role: parsed.role
+      }
+    });
+
+    if (error || !data.user) {
+      return {
+        ok: false,
+        message: getCreateUserErrorMessage(error?.message ?? "ユーザー情報を取得できませんでした。")
+      };
+    }
+
+    const { error: profileError } = await adminSupabase.from("profiles").upsert({
+      id: data.user.id,
+      display_name: parsed.displayName,
+      role: parsed.role,
+      updated_at: new Date().toISOString()
+    });
+
+    if (profileError) {
+      return { ok: false, message: `権限情報を保存できませんでした。理由: ${profileError.message}` };
+    }
+
+    if (parsed.role === USER_ROLE.STORE && parsed.storeId) {
+      const { error: storeAdminError } = await adminSupabase.from("store_admins").upsert({
+        store_id: parsed.storeId,
+        user_id: data.user.id
+      });
+
+      if (storeAdminError) {
+        return { ok: false, message: `担当店舗を保存できませんでした。理由: ${storeAdminError.message}` };
+      }
+    }
+
+    revalidatePath("/admin/settings");
+
+    return { ok: true, message: "アカウントを作成しました。" };
+  } catch (error) {
+    return {
+      ok: false,
+      message: error instanceof Error ? error.message : "アカウントを作成できませんでした。"
+    };
+  }
 }
 
 export async function updateCurrentUserEmailAction(formData: FormData) {
