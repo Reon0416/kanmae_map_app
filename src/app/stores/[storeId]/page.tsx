@@ -7,7 +7,8 @@ import { StoreDetailRecordSheet } from "@/components/stores/StoreDetailRecordShe
 import { StoreStatusBadge } from "@/components/stores/StoreStatusBadge";
 import { WaitTimeLabel } from "@/components/stores/WaitTimeLabel";
 import { getStoreInfoById, getStoreLiveStatus } from "@/features/stores/store-queries";
-import { formatRelativeTime, priceBandLabel } from "@/lib/utils";
+import { formatRelativeTime } from "@/lib/utils";
+import { getStoreDisplayGenre } from "@/features/stores/store-display-genre";
 
 async function LiveStoreBadge({ storeId }: { storeId: string }) {
   try {
@@ -45,6 +46,7 @@ export default async function StoreDetailPage({ params }: { params: Promise<{ st
   const store = await getStoreInfoById(storeId);
 
   if (!store) notFound();
+  const genre = getStoreDisplayGenre(store);
 
   return (
     <main className="min-h-dvh bg-slate-100 pb-24 pt-5 md:pb-10">
@@ -74,7 +76,7 @@ export default async function StoreDetailPage({ params }: { params: Promise<{ st
                 {store.hasStudentDiscount ? <span className="rounded-full bg-white px-2.5 py-1 text-xs font-bold text-slate-700">学割あり</span> : null}
               </div>
               <h1 className="mt-3 text-3xl font-black text-slate-950">{store.name}</h1>
-              <p className="mt-2 max-w-xl text-sm font-semibold text-slate-700">{store.genre}</p>
+              <p className="mt-2 max-w-xl text-sm font-semibold text-slate-700">{genre}</p>
             </div>
           </div>
           <div className="grid gap-4 p-5 sm:grid-cols-3">
@@ -83,8 +85,8 @@ export default async function StoreDetailPage({ params }: { params: Promise<{ st
               <div className="mt-2"><Suspense fallback={<StatusPlaceholder />}><LiveStoreWaitTime storeId={store.id} /></Suspense></div>
             </div>
             <div>
-              <p className="text-xs font-bold text-slate-500">ジャンル・価格</p>
-              <p className="mt-2 text-sm font-semibold">{store.genre} / {priceBandLabel(store.priceBand)}</p>
+              <p className="text-xs font-bold text-slate-500">ジャンル</p>
+              <p className="mt-2 text-sm font-semibold">{genre}</p>
             </div>
             <div>
               <p className="text-xs font-bold text-slate-500">最終更新</p>

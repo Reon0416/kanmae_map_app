@@ -8,15 +8,7 @@ import { StoreSortSelect, type StoreSortOrder } from "@/components/stores/StoreS
 import { getStores } from "@/features/stores/store-queries";
 import type { DisplayStatus, Store } from "@/features/stores/store-types";
 import { cn } from "@/lib/utils";
-
-const storeDescriptions: Record<string, string> = {
-  butafuku: "二郎系ラーメン",
-  kirameki: "ラーメン、台湾まぜそば",
-  toriton: "鶏豚骨ラーメン",
-  musou: "家系ラーメン",
-  kokoro: "台湾まぜそば",
-  semi: "魚介豚骨ラーメン"
-};
+import { getStoreDisplayGenre } from "@/features/stores/store-display-genre";
 
 const statusPriority: Record<DisplayStatus, number> = {
   available: 0,
@@ -112,7 +104,7 @@ export default async function StoresPage({
             <div className="min-w-0 self-center py-1">
               <h2 className="mt-1 truncate text-base font-black text-blue-700">{store.name}</h2>
               <p className="mt-1.5 text-xs font-bold text-slate-500">
-                {storeDescriptions[store.assetKey ?? store.id] ?? store.genre}
+                {getStoreDisplayGenre(store)}
               </p>
             </div>
             <div className="flex min-w-[86px] flex-col items-end justify-center">
