@@ -21,7 +21,7 @@ function AvailableButton() {
       {pending ? <Loader2 className="size-12 animate-spin" aria-hidden="true" /> : <CheckCircle2 className="size-12" aria-hidden="true" />}
       <span className="text-3xl font-black tracking-normal">{pending ? "反映中" : "空席"}</span>
       <span className="text-sm font-black text-emerald-50">
-        {pending ? "データベースへ反映しています" : "押すと待ち時間が0分になります"}
+        {pending ? "更新しています" : "押すと待ち時間が0分になります"}
       </span>
     </button>
   );
