@@ -13,7 +13,8 @@ export const TOGGLE_MAP_BOTTOM_NAV_EVENT = "kanmae:toggle-map-bottom-nav";
 
 const itemsByRole = {
   store: [
-    { href: "/store-admin", label: "店舗", icon: Store }
+    { href: "/store-admin", label: "店舗", icon: Store },
+    { href: "/store-admin/settings", label: "設定", icon: Settings }
   ],
   admin: [
     { href: "/admin", label: "ホーム", icon: Home },

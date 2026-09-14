@@ -1,7 +1,7 @@
-import { CheckCircle2, Clock3 } from "lucide-react";
+import { Clock3 } from "lucide-react";
 import { redirect } from "next/navigation";
-import { markCurrentStoreAvailableAction } from "@/app/store-admin/actions";
 import { SignOutButton } from "@/components/auth/SignOutButton";
+import { StoreAvailableForm } from "@/components/store-admin/StoreAvailableForm";
 import { WAIT_TIME_LABELS } from "@/constants/wait-time-options";
 import { ensureProfileAndGetRole } from "@/features/auth/auth-server";
 import { USER_ROLE } from "@/features/auth/roles";
@@ -49,16 +49,7 @@ export default async function StoreAdminPage() {
             </div>
 
             <div className="p-5">
-              <form action={markCurrentStoreAvailableAction}>
-                <button
-                  type="submit"
-                  className="flex h-44 w-full flex-col items-center justify-center gap-3 rounded-lg bg-emerald-500 text-white shadow-[0_18px_40px_rgba(16,185,129,0.28)] transition hover:bg-emerald-600 active:translate-y-px"
-                >
-                  <CheckCircle2 className="size-12" aria-hidden="true" />
-                  <span className="text-3xl font-black tracking-normal">空席</span>
-                  <span className="text-sm font-black text-emerald-50">押すと待ち時間が0分になります</span>
-                </button>
-              </form>
+              <StoreAvailableForm />
             </div>
           </section>
         ) : (

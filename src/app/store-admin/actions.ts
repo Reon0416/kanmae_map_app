@@ -17,6 +17,12 @@ const storeSettingsSchema = z.object({
   priceBand: z.enum(["under_800", "800_1200", "1200_1800", "over_1800"])
 });
 
+export type StoreAdminActionState = {
+  ok: boolean;
+  message?: string;
+  savedAt?: string;
+};
+
 async function requireStoreAdmin() {
   const supabase = await createSupabaseServerClient();
   const {
@@ -91,6 +97,111 @@ export async function markCurrentStoreAvailableAction() {
   revalidatePath("/stores");
   revalidatePath(`/stores/${store.id}`);
   revalidatePath("/store-admin");
+}
+
+export async function markCurrentStoreAvailableFormAction(
+  previousState: StoreAdminActionState,
+  formData: FormData
+): Promise<StoreAdminActionState> {
+  void previousState;
+  void formData;
+
+  try {
+    const { supabase } = await requireStoreAdmin();
+    const { data: stores, error: storeError } = await supabase.rpc("get_current_store_admin_store");
+    const store = stores?.[0];
+
+    if (storeError || !store?.id) {
+      return { ok: false, message: "担当店舗が設定されていません。" };
+    }
+
+    const { error } = await supabase.rpc("store_admin_update_status", {
+      p_store_id: store.id,
+      p_status: STORE_STATUS.AVAILABLE
+    });
+
+    if (error) {
+      return { ok: false, message: `反映できませんでした。理由: ${error.message}` };
+    }
+
+    revalidatePath("/");
+    revalidatePath("/stores");
+    revalidatePath(`/stores/${store.id}`);
+    revalidatePath("/store-admin");
+
+    return {
+      ok: true,
+      message: "できました。待ち時間を0分にしました。",
+      savedAt: new Date().toISOString()
+    };
+  } catch (error) {
+    return {
+      ok: false,
+      message: error instanceof Error ? error.message : "反映できませんでした。"
+    };
+  }
+}
+
+export async function updateStoreAdminEmailFormAction(
+  _previousState: StoreAdminActionState,
+  formData: FormData
+): Promise<StoreAdminActionState> {
+  const { supabase } = await requireStoreAdmin();
+
+  try {
+    const email = z.string().trim().email("メールアドレスを確認してください。").parse(getString(formData, "email"));
+    const { error } = await supabase.auth.updateUser({ email });
+
+    if (error) {
+      return { ok: false, message: `メールアドレスを変更できませんでした。理由: ${error.message}` };
+    }
+
+    revalidatePath("/store-admin/settings");
+
+    return {
+      ok: true,
+      message: "メールアドレスの変更を受け付けました。確認メールが届いた場合は、メール内のリンクを開いてください。",
+      savedAt: new Date().toISOString()
+    };
+  } catch (error) {
+    return {
+      ok: false,
+      message: error instanceof z.ZodError ? error.issues[0]?.message : "メールアドレスを変更できませんでした。"
+    };
+  }
+}
+
+export async function updateStoreAdminPasswordFormAction(
+  _previousState: StoreAdminActionState,
+  formData: FormData
+): Promise<StoreAdminActionState> {
+  const { supabase } = await requireStoreAdmin();
+
+  try {
+    const password = z.string().min(8, "パスワードは8文字以上で入力してください。").parse(getString(formData, "password"));
+    const confirmPassword = getString(formData, "confirmPassword");
+
+    if (password !== confirmPassword) {
+      return { ok: false, message: "確認用パスワードが一致しません。" };
+    }
+
+    const { error } = await supabase.auth.updateUser({ password });
+
+    if (error) {
+      return { ok: false, message: `パスワードを変更できませんでした。理由: ${error.message}` };
+    }
+
+    return {
+      ok: true,
+      message: "パスワードを変更しました。",
+      savedAt: new Date().toISOString()
+    };
+  } catch (error) {
+    return {
+      ok: false,
+      message: error instanceof z.ZodError ? error.issues[0]?.message : "パスワードを変更できませんでした。"
+    };
+  }
 }
 
 export async function updateStoreAdminSettingsAction(formData: FormData) {
