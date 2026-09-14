@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import { Clock3, Home, Map, PenLine, Settings, ShieldCheck, Store, User } from "lucide-react";
 import { OPEN_STORE_DETAIL_RECORD_EVENT } from "@/features/visit-records/record-events";
 import { prefetchMyPageStamps } from "@/features/visit-records/stamp-prefetch";
-import { ROLE_STORAGE_KEY, USER_ROLE, type UserRole } from "@/features/auth/roles";
+import { USER_ROLE, type UserRole } from "@/features/auth/roles";
 import { cn } from "@/lib/utils";
 
 export const TOGGLE_MAP_BOTTOM_NAV_EVENT = "kanmae:toggle-map-bottom-nav";
@@ -61,27 +61,11 @@ function getPathRole(pathname: string): UserRole | null {
 }
 
 export function BottomNav() {
-  const [role, setRole] = useState<UserRole>(USER_ROLE.USER);
   const [isMapNavHidden, setIsMapNavHidden] = useState(false);
   const pathname = usePathname();
+  const role = getPathRole(pathname) ?? USER_ROLE.USER;
   const isMapPage = pathname === "/";
   const isStoreDetailPage = pathname.startsWith("/stores/") && pathname !== "/stores";
-
-  useEffect(() => {
-    const pathRole = getPathRole(pathname);
-    if (pathRole) {
-      setRole(pathRole);
-      return;
-    }
-
-    const storedRole = window.localStorage.getItem(ROLE_STORAGE_KEY) as UserRole | null;
-    if (storedRole && storedRole in itemsByRole) {
-      setRole(storedRole);
-      return;
-    }
-
-    setRole(USER_ROLE.USER);
-  }, [pathname]);
 
   useEffect(() => {
     setIsMapNavHidden(false);
