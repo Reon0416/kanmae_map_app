@@ -1,5 +1,5 @@
 import { STAMP_EVENT_FETCH_LIMIT } from "@/features/visit-records/stamp-card-config";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseServerClient, getSupabaseServerUser } from "@/lib/supabase/server";
 
 export type StampCount = {
   storeId: string;
@@ -25,7 +25,7 @@ export async function getCurrentUserStampData(): Promise<StampResponse | null> {
   const {
     data: { user },
     error: userError
-  } = await supabase.auth.getUser();
+  } = await getSupabaseServerUser();
 
   if (userError || !user) {
     return null;

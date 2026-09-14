@@ -35,6 +35,10 @@ function isValidRole(role: string | null | undefined): role is keyof typeof role
 
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({ request });
+  const pathname = request.nextUrl.pathname;
+  const isPublicStorePage = pathname === "/" || pathname === "/filters" ||
+    pathname === "/stores" || pathname.startsWith("/stores/");
+  if (isPublicStorePage) return response;
   let cookiesToApply: { name: string; value: string; options: CookieOptions }[] = [];
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -63,7 +67,6 @@ export async function middleware(request: NextRequest) {
     data: { user }
   } = await supabase.auth.getUser();
 
-  const pathname = request.nextUrl.pathname;
   const requiredRole = getRequiredRole(pathname);
 
   if (!user && requiredRole) {

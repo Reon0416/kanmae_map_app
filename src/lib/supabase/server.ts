@@ -1,13 +1,14 @@
 import { createServerClient } from "@supabase/ssr";
 import type { CookieOptions } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import { cache } from "react";
 import { supabaseAuthCookieOptions } from "@/lib/supabase/auth-config";
 
 export function hasSupabaseEnvironment() {
   return Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
 }
 
-export async function createSupabaseServerClient() {
+export const createSupabaseServerClient = cache(async function createSupabaseServerClient() {
   const cookieStore = await cookies();
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -31,4 +32,9 @@ export async function createSupabaseServerClient() {
       }
     }
   });
-}
+});
+
+export const getSupabaseServerUser = cache(async () => {
+  const supabase = await createSupabaseServerClient();
+  return supabase.auth.getUser();
+});

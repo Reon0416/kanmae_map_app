@@ -2,9 +2,13 @@ import { SignOutButton } from "@/components/auth/SignOutButton";
 import { VisitStampCard } from "@/components/my/VisitStampCard";
 import { getStoreSummaries } from "@/features/stores/store-queries";
 import { getCurrentUserStampData } from "@/features/visit-records/stamp-queries";
+import { getSupabaseServerUser } from "@/lib/supabase/server";
 
 export default async function MyPage() {
-  const [stores, stampData] = await Promise.all([getStoreSummaries(), getCurrentUserStampData()]);
+  const { data: { user }, error } = await getSupabaseServerUser();
+  const [stores, stampData] = user && !error
+    ? await Promise.all([getStoreSummaries(), getCurrentUserStampData()])
+    : [[], null];
 
   return (
     <main className="pb-24 pt-6 md:mx-auto md:max-w-4xl md:pb-10">

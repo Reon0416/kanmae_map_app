@@ -1,7 +1,9 @@
 import { cache } from "react";
+import { unstable_cache, unstable_noStore as noStore } from "next/cache";
 import type { Store, StoreSummary } from "@/features/stores/store-types";
 import { latLngToMapPosition } from "@/lib/map/map-config";
-import { createSupabaseServerClient, hasSupabaseEnvironment } from "@/lib/supabase/server";
+import { hasSupabaseEnvironment } from "@/lib/supabase/server";
+import { createSupabasePublicClient } from "@/lib/supabase/public";
 
 const now = Date.now();
 
@@ -145,6 +147,7 @@ type StoreRow = {
 };
 
 type StoreStatusRow = {
+  store_id?: string;
   display_status?: string | null;
   wait_time?: string | null;
   updated_at?: string | null;
@@ -240,6 +243,29 @@ function mapStoreRow(row: StoreRow): Store {
   };
 }
 
+const getPublicStoreDetails = unstable_cache(async () => {
+  const { data, error } = await createSupabasePublicClient()
+    .from("stores")
+    .select("id, name, description, genre, price_band, address, lat, lng, walk_minutes, hours, closed, accepts_takeout, has_student_discount, updated_at")
+    .order("created_at", { ascending: true });
+  if (error || !data) throw new Error(`Failed to load stores: ${error?.message ?? "No data returned."}`);
+  return data as StoreRow[];
+}, ["public-store-details-v1"], { revalidate: 60 });
+
+const getPublicStoreSummaries = unstable_cache(async (): Promise<StoreSummary[]> => {
+  const { data, error } = await createSupabasePublicClient()
+    .from("stores")
+    .select("id, name, genre")
+    .order("created_at", { ascending: true });
+  if (error || !data) throw new Error(`Failed to load store summaries: ${error?.message ?? "No data returned."}`);
+  return data.map((row) => ({
+    id: row.id,
+    assetKey: getAssetKey(row.name),
+    name: row.name,
+    genre: row.genre || "未設定"
+  }));
+}, ["public-store-summaries-v1"], { revalidate: 60 });
+
 export const getStores = cache(async function getStores() {
   if (process.env.NODE_ENV !== "production" && process.env.KANMAE_USE_SUPABASE !== "true") {
     return demoStores;
@@ -254,13 +280,14 @@ export const getStores = cache(async function getStores() {
   }
 
   try {
-    const supabase = await createSupabaseServerClient();
-    const { data, error } = await supabase
-      .from("stores")
-      .select(
-        "id, name, description, genre, price_band, address, lat, lng, walk_minutes, hours, closed, accepts_takeout, has_student_discount, updated_at, current_store_status(display_status, wait_time, updated_at)"
-      )
-      .order("created_at", { ascending: true });
+    noStore();
+    const [data, statusResult] = await Promise.all([
+      getPublicStoreDetails(),
+      createSupabasePublicClient()
+        .from("current_store_status")
+        .select("store_id, display_status, wait_time, updated_at")
+    ]);
+    const { data: statuses, error } = statusResult;
 
     if (error || !data) {
       if (process.env.NODE_ENV !== "production") {
@@ -270,7 +297,8 @@ export const getStores = cache(async function getStores() {
       throw new Error(`Failed to load stores: ${error?.message ?? "No data returned."}`);
     }
 
-    return (data as StoreRow[]).map(mapStoreRow);
+    const statusByStore = new Map((statuses as StoreStatusRow[] ?? []).map((status) => [status.store_id, status]));
+    return data.map((row) => mapStoreRow({ ...row, current_store_status: statusByStore.get(row.id) }));
   } catch (error) {
     if (process.env.NODE_ENV !== "production") {
       return demoStores;
@@ -293,22 +321,8 @@ export const getStoreSummaries = cache(async (): Promise<StoreSummary[]> => {
     return demoStores.map(({ id, name, genre }) => ({ id, name, genre, assetKey: getAssetKey(name) }));
   }
 
-  const supabase = await createSupabaseServerClient();
-  const { data, error } = await supabase
-    .from("stores")
-    .select("id, name, genre")
-    .order("created_at", { ascending: true });
-
-  if (error || !data) {
-    throw new Error(`Failed to load store summaries: ${error?.message ?? "No data returned."}`);
-  }
-
-  return data.map((row) => ({
-    id: row.id,
-    assetKey: getAssetKey(row.name),
-    name: row.name,
-    genre: row.genre || "未設定"
-  }));
+  noStore();
+  return getPublicStoreSummaries();
 });
 
 export async function getStoreById(storeId: string) {
