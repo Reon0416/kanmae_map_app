@@ -111,8 +111,9 @@ test('Reward cannot dismiss a pending save even after animation delay', () => {
   pending.props.onKeyDown({ key: 'Escape' });
   assert.equal(closed, 0);
   assert.equal(nodes(pending).find(n => n.type === 'button').props.disabled, true);
+  assert.equal(text(pending), '');
   const saved = h.render(h.exports.StampRewardOverlay, { ...props, isPending: false });
   saved.props.onClick();
   assert.equal(closed, 1);
-  assert.ok(text(saved).includes('記録しました'));
+  assert.equal(text(saved), '');
 });
