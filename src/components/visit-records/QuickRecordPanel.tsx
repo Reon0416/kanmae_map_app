@@ -80,9 +80,9 @@ export function QuickRecordPanel({ stores }: { stores: Store[] }) {
             >
               <span className={cn(
                 "flex size-[72px] items-center justify-center overflow-hidden rounded-xl",
-                store.id === "kokoro" ? "bg-white" : "bg-gradient-to-br from-orange-100 via-emerald-100 to-cyan-100 shadow-inner"
+                (store.assetKey ?? store.id) === "kokoro" ? "bg-white" : "bg-gradient-to-br from-orange-100 via-emerald-100 to-cyan-100 shadow-inner"
               )}>
-                {store.id === "kokoro" ? (
+                {(store.assetKey ?? store.id) === "kokoro" ? (
                   <Image
                     src="/stores/kokoro-storefront.jpg"
                     alt=""
