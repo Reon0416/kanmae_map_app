@@ -217,10 +217,8 @@ const REPORT_STATUS_EXPIRES_MINUTES = 30;
 
 function isExpiredReportStatus(status?: StoreStatusRow | null) {
   if (status?.source !== "reports" || !status.updated_at) return false;
-
   const updatedAt = new Date(status.updated_at).getTime();
   if (Number.isNaN(updatedAt)) return false;
-
   return Date.now() - updatedAt >= REPORT_STATUS_EXPIRES_MINUTES * 60 * 1000;
 }
 
@@ -231,8 +229,6 @@ function mapStoreRow(row: StoreRow): Store {
   const currentStatus = Array.isArray(row.current_store_status)
     ? row.current_store_status[0]
     : row.current_store_status;
-  const displayStatus = isExpiredReportStatus(currentStatus) ? "available" : normalizeDisplayStatus(currentStatus?.display_status);
-  const waitTime = isExpiredReportStatus(currentStatus) ? "no_wait" : normalizeWaitTime(currentStatus?.wait_time);
 
   return {
     id: row.id,
@@ -250,8 +246,8 @@ function mapStoreRow(row: StoreRow): Store {
     closed: row.closed || "未設定",
     acceptsTakeout: row.accepts_takeout ?? false,
     hasStudentDiscount: row.has_student_discount ?? false,
-    status: displayStatus,
-    waitTime,
+    status: isExpiredReportStatus(currentStatus) ? "available" : normalizeDisplayStatus(currentStatus?.display_status),
+    waitTime: isExpiredReportStatus(currentStatus) ? "no_wait" : normalizeWaitTime(currentStatus?.wait_time),
     lastUpdatedAt: currentStatus?.updated_at ?? row.updated_at ?? new Date().toISOString(),
     mapPosition: latLngToMapPosition({ lat, lng })
   };
@@ -339,8 +335,49 @@ export const getStoreSummaries = cache(async (): Promise<StoreSummary[]> => {
   return getPublicStoreSummaries();
 });
 
-export async function getStoreById(storeId: string) {
-  const stores = await getStores();
-  return stores.find((store) => store.id === storeId || store.assetKey === storeId);
-}
+// Reuse the catalogue already fetched by the list without waiting for live status.
+export const getStoreInfoById = cache(async (storeId: string) => {
+  noStore();
+  if (process.env.NODE_ENV !== "production" && process.env.KANMAE_USE_SUPABASE !== "true") {
+    return demoStores.find(store => store.id === storeId);
+  }
+  if (!hasSupabaseEnvironment()) {
+    if (process.env.NODE_ENV === "production") throw new Error("Supabase environment variables are not configured.");
+    return demoStores.find(store => store.id === storeId);
+  }
+  const rows = await getPublicStoreDetails();
+  // Exact database IDs take precedence over artwork aliases.
+  const row = rows.find(row => row.id === storeId) ?? rows.find(row => getAssetKey(row.name) === storeId);
+  return row ? mapStoreRow(row) : undefined;
+});
+
+export const getStoreLiveStatus = cache(async (storeId: string) => {
+  noStore();
+  if (process.env.NODE_ENV !== "production" && process.env.KANMAE_USE_SUPABASE !== "true") {
+    const store = demoStores.find(store => store.id === storeId);
+    if (!store) return undefined;
+    return { status: store.status, waitTime: store.waitTime, lastUpdatedAt: store.lastUpdatedAt };
+  }
+  if (!hasSupabaseEnvironment()) throw new Error("Supabase environment variables are not configured.");
+  const { data, error } = await createSupabasePublicClient()
+    .from("current_store_status")
+    .select("store_id, display_status, wait_time, source, updated_at")
+    .eq("store_id", storeId)
+    .maybeSingle();
+  if (error) throw new Error(`Failed to load store status: ${error.message}`);
+  if (!data) return undefined;
+  const expired = isExpiredReportStatus(data);
+  return {
+    status: expired ? "available" as const : normalizeDisplayStatus(data.display_status),
+    waitTime: expired ? "no_wait" as const : normalizeWaitTime(data.wait_time),
+    lastUpdatedAt: data.updated_at
+  };
+});
+
+export const getStoreById = cache(async (storeId: string) => {
+  const store = await getStoreInfoById(storeId);
+  if (!store) return undefined;
+  const status = await getStoreLiveStatus(store.id);
+  return status ? { ...store, ...status, lastUpdatedAt: status.lastUpdatedAt ?? store.lastUpdatedAt } : store;
+});
 

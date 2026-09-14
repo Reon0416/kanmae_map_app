@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-require-imports */
-
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
@@ -56,8 +54,9 @@ test("protected pages still enforce user roles", async () => {
   assert.equal((await middleware.run("/store-admin")).url.pathname, "/");
 });
 
-function loadQueries({ rows = [], error = null, configured = true, production = true } = {}) {
+function loadQueries({ rows = [], error = null, configured = true, production = true, statusResult } = {}) {
   const selections = [];
+  const filters = [];
   const input = fs.readFileSync(path.join(__dirname, "../src/features/stores/store-queries.ts"), "utf8");
   const output = ts.transpileModule(input, { compilerOptions: { module: ts.ModuleKind.CommonJS } }).outputText;
   const exports = {};
@@ -87,7 +86,12 @@ function loadQueries({ rows = [], error = null, configured = true, production = 
                 ? rows?.map(row => ({ store_id: row.id, ...row.current_store_status }))
                 : rows;
               const promise = Promise.resolve({ data, error });
-              return { order: () => promise, then: promise.then.bind(promise) };
+              return { order: () => promise, then: promise.then.bind(promise), eq(field, value) {
+                filters.push({ table, field, value });
+                return { maybeSingle: () => statusResult ?? Promise.resolve({
+                  data: data?.find(row => row.store_id === value) ?? null, error
+                }) };
+              } };
             }
           })
         })
@@ -95,7 +99,7 @@ function loadQueries({ rows = [], error = null, configured = true, production = 
       throw new Error("Unexpected module: " + name);
     }
   });
-  return { exports, selections };
+  return { exports, selections, filters };
 }
 
 test("summary query excludes live status and detail fields, retaining real IDs and artwork keys", async () => {
@@ -153,4 +157,50 @@ test("public catalogue is reused while wait times are fetched on every request",
   assert.equal(selections.filter(fields => fields === "id, name, genre").length, 1);
   assert.equal(selections.filter(fields => fields.includes("description")).length, 1);
   assert.equal(selections.filter(fields => fields.startsWith("store_id")).length, 2);
+});
+
+test("detail metadata does not wait for or query live status", async () => {
+  const { exports, selections } = loadQueries({ rows: [
+    { id: "real-id", name: "麺屋　こころ", hours: "11:00-22:00" }
+  ], statusResult: new Promise(() => {}) });
+  const store = await exports.getStoreInfoById("kokoro");
+  assert.equal(store.id, "real-id");
+  assert.equal(store.hours, "11:00-22:00");
+  assert.equal(selections.length, 1);
+  assert.ok(!selections.some(fields => fields.startsWith("store_id")));
+  assert.equal(await exports.getStoreInfoById("missing"), undefined);
+  assert.equal(selections.length, 1);
+});
+
+test("detail status queries only the resolved database ID and applies report expiry", async () => {
+  const { exports, filters } = loadQueries({ rows: [
+    { id: "real-id", name: "蝉", current_store_status: {
+      display_status: "full", wait_time: "over_20", source: "reports",
+      updated_at: new Date(Date.now() - 31 * 60000).toISOString()
+    } }
+  ] });
+  const store = await exports.getStoreById("semi");
+  assert.equal(store.id, "real-id");
+  assert.equal(store.status, "available");
+  assert.equal(store.waitTime, "no_wait");
+  assert.deepEqual(filters, [{ table: "current_store_status", field: "store_id", value: "real-id" }]);
+});
+
+test("missing store never requests live status and failures never expose demo data", async () => {
+  const h = loadQueries();
+  assert.equal(await h.exports.getStoreById("missing"), undefined);
+  assert.equal(h.filters.length, 0);
+  await assert.rejects(loadQueries({ configured: false }).exports.getStoreInfoById("semi"), /not configured/);
+  await assert.rejects(loadQueries({ error: { message: "denied" } }).exports.getStoreInfoById("semi"), /denied/);
+  await assert.rejects(loadQueries({ error: { message: "denied" } }).exports.getStoreLiveStatus("real-id"), /denied/);
+});
+
+test("detail streams live data separately and list prefetches only to loading boundary", () => {
+  const page = fs.readFileSync(path.join(__dirname, "../src/app/stores/[storeId]/page.tsx"), "utf8");
+  const list = fs.readFileSync(path.join(__dirname, "../src/app/stores/page.tsx"), "utf8");
+  assert.ok(page.includes('await getStoreInfoById(storeId)'));
+  assert.ok(!page.includes('await getStoreById'));
+  assert.equal((page.match(/<Suspense fallback=/g) ?? []).length, 3);
+  assert.ok(!list.match(/href=\{`\/stores\/\$\{store.id\}`\}\s+prefetch=\{false\}/));
+  assert.ok(fs.existsSync(path.join(__dirname, "../src/app/stores/[storeId]/loading.tsx")));
 });

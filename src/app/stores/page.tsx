@@ -74,7 +74,6 @@ export default async function StoresPage({
           <Link
             key={store.id}
             href={`/stores/${store.id}`}
-            prefetch={false}
             className="grid grid-cols-[86px_1fr_auto] gap-3 border-b border-dashed border-slate-200 bg-white p-3 transition last:border-b-0 hover:bg-slate-50"
           >
             <div className={cn(
