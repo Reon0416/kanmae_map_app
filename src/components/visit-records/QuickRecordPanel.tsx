@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { CheckCircle2, Utensils, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { StampRewardOverlay } from "@/components/visit-records/StampRewardOverlay";
@@ -77,8 +78,22 @@ export function QuickRecordPanel({ stores }: { stores: Store[] }) {
               )}
               onClick={() => openWaitTimeSheet(store.id)}
             >
-              <span className="flex size-[72px] items-center justify-center rounded-xl bg-gradient-to-br from-orange-100 via-emerald-100 to-cyan-100 shadow-inner">
-                <Utensils className="size-7 text-slate-500" aria-hidden="true" />
+              <span className={cn(
+                "flex size-[72px] items-center justify-center overflow-hidden rounded-xl",
+                store.id === "kokoro" ? "bg-white" : "bg-gradient-to-br from-orange-100 via-emerald-100 to-cyan-100 shadow-inner"
+              )}>
+                {store.id === "kokoro" ? (
+                  <Image
+                    src="/stores/kokoro-storefront.jpg"
+                    alt=""
+                    width={1312}
+                    height={1199}
+                    sizes="72px"
+                    className="size-full object-contain"
+                  />
+                ) : (
+                  <Utensils className="size-7 text-slate-500" aria-hidden="true" />
+                )}
               </span>
               <span className="min-w-0">
                 <span className="block font-black text-slate-950">{store.name}</span>
