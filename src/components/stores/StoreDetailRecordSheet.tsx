@@ -30,20 +30,28 @@ function getOwnerWaitTimeLockRemainingMs(store: Store) {
 
 function OfficialVacancyCallout() {
   return (
-    <div className="grid grid-cols-[5.25rem_1fr] items-center gap-4 px-1 py-3">
+    <div className="grid grid-cols-[4.4rem_1fr_4.4rem] items-center gap-2 px-1 py-3">
       <Image
-        src="/official-vacancy-runner.png"
+        src="/official-vacancy-runner-left.png"
         alt=""
-        width={84}
-        height={84}
-        className="size-20 object-contain"
+        width={72}
+        height={72}
+        className="size-[4.4rem] object-contain"
         priority={false}
       />
-      <p className="text-xl font-black leading-snug tracking-normal text-slate-950">
+      <p className="text-center text-[1.35rem] font-black leading-tight tracking-normal text-red-800">
         店舗が空席を
         <br />
         表示しています
       </p>
+      <Image
+        src="/official-vacancy-runner.png"
+        alt=""
+        width={72}
+        height={72}
+        className="size-[4.4rem] object-contain"
+        priority={false}
+      />
     </div>
   );
 }
