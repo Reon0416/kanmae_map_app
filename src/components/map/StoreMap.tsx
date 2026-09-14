@@ -74,20 +74,20 @@ function StoreWaitTimeMarker({ store, lockRemainingMs }: { store: Store; lockRem
 
   return (
     <span
-      className={`pointer-events-none absolute z-0 flex min-w-[3.8rem] flex-col items-center justify-center rounded-[16px] border px-2 pb-1.5 pt-1 text-center shadow-[0_8px_18px_rgba(15,23,42,0.14),inset_0_0_0_1px_rgba(15,23,42,0.035)] ${
-        isOwnerLocked ? "border-emerald-200 bg-emerald-50/95" : "border-white/90 bg-white/88"
+      className={`pointer-events-none absolute z-0 flex min-w-[3.8rem] flex-col items-center justify-center border px-2 pb-1.5 pt-1 text-center shadow-[0_8px_18px_rgba(15,23,42,0.14),inset_0_0_0_1px_rgba(15,23,42,0.035)] ${
+        isOwnerLocked ? "rounded-[10px] border-amber-300 bg-amber-50/96 shadow-[0_10px_22px_rgba(217,119,6,0.24)]" : "rounded-[16px] border-white/90 bg-white/88"
       }`}
       aria-hidden="true"
     >
       <span
         className={`absolute bottom-[-0.46rem] left-1/2 size-4 -translate-x-1/2 rotate-45 border-b border-r shadow-[5px_5px_10px_rgba(15,23,42,0.06)] ${
-          isOwnerLocked ? "border-emerald-200 bg-emerald-50/95" : "border-white/90 bg-white/88"
+          isOwnerLocked ? "border-amber-300 bg-amber-50/96" : "border-white/90 bg-white/88"
         }`}
       />
       {isOwnerLocked ? (
         <>
-          <span className="relative z-10 whitespace-nowrap text-[0.58rem] font-black leading-none tracking-normal text-emerald-700">公式空席</span>
-          <span className="relative z-10 mt-1 whitespace-nowrap text-[1rem] font-black leading-none tracking-normal text-emerald-700">
+          <span className="relative z-10 whitespace-nowrap text-[0.55rem] font-black leading-none tracking-normal text-amber-700">今すぐ空席</span>
+          <span className="relative z-10 mt-1 whitespace-nowrap text-[1.08rem] font-black leading-none tracking-normal text-red-600">
             {formatLockCountdown(lockRemainingMs)}
           </span>
         </>
@@ -497,7 +497,7 @@ export function StoreMap({
               <>
                 {getOwnerLockRemainingMs(store, nowMs) > 0 ? (
                   <span
-                    className="pointer-events-none absolute inset-x-[4%] bottom-[-6%] top-[8%] rounded-[30%] bg-emerald-300/45 blur-md animate-pulse"
+                    className="pointer-events-none absolute inset-x-[3%] bottom-[-7%] top-[6%] rounded-[24%] bg-amber-300/55 blur-md animate-pulse"
                     aria-hidden="true"
                   />
                 ) : null}
@@ -523,7 +523,7 @@ export function StoreMap({
                     sizes="100vw"
                     className={`z-10 select-none object-contain object-bottom ${
                       getOwnerLockRemainingMs(store, nowMs) > 0
-                        ? "drop-shadow-[0_0_18px_rgba(16,185,129,0.75)]"
+                        ? "drop-shadow-[0_0_18px_rgba(245,158,11,0.86)]"
                         : "drop-shadow-[0_18px_18px_rgba(52,73,65,0.18)]"
                     }`}
                     draggable={false}
