@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { Clock3, Home, Map, PenLine, Settings, ShieldCheck, Store, User } from "lucide-react";
 import { OPEN_STORE_DETAIL_RECORD_EVENT } from "@/features/visit-records/record-events";
+import { prefetchMyPageStamps } from "@/features/visit-records/stamp-prefetch";
 import { ROLE_STORAGE_KEY, USER_ROLE, type UserRole } from "@/features/auth/roles";
 import { cn } from "@/lib/utils";
 
@@ -12,10 +13,7 @@ export const TOGGLE_MAP_BOTTOM_NAV_EVENT = "kanmae:toggle-map-bottom-nav";
 
 const itemsByRole = {
   store: [
-    { href: "/store-admin", label: "ホーム", icon: Home },
-    { href: "/store-admin/status", label: "状況", icon: Store },
-    { href: "/store-admin/settings", label: "設定", icon: Settings },
-    { href: "/login", label: "切替", icon: User }
+    { href: "/store-admin", label: "店舗", icon: Store }
   ],
   admin: [
     { href: "/admin", label: "ホーム", icon: Home },
@@ -79,6 +77,19 @@ export function BottomNav() {
   }, []);
 
   const items = role === USER_ROLE.USER ? getUserItems(pathname) : itemsByRole[role];
+  const canPrefetchMyPage = items.some((item) => item.href === "/my");
+  const myPagePrefetchHandlers = {
+    onFocus: prefetchMyPageStamps,
+    onPointerDown: prefetchMyPageStamps,
+    onPointerEnter: prefetchMyPageStamps,
+    onTouchStart: prefetchMyPageStamps
+  };
+
+  useEffect(() => {
+    if (!canPrefetchMyPage) return;
+    const timeout = window.setTimeout(prefetchMyPageStamps, 3500);
+    return () => window.clearTimeout(timeout);
+  }, [canPrefetchMyPage, pathname]);
 
   return (
     <nav
@@ -122,14 +133,25 @@ export function BottomNav() {
             }
 
             return (
-              <Link key={item.href} href={item.href} prefetch={false} className={featuredClassName}>
+              <Link
+                key={item.href}
+                href={item.href}
+                prefetch={false}
+                className={featuredClassName}
+              >
                 {featuredContent}
               </Link>
             );
           }
 
           return (
-            <Link key={item.href} href={item.href} prefetch={false} className="flex flex-col items-center justify-center gap-1 text-xs font-semibold text-slate-600">
+            <Link
+              key={item.href}
+              href={item.href}
+              prefetch={false}
+              className="flex flex-col items-center justify-center gap-1 text-xs font-semibold text-slate-600"
+              {...(item.href === "/my" ? myPagePrefetchHandlers : {})}
+            >
               <Icon className="size-5" aria-hidden="true" />
               {item.label}
             </Link>

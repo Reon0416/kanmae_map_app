@@ -51,7 +51,8 @@ export default async function LoginPage({
         <div className="mx-auto w-full max-w-md">
           <div className="mb-5">
             <p className="text-sm font-black tracking-[0.28em] text-emerald-700 lg:hidden">KANMAE</p>
-            <h1 className="mt-2 text-4xl font-black tracking-normal text-slate-950">ログイン</h1>
+            <h1 className="mt-2 text-4xl font-black tracking-normal text-slate-950">管理ログイン</h1>
+            <p className="mt-2 text-sm font-bold text-slate-600">店舗・運営用のアカウントでログインしてください。</p>
           </div>
           <AuthForm mode="sign-in" redirectTo={redirectTo} />
         </div>

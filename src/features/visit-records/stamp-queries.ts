@@ -1,4 +1,5 @@
 import { getCurrentStampCardNumber, STAMP_EVENT_FETCH_LIMIT, STAMPS_PER_CARD } from "@/features/visit-records/stamp-card-config";
+import { hashAnonymousVisitorId } from "@/features/visit-records/anonymous-visitor-server";
 import { createSupabaseServerClient, getSupabaseServerUser } from "@/lib/supabase/server";
 
 export type StampCount = {
@@ -83,6 +84,63 @@ export async function getCurrentUserStampData(): Promise<StampResponse | null> {
     storeId: event.store_key,
     storeName: event.store_name,
     stampedAt: event.created_at,
+    stampOrdinal: firstStampOrdinal + index
+  }));
+
+  return {
+    stores,
+    totalStampCount,
+    cardStamps
+  };
+}
+
+type AnonymousStampRow = {
+  row_type: "count" | "event";
+  id: string | null;
+  store_key: string;
+  store_name: string;
+  stamp_count: number | null;
+  last_stamped_at: string | null;
+  created_at: string | null;
+};
+
+export async function getAnonymousStampData(visitorId: string): Promise<StampResponse> {
+  const supabase = await createSupabaseServerClient();
+  const visitorHash = hashAnonymousVisitorId(visitorId);
+  const { data, error } = await supabase.rpc("get_anonymous_stamp_data", {
+    p_visitor_hash: visitorHash,
+    p_event_limit: STAMP_EVENT_FETCH_LIMIT
+  });
+
+  if (error) {
+    throw new Error("Failed to load stamp data.");
+  }
+
+  const rows = (data ?? []) as AnonymousStampRow[];
+  const stores = rows
+    .filter((item) => item.row_type === "count")
+    .map((item) => ({
+      storeId: item.store_key,
+      storeName: item.store_name,
+      stampCount: item.stamp_count ?? 0,
+      lastStampedAt: item.last_stamped_at
+    }))
+    .sort((a, b) => {
+      if (b.stampCount !== a.stampCount) return b.stampCount - a.stampCount;
+      return a.storeName.localeCompare(b.storeName, "ja");
+    });
+
+  const events = rows
+    .filter((item) => item.row_type === "event" && item.id && item.created_at)
+    .sort((a, b) => (a.created_at ?? "").localeCompare(b.created_at ?? ""));
+
+  const totalStampCount = stores.reduce((total, item) => total + item.stampCount, 0);
+  const firstStampOrdinal = totalStampCount - events.length + 1;
+  const cardStamps = events.map((event, index) => ({
+    id: event.id ?? `${event.store_key}-${index}`,
+    storeId: event.store_key,
+    storeName: event.store_name,
+    stampedAt: event.created_at ?? new Date().toISOString(),
     stampOrdinal: firstStampOrdinal + index
   }));
 

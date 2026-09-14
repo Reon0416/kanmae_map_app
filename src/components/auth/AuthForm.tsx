@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, LogIn, UserPlus } from "lucide-react";
@@ -119,23 +118,11 @@ export function AuthForm({
         </Button>
       </form>
 
-      <div className="mt-5 border-t border-slate-200 pt-4 text-center text-sm font-black text-slate-700">
-        {isSignUp ? (
-          <>
-            アカウントをお持ちの方は{" "}
-            <Link className="text-emerald-700 underline-offset-4 hover:underline" href={`/login?next=${encodeURIComponent(redirectTo)}`}>
-              ログイン
-            </Link>
-          </>
-        ) : (
-          <>
-            はじめての方は{" "}
-            <Link className="text-emerald-700 underline-offset-4 hover:underline" href={`/signup?next=${encodeURIComponent(redirectTo)}`}>
-              新規登録
-            </Link>
-          </>
-        )}
-      </div>
+      {!isSignUp ? (
+        <p className="mt-5 border-t border-slate-200 pt-4 text-center text-xs font-bold leading-relaxed text-slate-500">
+          店舗・運営アカウントは運営管理画面で発行します。
+        </p>
+      ) : null}
     </div>
   );
 }

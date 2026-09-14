@@ -58,7 +58,7 @@ export default async function AdminSettingsPage() {
     <AdminShell
       activePath="/admin/settings"
       title="設定"
-      description="運営者アカウント情報の変更と、運営者アカウントの追加を行います。"
+      description="運営者アカウント情報の変更と、店舗・運営アカウントの追加を行います。"
     >
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_420px]">
         <section className="grid gap-4">
@@ -138,14 +138,14 @@ export default async function AdminSettingsPage() {
           <form action={createOperatorAction} className="border border-slate-200 bg-white p-5">
               <div className="flex items-center gap-3 border-b border-slate-200 pb-4">
                 <UserPlus className="size-5 text-slate-500" aria-hidden="true" />
-                <h2 className="text-sm font-black text-slate-950">運営者アカウント追加</h2>
+                <h2 className="text-sm font-black text-slate-950">店舗・運営アカウント追加</h2>
               </div>
               <div className="mt-4 grid gap-4">
                 <label className="grid gap-1.5 text-sm font-bold text-slate-700">
-                  運営者名
+                  表示名
                   <input
                     name="displayName"
-                    placeholder="例: 運営スタッフ"
+                    placeholder="例: 店舗スタッフ"
                     className="h-11 rounded-sm border border-slate-300 bg-white px-3 text-sm font-bold outline-none focus:border-blue-700 focus:ring-2 focus:ring-blue-100"
                   />
                 </label>
@@ -177,7 +177,7 @@ export default async function AdminSettingsPage() {
                 <label className="grid gap-1.5 text-sm font-bold text-slate-700">
                   担当店舗
                   <select name="storeId" className="h-11 rounded-sm border border-slate-300 bg-white px-3 text-sm font-bold outline-none focus:border-blue-700 focus:ring-2 focus:ring-blue-100">
-                    <option value="">管理者、または後で設定する場合は未選択</option>
+                    <option value="">管理者の場合は未選択</option>
                     {stores.map((store) => (
                       <option key={store.id} value={store.id}>
                         {store.name}
@@ -197,7 +197,7 @@ export default async function AdminSettingsPage() {
             <section className="border border-slate-200 bg-white">
               <div className="flex items-center gap-3 border-b border-slate-200 px-4 py-3">
                 <UsersRound className="size-5 text-slate-500" aria-hidden="true" />
-                <h2 className="text-sm font-black text-slate-950">現在の運営者アカウント</h2>
+              <h2 className="text-sm font-black text-slate-950">現在の店舗・運営アカウント</h2>
               </div>
               <div className="divide-y divide-slate-200">
                 {operators.length > 0 ? (

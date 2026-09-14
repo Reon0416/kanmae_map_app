@@ -1,4 +1,5 @@
 import type { WaitTimeBucket } from "@/features/stores/store-types";
+import { getOrCreateAnonymousVisitorId } from "@/features/visit-records/anonymous-visitor";
 
 export type SaveVisitRecordInput = {
   storeId: string;
@@ -25,7 +26,10 @@ export async function saveVisitRecord(input: SaveVisitRecordInput) {
     headers: {
       "Content-Type": "application/json"
     },
-    body: JSON.stringify(input)
+    body: JSON.stringify({
+      ...input,
+      visitorId: getOrCreateAnonymousVisitorId()
+    })
   });
 
   const payload = await response.json();

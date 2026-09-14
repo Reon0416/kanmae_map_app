@@ -1,11 +1,11 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties } from "react";
-import { Loader2, LogIn, Sparkles } from "lucide-react";
+import { Loader2, Sparkles } from "lucide-react";
 import type { StoreSummary } from "@/features/stores/store-types";
+import { getOrCreateAnonymousVisitorId } from "@/features/visit-records/anonymous-visitor";
 import { getCurrentStampCardNumber, STAMPS_PER_CARD } from "@/features/visit-records/stamp-card-config";
 import type { StampDisplayData } from "@/features/visit-records/stamp-queries";
 import { getStampImage } from "@/features/visit-records/stamp-images";
@@ -88,8 +88,8 @@ export function VisitStampCard({ stores, initialStampData, onStampDataChange }: 
   onStampDataChange?: (data: StampDisplayData | null) => void;
 }) {
   const [stampData, setStampData] = useState<StampDisplayData | null>(initialStampData);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(initialStampData ? null : "スタンプを見るにはログインしてください。");
+  const [isLoading, setIsLoading] = useState(!initialStampData);
+  const [error, setError] = useState<string | null>(null);
   const collectionRef = useRef<HTMLDivElement>(null);
   const [collectionVisible, setCollectionVisible] = useState(false);
 
@@ -132,14 +132,12 @@ export function VisitStampCard({ stores, initialStampData, onStampDataChange }: 
       setError(null);
 
       try {
-        const response = await fetch("/api/stamps", { cache: "no-store", signal: controller.signal });
+        const visitorId = getOrCreateAnonymousVisitorId();
+        const response = await fetch(`/api/stamps?visitorId=${encodeURIComponent(visitorId)}`, {
+          cache: "no-store",
+          signal: controller.signal
+        });
         if (ignore) return;
-        if (response.status === 401) {
-          setStampData(null);
-          setError("スタンプを見るにはログインしてください。");
-          setIsLoading(false);
-          return;
-        }
         if (!response.ok) {
           setError("スタンプを読み込めませんでした。");
           setIsLoading(false);
@@ -163,6 +161,7 @@ export function VisitStampCard({ stores, initialStampData, onStampDataChange }: 
       }
     }
 
+    loadStamps();
     window.addEventListener("kanmae:visit-record-created", loadStamps);
 
     return () => {
@@ -216,14 +215,6 @@ export function VisitStampCard({ stores, initialStampData, onStampDataChange }: 
       <section className="bg-white p-5">
         <div className="rounded-lg border border-border bg-slate-50 p-5">
           <h2 className="text-lg font-black text-slate-950">{error}</h2>
-          <Link
-            href="/login"
-            prefetch={false}
-            className="mt-4 inline-flex h-10 items-center gap-2 rounded-md bg-slate-950 px-4 text-sm font-bold text-white"
-          >
-            <LogIn className="size-4" aria-hidden="true" />
-            ログインへ
-          </Link>
         </div>
       </section>
     );

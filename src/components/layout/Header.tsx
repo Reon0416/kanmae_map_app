@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { LogIn, MapPinned } from "lucide-react";
+import { MapPinned } from "lucide-react";
+import { MyPageLink } from "@/components/layout/MyPageLink";
 
 export function Header() {
   return (
@@ -12,13 +13,7 @@ export function Header() {
           KANMAE
         </Link>
         <nav className="hidden items-center gap-5 text-sm font-semibold text-slate-600 md:flex">
-          <Link href="/my" className="hover:text-slate-950">マイページ</Link>
-          <Link href="/store-admin/status" className="hover:text-slate-950">店舗管理</Link>
-          <Link href="/admin/stores" className="hover:text-slate-950">運営管理</Link>
-          <Link href="/login" className="inline-flex items-center gap-1 rounded-md bg-slate-950 px-3 py-2 text-white hover:text-white">
-            <LogIn className="size-4" aria-hidden="true" />
-            ログイン
-          </Link>
+          <MyPageLink className="hover:text-slate-950">マイページ</MyPageLink>
         </nav>
       </div>
     </header>

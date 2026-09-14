@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { WAIT_TIME_BUCKET } from "@/constants/wait-time-options";
 import { getStoreSummaries } from "@/features/stores/store-queries";
+import { hashAnonymousVisitorId } from "@/features/visit-records/anonymous-visitor-server";
 import { checkRateLimit } from "@/lib/security/rate-limit";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -17,35 +18,26 @@ const visitRecordSchema = z.object({
   location: z.object({
     lat: z.number(),
     lng: z.number()
-  }).optional()
+  }).optional(),
+  visitorId: z.string().uuid()
 });
 
 export async function POST(request: Request) {
-  const rateLimit = checkRateLimit("visit-record:create", 20);
-  if (!rateLimit.allowed) {
-    return NextResponse.json({ error: "Too many requests" }, { status: 429 });
-  }
-
   const body = visitRecordSchema.safeParse(await request.json());
   if (!body.success) {
     return NextResponse.json({ error: "Invalid visit payload" }, { status: 400 });
   }
 
+  const visitorHash = hashAnonymousVisitorId(body.data.visitorId);
+  const rateLimit = checkRateLimit(`visit-record:create:${visitorHash}`, 20);
+  if (!rateLimit.allowed) {
+    return NextResponse.json({ error: "Too many requests" }, { status: 429 });
+  }
+
   const started = performance.now();
   const supabase = await createSupabaseServerClient();
-  const [stores, userResult] = await Promise.all([
-    getStoreSummaries(),
-    supabase.auth.getUser()
-  ]);
+  const stores = await getStoreSummaries();
   const verifiedAt = performance.now();
-  const {
-    data: { user },
-    error: userError
-  } = userResult;
-
-  if (userError || !user) {
-    return NextResponse.json({ error: "Authentication required" }, { status: 401 });
-  }
 
   const store = stores.find(store => store.id === body.data.storeId);
   if (!store) {
@@ -54,7 +46,8 @@ export async function POST(request: Request) {
 
   const stampStoreKey = store.assetKey ?? store.id;
 
-  const { data, error } = await supabase.rpc("record_visit_stamp", {
+  const { data, error } = await supabase.rpc("record_anonymous_visit_stamp", {
+    p_visitor_hash: visitorHash,
     p_store_key: stampStoreKey,
     p_store_name: store.name,
     p_wait_time: body.data.waitTime
@@ -65,9 +58,10 @@ export async function POST(request: Request) {
   }
   const stampedAt = performance.now();
 
-  const { error: crowdError } = await supabase.rpc("report_crowd_wait_time", {
+  const { error: crowdError } = await supabase.rpc("report_anonymous_crowd_wait_time", {
     p_store_id: store.id,
-    p_wait_time: body.data.waitTime
+    p_wait_time: body.data.waitTime,
+    p_visitor_hash: visitorHash
   });
 
   // The stamp is already committed. A crowd-update failure must not invite a duplicate retry.

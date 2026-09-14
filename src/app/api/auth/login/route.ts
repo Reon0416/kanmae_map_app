@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { ensureProfileAndGetRoleWithToken, getClientIp, getPostAuthRedirectPath, hashEmail, logAuthEvent } from "@/features/auth/auth-server";
 import { loginRequestSchema, type AuthApiResponse } from "@/features/auth/auth-validation";
+import { USER_ROLE } from "@/features/auth/roles";
 import { checkRateLimit } from "@/lib/security/rate-limit";
 import { createSupabaseServerClient, hasSupabaseEnvironment } from "@/lib/supabase/server";
 
@@ -67,6 +68,24 @@ export async function POST(request: NextRequest) {
   }
 
   const role = await ensureProfileAndGetRoleWithToken(supabase, loginResult.data.user, loginResult.data.session.access_token);
+
+  if (role === USER_ROLE.USER) {
+    await supabase.auth.signOut();
+    await logAuthEvent(supabase, {
+      eventType: "login",
+      status: "rejected_user_role",
+      emailHash,
+      userId: loginResult.data.user.id,
+      role,
+      ipAddress,
+      userAgent
+    });
+
+    return NextResponse.json<AuthApiResponse>(
+      { ok: false, status: "failed", message: "店舗・運営アカウントでログインしてください。" },
+      { status: 403 }
+    );
+  }
 
   await logAuthEvent(supabase, {
     eventType: "login",

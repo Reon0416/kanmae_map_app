@@ -69,6 +69,30 @@ export async function updateStoreAdminStatusAction(formData: FormData) {
   revalidatePath("/store-admin/status");
 }
 
+export async function markCurrentStoreAvailableAction() {
+  const { supabase } = await requireStoreAdmin();
+  const { data: stores, error: storeError } = await supabase.rpc("get_current_store_admin_store");
+  const store = stores?.[0];
+
+  if (storeError || !store?.id) {
+    throw new Error("担当店舗が設定されていません。");
+  }
+
+  const { error } = await supabase.rpc("store_admin_update_status", {
+    p_store_id: store.id,
+    p_status: STORE_STATUS.AVAILABLE
+  });
+
+  if (error) {
+    throw new Error(`空席状態を保存できませんでした: ${error.message}`);
+  }
+
+  revalidatePath("/");
+  revalidatePath("/stores");
+  revalidatePath(`/stores/${store.id}`);
+  revalidatePath("/store-admin");
+}
+
 export async function updateStoreAdminSettingsAction(formData: FormData) {
   const { supabase } = await requireStoreAdmin();
   const parsed = storeSettingsSchema.parse({
