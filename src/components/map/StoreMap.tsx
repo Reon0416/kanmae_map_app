@@ -31,17 +31,6 @@ const INITIAL_OFFSET = { x: 0, y: 0 };
 const TAP_MOVE_THRESHOLD = 8;
 const ZOOM_STEP = 1.35;
 const LANDMARK_PLACEMENT_IDS = new Set(["kandai"]);
-const WAIT_TIME_MARKER_POSITIONS: Record<string, { left: string; bottom: string }> = {
-  kokoro: { left: "38%", bottom: "68%" },
-  musou: { left: "58%", bottom: "68%" },
-  kirameki: { left: "60%", bottom: "70%" },
-  kenpei: { left: "34%", bottom: "72%" },
-  semi: { left: "50%", bottom: "70%" },
-  butafuku: { left: "42%", bottom: "72%" },
-  kirinji: { left: "58%", bottom: "70%" },
-  suzume: { left: "48%", bottom: "68%" },
-  toriton: { left: "50%", bottom: "72%" }
-};
 
 function getMapWaitTimeValue(waitTime: Store["waitTime"]) {
   if (waitTime === WAIT_TIME_BUCKET.NO_WAIT) return "0";
@@ -67,24 +56,17 @@ function getMapWaitTimeValueTone(waitTime: Store["waitTime"]) {
   return "text-[#0b3b60]";
 }
 
-function StoreWaitTimeMarker({ placementId, store }: { placementId: string; store: Store }) {
-  const position = WAIT_TIME_MARKER_POSITIONS[placementId] ?? { left: "50%", bottom: "70%" };
-
+function StoreWaitTimeMarker({ store }: { store: Store }) {
   return (
     <span
-      className="pointer-events-none absolute z-20 flex min-w-[4.8rem] flex-col items-center justify-center rounded-[18px] border border-white/85 bg-white/72 px-2.5 pb-2 pt-1.5 text-center shadow-[0_8px_18px_rgba(15,23,42,0.16),inset_0_0_0_1px_rgba(15,23,42,0.035)] backdrop-blur-[1px]"
-      style={{
-        left: position.left,
-        bottom: position.bottom,
-        transform: "translate(-50%, -0.35rem)"
-      }}
+      className="pointer-events-none absolute z-0 flex min-w-[3.8rem] flex-col items-center justify-center rounded-[16px] border border-white/90 bg-white/88 px-2 pb-1.5 pt-1 text-center shadow-[0_8px_18px_rgba(15,23,42,0.14),inset_0_0_0_1px_rgba(15,23,42,0.035)]"
       aria-hidden="true"
     >
-      <span className="absolute bottom-[-0.46rem] left-1/2 size-4 -translate-x-1/2 rotate-45 border-b border-r border-white/85 bg-white/72 shadow-[5px_5px_10px_rgba(15,23,42,0.07)]" />
-      <span className={`relative z-10 whitespace-nowrap text-[1.8rem] font-black leading-none tracking-normal ${getMapWaitTimeValueTone(store.waitTime)}`}>
+      <span className="absolute bottom-[-0.46rem] left-1/2 size-4 -translate-x-1/2 rotate-45 border-b border-r border-white/90 bg-white/88 shadow-[5px_5px_10px_rgba(15,23,42,0.06)]" />
+      <span className={`relative z-10 whitespace-nowrap text-[1.35rem] font-black leading-none tracking-normal ${getMapWaitTimeValueTone(store.waitTime)}`}>
         {getMapWaitTimeValue(store.waitTime)}
       </span>
-      <span className="relative z-10 mt-1 text-[0.63rem] font-black leading-none tracking-normal text-slate-500">分待ち</span>
+      <span className="relative z-10 mt-0.5 text-[0.5rem] font-black leading-none tracking-normal text-slate-500">分待ち</span>
     </span>
   );
 }
@@ -437,11 +419,25 @@ export function StoreMap({
         }}
       >
         <TiledMapBackground scale={scale} mapSize={mapSize} />
+        {visiblePlacements.map(({ placement, store }) => store ? (
+          <div
+            key={`${placement.storeId}-wait`}
+            className="pointer-events-none absolute"
+            style={{
+              left: `${placement.waitBubble?.x ?? placement.x + placement.width / 2}%`,
+              top: `${placement.waitBubble?.y ?? placement.y}%`,
+              transform: "translate(-50%, -50%)",
+              zIndex: placement.zIndex + 30
+            }}
+          >
+            <StoreWaitTimeMarker store={store} />
+          </div>
+        ) : null)}
         {visiblePlacements.map(({ placement, store }) => (
           <div
             key={placement.storeId}
             className="absolute"
-            style={{ left: `${placement.x}%`, top: `${placement.y}%`, width: `${placement.width}%`, height: `${placement.height}%`, zIndex: placement.zIndex }}
+            style={{ left: `${placement.x}%`, top: `${placement.y}%`, width: `${placement.width}%`, height: `${placement.height}%`, zIndex: placement.zIndex + 10 }}
           >
             {store ? (
               <button
@@ -464,10 +460,9 @@ export function StoreMap({
                   fill
                   unoptimized
                   sizes="100vw"
-                  className="select-none object-contain object-bottom drop-shadow-[0_18px_18px_rgba(52,73,65,0.18)]"
+                  className="z-10 select-none object-contain object-bottom drop-shadow-[0_18px_18px_rgba(52,73,65,0.18)]"
                   draggable={false}
                 />
-                <StoreWaitTimeMarker placementId={placement.storeId} store={store} />
               </button>
             ) : (
               <Image

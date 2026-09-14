@@ -11,6 +11,10 @@ const placement = z.object({
   y: coordinate,
   width: z.number().finite().positive(),
   height: z.number().finite().positive(),
+  waitBubble: z.object({
+    x: coordinate,
+    y: coordinate
+  }).optional(),
   zIndex: z.number().int().min(0).max(10).default(0)
 });
 const tileLevel = z.object({
@@ -59,7 +63,11 @@ export const MAP_STORE_PLACEMENTS = activeLayout.mode === "baked" ? [] : config.
     x: (store.x - activeLayout.x) / activeLayout.width * 100,
     y: (store.y - activeLayout.y) / activeLayout.height * 100,
     width: store.width / activeLayout.width * 100,
-    height: store.height / activeLayout.height * 100
+    height: store.height / activeLayout.height * 100,
+    waitBubble: store.waitBubble ? {
+      x: (store.waitBubble.x - activeLayout.x) / activeLayout.width * 100,
+      y: (store.waitBubble.y - activeLayout.y) / activeLayout.height * 100
+    } : undefined
   }));
 
 export function fitMapViewport(width: number, height: number) {
