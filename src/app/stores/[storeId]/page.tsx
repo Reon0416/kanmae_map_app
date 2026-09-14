@@ -4,41 +4,17 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { StoreDetailRecordSheet } from "@/components/stores/StoreDetailRecordSheet";
-import { StoreStatusBadge } from "@/components/stores/StoreStatusBadge";
-import { WaitTimeLabel } from "@/components/stores/WaitTimeLabel";
+import { CachedStoreStatus } from "@/components/stores/CachedStoreStatus";
 import { getStoreInfoById, getStoreLiveStatus } from "@/features/stores/store-queries";
-import { formatRelativeTime } from "@/lib/utils";
 import { getStoreDisplayGenre } from "@/features/stores/store-display-genre";
 
-async function LiveStoreBadge({ storeId }: { storeId: string }) {
+async function LiveStoreStatus({ storeId, field }: { storeId: string; field: "badge" | "waitTime" | "updatedAt" }) {
   try {
     const status = await getStoreLiveStatus(storeId);
-    return <StoreStatusBadge status={status?.status ?? "unknown"} />;
+    return <CachedStoreStatus storeId={storeId} field={field} value={status ? { id: storeId, ...status, lastUpdatedAt: status.lastUpdatedAt ?? "", fetchedAt: Date.now() } : null} />;
   } catch {
-    return <StoreStatusBadge status="unknown" />;
+    return <CachedStoreStatus storeId={storeId} field={field} failed />;
   }
-}
-
-async function LiveStoreWaitTime({ storeId }: { storeId: string }) {
-  try {
-    const status = await getStoreLiveStatus(storeId);
-    return status ? <WaitTimeLabel waitTime={status.waitTime} /> : <span className="text-sm text-slate-500">未確認</span>;
-  } catch {
-    return <span className="text-sm text-slate-500">取得できませんでした</span>;
-  }
-}
-
-async function LiveStoreUpdatedAt({ storeId }: { storeId: string }) {
-  try {
-    const status = await getStoreLiveStatus(storeId);
-    return status?.lastUpdatedAt ? formatRelativeTime(status.lastUpdatedAt) : "未確認";
-  } catch {
-    return "取得できませんでした";
-  }
-}
-
-function StatusPlaceholder() {
-  return <span className="inline-block h-5 w-20 animate-pulse rounded bg-slate-200" aria-label="読み込み中" />;
 }
 
 export default async function StoreDetailPage({ params }: { params: Promise<{ storeId: string }> }) {
@@ -72,7 +48,7 @@ export default async function StoreDetailPage({ params }: { params: Promise<{ st
           <div className={`${store.heroImage ? "p-6" : "flex min-h-64 items-end bg-[linear-gradient(135deg,#dbeafe,#dcfce7_48%,#fef3c7)] p-6"}`}>
             <div>
               <div className="flex flex-wrap items-center gap-2">
-                <Suspense fallback={<StatusPlaceholder />}><LiveStoreBadge storeId={store.id} /></Suspense>
+                <Suspense fallback={<CachedStoreStatus storeId={store.id} field="badge" />}><LiveStoreStatus storeId={store.id} field="badge" /></Suspense>
                 {store.hasStudentDiscount ? <span className="rounded-full bg-white px-2.5 py-1 text-xs font-bold text-slate-700">学割あり</span> : null}
               </div>
               <h1 className="mt-3 text-3xl font-black text-slate-950">{store.name}</h1>
@@ -82,7 +58,7 @@ export default async function StoreDetailPage({ params }: { params: Promise<{ st
           <div className="grid gap-4 p-5 sm:grid-cols-3">
             <div>
               <p className="text-xs font-bold text-slate-500">待ち時間目安</p>
-              <div className="mt-2"><Suspense fallback={<StatusPlaceholder />}><LiveStoreWaitTime storeId={store.id} /></Suspense></div>
+              <div className="mt-2"><Suspense fallback={<CachedStoreStatus storeId={store.id} field="waitTime" />}><LiveStoreStatus storeId={store.id} field="waitTime" /></Suspense></div>
             </div>
             <div>
               <p className="text-xs font-bold text-slate-500">ジャンル</p>
@@ -90,7 +66,7 @@ export default async function StoreDetailPage({ params }: { params: Promise<{ st
             </div>
             <div>
               <p className="text-xs font-bold text-slate-500">最終更新</p>
-              <p className="mt-2 text-sm font-semibold"><Suspense fallback={<StatusPlaceholder />}><LiveStoreUpdatedAt storeId={store.id} /></Suspense></p>
+              <p className="mt-2 text-sm font-semibold"><Suspense fallback={<CachedStoreStatus storeId={store.id} field="updatedAt" />}><LiveStoreStatus storeId={store.id} field="updatedAt" /></Suspense></p>
             </div>
           </div>
         </div>

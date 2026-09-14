@@ -9,6 +9,7 @@ import { getStores } from "@/features/stores/store-queries";
 import type { DisplayStatus, Store } from "@/features/stores/store-types";
 import { cn } from "@/lib/utils";
 import { getStoreDisplayGenre } from "@/features/stores/store-display-genre";
+import { StoreStatusCache } from "@/components/stores/CachedStoreStatus";
 
 const statusPriority: Record<DisplayStatus, number> = {
   available: 0,
@@ -48,9 +49,11 @@ export default async function StoresPage({
   const params = await searchParams;
   const sortOrder: StoreSortOrder = params.sort === "wait_desc" ? "wait_desc" : "wait_asc";
   const stores = [...(await getStores())].sort((a, b) => compareStores(a, b, sortOrder));
+  const fetchedAt = Date.now();
 
   return (
     <main className="min-h-dvh bg-slate-100 pb-24">
+      <StoreStatusCache statuses={stores.map(({ id, status, waitTime, lastUpdatedAt }) => ({ id, status, waitTime, lastUpdatedAt, fetchedAt }))} />
       <div className="px-3 pt-5">
       <div className="mb-4 flex items-center justify-between gap-3 px-1">
         <div>
