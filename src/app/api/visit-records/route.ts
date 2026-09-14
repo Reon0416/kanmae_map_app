@@ -18,7 +18,7 @@ const visitRecordSchema = z.object({
   location: z.object({
     lat: z.number(),
     lng: z.number()
-  }).optional(),
+  }),
   visitorId: z.string().uuid()
 });
 

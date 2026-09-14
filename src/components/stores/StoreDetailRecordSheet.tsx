@@ -10,6 +10,7 @@ import { saveVisitRecord } from "@/features/visit-records/save-visit-record";
 import { playStampSound } from "@/features/visit-records/stamp-sound";
 import { prepareStampReward } from "@/features/visit-records/stamp-reward-loader";
 import { StampRewardOverlay } from "@/components/visit-records/StampRewardOverlay";
+import { useVisitLocation } from "@/features/visit-records/use-visit-location";
 
 export { OPEN_STORE_DETAIL_RECORD_EVENT } from "@/features/visit-records/record-events";
 
@@ -28,6 +29,7 @@ export function StoreRecordSheet({
   const [error, setError] = useState<string | null>(null);
   const [showStampReward, setShowStampReward] = useState(false);
   const savingRef = useRef(false);
+  const { canSaveWithLocation, location, locationMessage, requestLocation, status } = useVisitLocation(isOpen);
 
   useEffect(() => {
     if (isOpen) {
@@ -52,6 +54,12 @@ export function StoreRecordSheet({
 
   const saveRecord = async () => {
     if (savingRef.current || saved) return;
+    if (!location) {
+      setError("位置情報を取得してから記録してください。");
+      requestLocation();
+      return;
+    }
+
     savingRef.current = true;
     setIsSaving(true);
     setError(null);
@@ -61,7 +69,8 @@ export function StoreRecordSheet({
     try {
       const result = await saveVisitRecord({
         storeId: store.id,
-        waitTime
+        waitTime,
+        location
       });
       if (result.crowdStatusUpdated === false) setError("スタンプは保存しましたが、待ち時間の更新に失敗しました。");
       setSaved(true);
@@ -101,11 +110,21 @@ export function StoreRecordSheet({
             <Button
               className="mt-5 h-14 w-full rounded-2xl bg-emerald-500 text-base font-black text-white shadow-[0_16px_34px_rgba(16,185,129,0.35)] hover:bg-emerald-600"
               onClick={saveRecord}
-              disabled={isSaving || saved}
+              disabled={isSaving || saved || !canSaveWithLocation}
             >
               {saved ? <CheckCircle2 className="size-5" aria-hidden="true" /> : null}
-              {isSaving ? "保存中" : saved ? "記録しました" : "記録する"}
+              {isSaving ? "保存中" : saved ? "記録しました" : canSaveWithLocation ? "記録する" : "位置情報を取得してください"}
             </Button>
+            {!canSaveWithLocation ? (
+              <div className="mt-3 rounded-md bg-amber-50 px-3 py-2 text-sm font-bold text-amber-800">
+                <p>{locationMessage}</p>
+                {status === "denied" || status === "failed" ? (
+                  <button type="button" className="mt-2 underline underline-offset-4" onClick={requestLocation}>
+                    もう一度取得する
+                  </button>
+                ) : null}
+              </div>
+            ) : null}
             {error ? <p className="mt-3 rounded-md bg-red-50 px-3 py-2 text-sm font-bold text-red-700">{error}</p> : null}
           </section>
         </div>

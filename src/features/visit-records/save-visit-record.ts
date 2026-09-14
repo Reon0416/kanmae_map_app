@@ -4,7 +4,7 @@ import { getOrCreateAnonymousVisitorId } from "@/features/visit-records/anonymou
 export type SaveVisitRecordInput = {
   storeId: string;
   waitTime: WaitTimeBucket;
-  location?: {
+  location: {
     lat: number;
     lng: number;
   };
@@ -21,6 +21,10 @@ export type SavedVisitRecord = {
 };
 
 export async function saveVisitRecord(input: SaveVisitRecordInput) {
+  if (!input.location) {
+    throw new Error("位置情報を取得してから記録してください。");
+  }
+
   const response = await fetch("/api/visit-records", {
     method: "POST",
     headers: {
