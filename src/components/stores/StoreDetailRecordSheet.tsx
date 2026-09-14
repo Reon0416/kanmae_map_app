@@ -27,6 +27,24 @@ function getOwnerWaitTimeLockRemainingMs(store: Store) {
   return Math.max(0, lockUntil - Date.now());
 }
 
+function OfficialVacancyCallout() {
+  return (
+    <div className="grid grid-cols-[4.5rem_1fr] items-center gap-4 rounded-2xl border border-amber-200 bg-white px-4 py-4 shadow-sm">
+      <span className="flex size-16 items-center justify-center rounded-full bg-amber-100 text-slate-950" aria-hidden="true">
+        <svg viewBox="0 0 64 64" className="size-11 fill-current">
+          <circle cx="24" cy="11" r="7" />
+          <path d="M23 21c2.2-2.8 6.4-3.1 9-.8l7.4 6.6 8.5 1.8c2.2.5 3.6 2.6 3.1 4.8-.5 2.1-2.6 3.5-4.7 3l-9.4-2c-.7-.1-1.4-.5-2-.9l-3.8-3.4-5.5 8.6 7.9 6.3c1 .8 1.6 1.9 1.7 3.2l.7 9.2c.2 2.4-1.6 4.4-4 4.6-2.3.2-4.4-1.6-4.6-4l-.6-7.4-10.1-8c-2.5-2-3.1-5.5-1.4-8.2L23 21Z" />
+          <path d="M14.6 29.2 6.8 27c-2.2-.6-3.4-2.9-2.8-5 .6-2.2 2.9-3.4 5-2.8l9.6 2.7c1.1.3 2 1.1 2.6 2l2.4 4-5.4 8.4-3.6-7.1ZM19.7 42.9l-5.5 2.8-4.5 9.3c-1 2.1-3.5 3-5.6 2-2.1-1-3-3.5-2-5.6l5.1-10.5c.4-.8 1.1-1.5 1.9-1.9l7.7-4 2.9 7.9Z" />
+        </svg>
+      </span>
+      <div>
+        <p className="text-lg font-black leading-tight text-slate-950">今ならすぐ入れます</p>
+        <p className="mt-1 text-sm font-black text-amber-700">空席のうちに向かおう</p>
+      </div>
+    </div>
+  );
+}
+
 export function StoreRecordSheet({
   store,
   isOpen,
@@ -126,9 +144,7 @@ export function StoreRecordSheet({
 
             <div className="mt-5">
               {ownerWaitTimeLocked ? (
-                <p className="px-4 py-5 text-center text-base font-black text-red-600">
-                  店舗が空席を表示しています
-                </p>
+                <OfficialVacancyCallout />
               ) : (
                 <WaitTimeSelector value={waitTime} onChange={setWaitTime} />
               )}
