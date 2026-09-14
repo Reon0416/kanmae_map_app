@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import { storeThumbnailImages } from "@/features/stores/store-thumbnail-images";
 import { CheckCircle2, Utensils, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { StampRewardOverlay } from "@/components/visit-records/StampRewardOverlay";
@@ -68,7 +69,10 @@ export function QuickRecordPanel({ stores }: { stores: Store[] }) {
 
         <div className="px-3 py-4">
           <div className="grid gap-2">
-          {stores.map((store) => (
+          {stores.map((store) => {
+            const thumbnail = storeThumbnailImages[store.assetKey ?? store.id];
+            const scale = thumbnail ? Math.min(64 / thumbnail.bounds.width, 64 / thumbnail.bounds.height) : 1;
+            return (
             <button
               key={store.id}
               type="button"
@@ -79,17 +83,23 @@ export function QuickRecordPanel({ stores }: { stores: Store[] }) {
               onClick={() => openWaitTimeSheet(store.id)}
             >
               <span className={cn(
-                "flex size-[72px] items-center justify-center overflow-hidden rounded-xl",
-                (store.assetKey ?? store.id) === "kokoro" ? "bg-white" : "bg-gradient-to-br from-orange-100 via-emerald-100 to-cyan-100 shadow-inner"
+                "relative flex size-[72px] shrink-0 items-center justify-center overflow-hidden rounded-xl",
+                thumbnail ? "bg-white" : "bg-gradient-to-br from-orange-100 via-emerald-100 to-cyan-100 shadow-inner"
               )}>
-                {(store.assetKey ?? store.id) === "kokoro" ? (
+                {thumbnail ? (
                   <Image
-                    src="/stores/kokoro-storefront.jpg"
+                    src={thumbnail.src}
                     alt=""
-                    width={1312}
-                    height={1199}
+                    width={thumbnail.width}
+                    height={thumbnail.height}
                     sizes="72px"
-                    className="size-full object-contain"
+                    className="absolute max-w-none bg-white"
+                    style={{
+                      width: thumbnail.width * scale,
+                      height: thumbnail.height * scale,
+                      left: (72 - thumbnail.bounds.width * scale) / 2 - thumbnail.bounds.x * scale,
+                      top: (72 - thumbnail.bounds.height * scale) / 2 - thumbnail.bounds.y * scale
+                    }}
                   />
                 ) : (
                   <Utensils className="size-7 text-slate-500" aria-hidden="true" />
@@ -103,7 +113,8 @@ export function QuickRecordPanel({ stores }: { stores: Store[] }) {
                 <CheckCircle2 className="size-4" aria-hidden="true" />
               </span>
             </button>
-          ))}
+          );
+          })}
           </div>
         </div>
       </section>
