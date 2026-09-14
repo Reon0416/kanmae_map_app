@@ -10,9 +10,11 @@ const DISMISS_DELAY_MS = 1400;
 
 export function StampRewardOverlay({
   store,
+  isPending = false,
   onClose
 }: {
   store: StoreSummary;
+  isPending?: boolean;
   onClose: () => void;
 }) {
   const stampImage = getStampImage(store.id, store.name, store.assetKey);
@@ -24,7 +26,7 @@ export function StampRewardOverlay({
   }, []);
 
   const closeIfReady = () => {
-    if (canDismiss) {
+    if (canDismiss && !isPending) {
       onClose();
     }
   };
@@ -40,7 +42,7 @@ export function StampRewardOverlay({
       }}
       role="button"
       tabIndex={0}
-      aria-label={canDismiss ? "スタンプを閉じる" : "スタンプを表示中"}
+      aria-label={isPending ? "スタンプを保存中" : canDismiss ? "スタンプを閉じる" : "スタンプを表示中"}
     >
       <button
         type="button"
@@ -49,7 +51,7 @@ export function StampRewardOverlay({
           event.stopPropagation();
           closeIfReady();
         }}
-        disabled={!canDismiss}
+        disabled={!canDismiss || isPending}
         aria-label="閉じる"
       >
         <X className="size-5" aria-hidden="true" />
@@ -73,6 +75,9 @@ export function StampRewardOverlay({
             </div>
           )}
         </div>
+        <p className="mt-4 text-sm font-bold text-white" role="status" aria-live="polite">
+          {isPending ? "保存中…" : "記録しました"}
+        </p>
       </div>
     </div>
   );

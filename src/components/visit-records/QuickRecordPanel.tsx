@@ -1,7 +1,6 @@
 "use client";
 
 import { useRef, useState } from "react";
-import dynamic from "next/dynamic";
 import Image from "next/image";
 import { storeThumbnailImages } from "@/features/stores/store-thumbnail-images";
 import { CheckCircle2, Utensils, X } from "lucide-react";
@@ -11,9 +10,8 @@ import type { StoreSummary, WaitTimeBucket } from "@/features/stores/store-types
 import { saveVisitRecord } from "@/features/visit-records/save-visit-record";
 import { playStampSound } from "@/features/visit-records/stamp-sound";
 import { cn } from "@/lib/utils";
-import { loadStampReward, prepareStampReward } from "@/features/visit-records/stamp-reward-loader";
-
-const StampRewardOverlay = dynamic(loadStampReward);
+import { prepareStampReward } from "@/features/visit-records/stamp-reward-loader";
+import { StampRewardOverlay } from "@/components/visit-records/StampRewardOverlay";
 
 export function QuickRecordPanel({ stores }: { stores: StoreSummary[] }) {
   const [storeId, setStoreId] = useState<string | null>(null);
@@ -52,6 +50,8 @@ export function QuickRecordPanel({ stores }: { stores: StoreSummary[] }) {
     savingRef.current = true;
     setIsSaving(true);
     setError(null);
+    setShowStampReward(true);
+    try { playStampSound(); } catch { /* Audio failure must not interrupt saving. */ }
 
     try {
       const result = await saveVisitRecord({
@@ -59,10 +59,9 @@ export function QuickRecordPanel({ stores }: { stores: StoreSummary[] }) {
         waitTime
       });
       if (result.crowdStatusUpdated === false) setError("スタンプは保存しましたが、待ち時間の更新に失敗しました。");
-      playStampSound();
       setSaved(true);
-      setShowStampReward(true);
     } catch (saveError) {
+      setShowStampReward(false);
       setError(saveError instanceof Error ? saveError.message : "来店記録を保存できませんでした。");
     } finally {
       savingRef.current = false;
@@ -166,7 +165,7 @@ export function QuickRecordPanel({ stores }: { stores: StoreSummary[] }) {
       ) : null}
 
       {selectedStore && showStampReward ? (
-        <StampRewardOverlay store={selectedStore} onClose={closeWaitTimeSheet} />
+        <StampRewardOverlay store={selectedStore} isPending={isSaving} onClose={closeWaitTimeSheet} />
       ) : null}
     </>
   );
