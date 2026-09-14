@@ -100,9 +100,8 @@ export default async function StoresPage({
                 <Utensils className="size-8 text-slate-500" aria-hidden="true" />
               )}
             </div>
-            <div className="min-w-0 py-1">
-              <h2 className="truncate text-base font-black text-blue-700">{store.name}</h2>
-              <p className="mt-1 line-clamp-2 text-sm leading-5 text-slate-600">{store.description}</p>
+            <div className="min-w-0 self-center py-1">
+              <h2 className="mt-1 truncate text-base font-black text-blue-700">{store.name}</h2>
               <p className="mt-1.5 text-xs font-bold text-slate-500">
                 {store.genre} / {priceBandLabel(store.priceBand)}
               </p>
