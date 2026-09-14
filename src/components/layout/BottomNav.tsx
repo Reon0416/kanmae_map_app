@@ -47,6 +47,18 @@ function getUserItems(pathname: string) {
   return userNavItems.filter((item) => item.href !== currentHref);
 }
 
+function getPathRole(pathname: string): UserRole | null {
+  if (pathname.startsWith("/admin")) {
+    return USER_ROLE.ADMIN;
+  }
+
+  if (pathname.startsWith("/store-admin")) {
+    return USER_ROLE.STORE;
+  }
+
+  return null;
+}
+
 export function BottomNav() {
   const [role, setRole] = useState<UserRole>(USER_ROLE.USER);
   const [isMapNavHidden, setIsMapNavHidden] = useState(false);
@@ -55,11 +67,20 @@ export function BottomNav() {
   const isStoreDetailPage = pathname.startsWith("/stores/") && pathname !== "/stores";
 
   useEffect(() => {
+    const pathRole = getPathRole(pathname);
+    if (pathRole) {
+      setRole(pathRole);
+      return;
+    }
+
     const storedRole = window.localStorage.getItem(ROLE_STORAGE_KEY) as UserRole | null;
     if (storedRole && storedRole in itemsByRole) {
       setRole(storedRole);
+      return;
     }
-  }, []);
+
+    setRole(USER_ROLE.USER);
+  }, [pathname]);
 
   useEffect(() => {
     setIsMapNavHidden(false);
