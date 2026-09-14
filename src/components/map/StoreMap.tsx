@@ -6,7 +6,7 @@ import { WAIT_TIME_BUCKET, WAIT_TIME_LABELS } from "@/constants/wait-time-option
 import type { Store } from "@/features/stores/store-types";
 import { ACTIVE_MAP_LAYOUT, ACTIVE_MAP_SOURCE_SIZE, ACTIVE_MAP_TILES, MAP_STORE_PLACEMENTS } from "@/lib/map/map-layout";
 import { KANMAE_MAP_IMAGE, latLngToMapPosition } from "@/lib/map/map-config";
-import { PointerEvent, WheelEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { PointerEvent, WheelEvent, memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 type UserLocation = {
   position: {
@@ -107,7 +107,7 @@ function getTileLevel(scale: number, mapSize: MapSize) {
   return levels.find((level) => Math.max(level.width, level.height) >= desiredPixels) ?? levels[levels.length - 1];
 }
 
-function TiledMapBackground({ scale, mapSize }: { scale: number; mapSize: MapSize }) {
+const TiledMapBackground = memo(function TiledMapBackground({ scale, mapSize }: { scale: number; mapSize: MapSize }) {
   const level = getTileLevel(scale, mapSize);
 
   if (!ACTIVE_MAP_TILES || !level) {
@@ -172,7 +172,7 @@ function TiledMapBackground({ scale, mapSize }: { scale: number; mapSize: MapSiz
       ))}
     </div>
   );
-}
+});
 
 export function StoreMap({
   stores,

@@ -91,7 +91,7 @@ export function VisitStampCard({ stores, initialStampData }: { stores: StoreSumm
 
   useEffect(() => {
     const element = collectionRef.current;
-    if (!element) return;
+    if (!element || collectionVisible) return;
     if (!("IntersectionObserver" in window)) {
       setCollectionVisible(true);
       return;
@@ -104,18 +104,27 @@ export function VisitStampCard({ stores, initialStampData }: { stores: StoreSumm
     }, { rootMargin: "150px" });
     observer.observe(element);
     return () => observer.disconnect();
-  }, [stampData, error, isLoading]);
+  }, [stampData, error, collectionVisible]);
 
   useEffect(() => {
     let ignore = false;
+    let pending = false;
+    let queued = false;
+    let controller: AbortController | null = null;
 
     async function loadStamps() {
       if (ignore) return;
+      if (pending) {
+        queued = true;
+        return;
+      }
+      pending = true;
+      controller = new AbortController();
       setIsLoading(true);
       setError(null);
 
       try {
-        const response = await fetch("/api/stamps", { cache: "no-store" });
+        const response = await fetch("/api/stamps", { cache: "no-store", signal: controller.signal });
         if (ignore) return;
         if (response.status === 401) {
           setStampData(null);
@@ -136,6 +145,13 @@ export function VisitStampCard({ stores, initialStampData }: { stores: StoreSumm
         if (ignore) return;
         setError("スタンプを読み込めませんでした。");
         setIsLoading(false);
+      } finally {
+        pending = false;
+        controller = null;
+        if (!ignore && queued) {
+          queued = false;
+          void loadStamps();
+        }
       }
     }
 
@@ -143,6 +159,7 @@ export function VisitStampCard({ stores, initialStampData }: { stores: StoreSumm
 
     return () => {
       ignore = true;
+      controller?.abort();
       window.removeEventListener("kanmae:visit-record-created", loadStamps);
     };
   }, []);
@@ -175,7 +192,7 @@ export function VisitStampCard({ stores, initialStampData }: { stores: StoreSumm
     return new Map((stampData?.cardStamps ?? []).map((stamp) => [stamp.stampOrdinal, stamp]));
   }, [stampData]);
 
-  if (isLoading) {
+  if (isLoading && !stampData) {
     return (
       <section className="flex min-h-72 items-center justify-center bg-white">
         <div className="flex items-center gap-2 text-sm font-bold text-slate-500">
@@ -186,7 +203,7 @@ export function VisitStampCard({ stores, initialStampData }: { stores: StoreSumm
     );
   }
 
-  if (error) {
+  if (error && !stampData) {
     return (
       <section className="bg-white p-5">
         <div className="rounded-lg border border-border bg-slate-50 p-5">
@@ -209,10 +226,12 @@ export function VisitStampCard({ stores, initialStampData }: { stores: StoreSumm
   return (
     <section
       data-image-callout-disabled
+      aria-busy={isLoading}
       className="bg-white"
       onContextMenu={(event) => event.preventDefault()}
       onDragStart={(event) => event.preventDefault()}
     >
+      {error ? <p role="alert" className="px-4 py-2 text-sm font-bold text-red-700">{error}</p> : null}
       <div className="py-5">
         <StampCardView cardNumber={currentCardNumber} stampsByOrdinal={stampsByOrdinal} />
 

@@ -7,11 +7,15 @@ const snapshots = new Map<string, StoreStatusSnapshot>();
 const listeners = new Set<() => void>();
 
 export function rememberStoreStatuses(values: StoreStatusSnapshot[]) {
+  let changed = false;
   for (const value of values) {
     const previous = snapshots.get(value.id);
-    if (!previous || value.fetchedAt > previous.fetchedAt) snapshots.set(value.id, value);
+    if (!previous || value.fetchedAt > previous.fetchedAt) {
+      snapshots.set(value.id, value);
+      changed = true;
+    }
   }
-  for (const listener of listeners) listener();
+  if (changed) for (const listener of listeners) listener();
 }
 
 export function readStoreStatusSnapshot(storeId: string, now = Date.now()) {

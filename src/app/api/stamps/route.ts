@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getCurrentUserStampData } from "@/features/visit-records/stamp-queries";
+import { getCurrentUserStampData, toStampDisplayData } from "@/features/visit-records/stamp-queries";
 
 export async function GET() {
   const stampData = await getCurrentUserStampData();
@@ -8,5 +8,7 @@ export async function GET() {
     return NextResponse.json({ error: "Authentication required" }, { status: 401 });
   }
 
-  return NextResponse.json(stampData);
+  return NextResponse.json(toStampDisplayData(stampData), {
+    headers: { "Cache-Control": "private, no-store" }
+  });
 }

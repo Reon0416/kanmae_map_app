@@ -53,10 +53,10 @@ test('older navigation payloads do not overwrite a newer snapshot; listeners uns
   cache.rememberStoreStatuses([newer]);
   cache.rememberStoreStatuses([{ ...newer, fetchedAt: 1000, status: 'available' }]);
   assert.equal(cache.readStoreStatusSnapshot('a', 2001), newer);
-  assert.equal(updates, 2);
+  assert.equal(updates, 1);
   stop();
   cache.rememberStoreStatuses([newer]);
-  assert.equal(updates, 2);
+  assert.equal(updates, 1);
 });
 
 test('all three pending fields show list values before fresh results arrive', () => {
