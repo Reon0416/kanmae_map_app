@@ -7,6 +7,7 @@ import { Loader2, LogIn, UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { AuthApiResponse } from "@/features/auth/auth-validation";
 import { ROLE_STORAGE_KEY } from "@/features/auth/roles";
+import { clearStampSnapshot } from "@/features/visit-records/stamp-snapshot";
 
 type AuthMode = "sign-in" | "sign-up";
 
@@ -32,6 +33,7 @@ export function AuthForm({
     setError(null);
     setMessage(null);
     setIsSubmitting(true);
+    clearStampSnapshot();
 
     const response = await fetch(isSignUp ? "/api/auth/signup" : "/api/auth/login", {
       method: "POST",

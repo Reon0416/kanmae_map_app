@@ -73,7 +73,7 @@ function stampHarness() {
   const props = { stores: [], initialStampData: { totalStampCount: 1, stores: [], cardStamps: [] } };
   const render = () => { cursor = 0; return ui.VisitStampCard(props); };
   render();
-  const cleanup = effects[1]();
+  const cleanup = effects[2]();
   return { render, requests, cleanup, update: () => listeners.get('kanmae:visit-record-created')() };
 }
 

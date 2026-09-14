@@ -82,12 +82,20 @@ function StampCardView({
   );
 }
 
-export function VisitStampCard({ stores, initialStampData }: { stores: StoreSummary[]; initialStampData: StampDisplayData | null }) {
+export function VisitStampCard({ stores, initialStampData, onStampDataChange }: {
+  stores: StoreSummary[];
+  initialStampData: StampDisplayData | null;
+  onStampDataChange?: (data: StampDisplayData | null) => void;
+}) {
   const [stampData, setStampData] = useState<StampDisplayData | null>(initialStampData);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(initialStampData ? null : "スタンプを見るにはログインしてください。");
   const collectionRef = useRef<HTMLDivElement>(null);
   const [collectionVisible, setCollectionVisible] = useState(false);
+
+  useEffect(() => {
+    onStampDataChange?.(stampData);
+  }, [stampData, onStampDataChange]);
 
   useEffect(() => {
     const element = collectionRef.current;

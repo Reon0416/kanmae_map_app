@@ -1,17 +1,25 @@
 import { SignOutButton } from "@/components/auth/SignOutButton";
 import { VisitStampCard } from "@/components/my/VisitStampCard";
+import { CachedStampContent, StampLoading } from "@/components/my/CachedStampContent";
 import { getStoreSummaries } from "@/features/stores/store-queries";
 import { getCurrentUserStampData, toStampDisplayData } from "@/features/visit-records/stamp-queries";
 import { getSupabaseServerUser } from "@/lib/supabase/server";
 import { Suspense } from "react";
 
+async function FreshStampContent({ userId }: { userId: string }) {
+  const [stores, stampData] = await Promise.all([getStoreSummaries(), getCurrentUserStampData()]);
+  const displayData = toStampDisplayData(stampData);
+  return displayData ? <CachedStampContent userId={userId} value={{
+    userId, stores, stampData: displayData, fetchedAt: Date.now()
+  }} /> : <VisitStampCard stores={[]} initialStampData={null} />;
+}
+
 async function StampContent() {
   const { data: { user }, error } = await getSupabaseServerUser();
-  const [stores, stampData] = user && !error
-    ? await Promise.all([getStoreSummaries(), getCurrentUserStampData()])
-    : [[], null];
-
-  return <VisitStampCard stores={stores} initialStampData={toStampDisplayData(stampData)} />;
+  if (!user || error) return <VisitStampCard stores={[]} initialStampData={null} />;
+  return <Suspense fallback={<CachedStampContent userId={user.id} />}>
+    <FreshStampContent userId={user.id} />
+  </Suspense>;
 }
 
 export default function MyPage() {
@@ -23,11 +31,7 @@ export default function MyPage() {
       </div>
 
       <div className="mt-5 md:overflow-hidden md:rounded-lg md:border md:border-border">
-        <Suspense fallback={
-          <div className="min-h-96 px-4 py-5" role="status" aria-label="スタンプを読み込み中" aria-busy="true">
-            <div className="h-96 rounded-lg bg-slate-100 motion-safe:animate-pulse" aria-hidden="true" />
-          </div>
-        }>
+        <Suspense fallback={<StampLoading />}>
           <StampContent />
         </Suspense>
       </div>

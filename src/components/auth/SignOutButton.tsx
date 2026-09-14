@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { LogOut } from "lucide-react";
 import { ROLE_STORAGE_KEY } from "@/features/auth/roles";
+import { clearStampSnapshot } from "@/features/visit-records/stamp-snapshot";
 
 export function SignOutButton() {
   const router = useRouter();
@@ -11,6 +12,7 @@ export function SignOutButton() {
 
   async function signOut() {
     setIsSigningOut(true);
+    clearStampSnapshot();
     const { createSupabaseBrowserClient } = await import("@/lib/supabase/client");
     const supabase = createSupabaseBrowserClient();
     await supabase.auth.signOut();
