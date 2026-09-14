@@ -14,6 +14,19 @@ import { useVisitLocation } from "@/features/visit-records/use-visit-location";
 
 export { OPEN_STORE_DETAIL_RECORD_EVENT } from "@/features/visit-records/record-events";
 
+function isOwnerWaitTimeLocked(store: Store) {
+  if (!store.ownerWaitTimeLockUntil) return false;
+  const lockUntil = new Date(store.ownerWaitTimeLockUntil).getTime();
+  return !Number.isNaN(lockUntil) && lockUntil > Date.now();
+}
+
+function getOwnerWaitTimeLockRemainingMs(store: Store) {
+  if (!store.ownerWaitTimeLockUntil) return 0;
+  const lockUntil = new Date(store.ownerWaitTimeLockUntil).getTime();
+  if (Number.isNaN(lockUntil)) return 0;
+  return Math.max(0, lockUntil - Date.now());
+}
+
 export function StoreRecordSheet({
   store,
   isOpen,
@@ -28,8 +41,10 @@ export function StoreRecordSheet({
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showStampReward, setShowStampReward] = useState(false);
+  const [, setLockTick] = useState(0);
   const savingRef = useRef(false);
   const { canSaveWithLocation, location, locationMessage, requestLocation, status } = useVisitLocation(isOpen);
+  const ownerWaitTimeLocked = isOwnerWaitTimeLocked(store);
 
   useEffect(() => {
     if (isOpen) {
@@ -43,6 +58,12 @@ export function StoreRecordSheet({
   useEffect(() => {
     if (isOpen) prepareStampReward({ id: store.id, name: store.name, assetKey: store.assetKey });
   }, [isOpen, store.id, store.name, store.assetKey]);
+
+  useEffect(() => {
+    if (!isOpen || getOwnerWaitTimeLockRemainingMs(store) <= 0) return;
+    const intervalId = window.setInterval(() => setLockTick((tick) => tick + 1), 1000);
+    return () => window.clearInterval(intervalId);
+  }, [isOpen, store]);
 
   const closeSheet = () => {
     if (savingRef.current) return;
@@ -69,7 +90,7 @@ export function StoreRecordSheet({
     try {
       const result = await saveVisitRecord({
         storeId: store.id,
-        waitTime,
+        waitTime: ownerWaitTimeLocked ? "no_wait" : waitTime,
         location
       });
       if (result.crowdStatusUpdated === false) setError("スタンプは保存しましたが、待ち時間の更新に失敗しました。");
@@ -104,7 +125,13 @@ export function StoreRecordSheet({
             </div>
 
             <div className="mt-5">
-              <WaitTimeSelector value={waitTime} onChange={setWaitTime} />
+              {ownerWaitTimeLocked ? (
+                <p className="rounded-2xl bg-red-50 px-4 py-5 text-center text-base font-black text-red-600">
+                  店舗が空席を表示しています
+                </p>
+              ) : (
+                <WaitTimeSelector value={waitTime} onChange={setWaitTime} />
+              )}
             </div>
 
             <Button
@@ -113,7 +140,13 @@ export function StoreRecordSheet({
               disabled={isSaving || saved || !canSaveWithLocation}
             >
               {saved ? <CheckCircle2 className="size-5" aria-hidden="true" /> : null}
-              {isSaving ? "保存中" : saved ? "記録しました" : canSaveWithLocation ? "記録する" : "位置情報を取得してください"}
+              {isSaving
+                ? "保存中"
+                : saved
+                  ? "記録しました"
+                  : canSaveWithLocation
+                    ? ownerWaitTimeLocked ? "来店を記録する" : "記録する"
+                    : "位置情報を取得してください"}
             </Button>
             {!canSaveWithLocation ? (
               <div className="mt-3 rounded-md bg-amber-50 px-3 py-2 text-sm font-bold text-amber-800">
