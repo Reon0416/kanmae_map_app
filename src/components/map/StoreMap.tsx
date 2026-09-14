@@ -1,6 +1,6 @@
 "use client";
 
-import { LocateFixed, Minus, Plus } from "lucide-react";
+import { LocateFixed } from "lucide-react";
 import Image from "next/image";
 import { WAIT_TIME_BUCKET, WAIT_TIME_LABELS } from "@/constants/wait-time-options";
 import type { Store } from "@/features/stores/store-types";
@@ -29,7 +29,6 @@ type MapSize = {
 const INITIAL_SCALE = 1;
 const INITIAL_OFFSET = { x: 0, y: 0 };
 const TAP_MOVE_THRESHOLD = 8;
-const ZOOM_STEP = 1.35;
 const LANDMARK_PLACEMENT_IDS = new Set(["kandai"]);
 
 function getMapWaitTimeValue(waitTime: Store["waitTime"]) {
@@ -495,26 +494,6 @@ export function StoreMap({
         <p className="text-sm font-bold text-slate-950">関大前エリア</p>
       </div>
       <div className={fullscreen ? "absolute right-4 top-32 z-20 grid gap-2" : "absolute right-5 top-5 z-10 flex gap-2"}>
-        <button
-          data-map-control
-          className="flex size-10 items-center justify-center rounded-md bg-white text-slate-700 shadow-sm disabled:text-slate-300"
-          aria-label="拡大"
-          onClick={() => zoomAt(scale * ZOOM_STEP, { x: 0, y: 0 })}
-          disabled={scale >= maxScale - 0.01}
-          type="button"
-        >
-          <Plus className="size-5" aria-hidden="true" />
-        </button>
-        <button
-          data-map-control
-          className="flex size-10 items-center justify-center rounded-md bg-white text-slate-700 shadow-sm disabled:text-slate-300"
-          aria-label="縮小"
-          onClick={() => zoomAt(scale / ZOOM_STEP, { x: 0, y: 0 })}
-          disabled={scale <= INITIAL_SCALE + 0.01}
-          type="button"
-        >
-          <Minus className="size-5" aria-hidden="true" />
-        </button>
         <button
           data-map-control
           className="flex size-10 items-center justify-center rounded-md bg-white text-slate-700 shadow-sm"

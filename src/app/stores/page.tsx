@@ -1,7 +1,7 @@
 import Image from "next/image";
 import { storeThumbnailImages } from "@/features/stores/store-thumbnail-images";
 import Link from "next/link";
-import { ArrowLeft, Map, Utensils } from "lucide-react";
+import { ArrowLeft, Utensils } from "lucide-react";
 import { DISPLAY_STATUS } from "@/constants/crowd-status";
 import { WAIT_TIME_BUCKET, WAIT_TIME_LABELS, WAIT_TIME_SCORE } from "@/constants/wait-time-options";
 import { StoreSortSelect, type StoreSortOrder } from "@/components/stores/StoreSortSelect";
@@ -128,15 +128,6 @@ export default async function StoresPage({
       </div>
       </div>
 
-      <Link
-        href="/"
-        prefetch={false}
-        aria-label="マップへ戻る"
-        className="fixed bottom-28 right-4 z-30 flex h-12 items-center gap-2 rounded-full border border-slate-950/10 bg-white/10 px-4 text-sm font-black text-slate-950 backdrop-blur-[2px] transition hover:bg-white/20"
-      >
-        <Map className="size-5" aria-hidden="true" />
-        マップへ
-      </Link>
     </main>
   );
 }
