@@ -194,6 +194,7 @@ export function StoreMap({
   const pointers = useRef(new Map<number, PointerPosition>());
   const gesture = useRef<GestureState | null>(null);
   const suppressNextStoreClick = useRef(false);
+  const autoLocationRequested = useRef(false);
 
   const visiblePlacements = useMemo(() => {
     return MAP_STORE_PLACEMENTS
@@ -266,7 +267,7 @@ export function StoreMap({
     setOffset((currentOffset) => clampOffset(currentOffset, maxScale));
   }, [clampOffset, maxScale, scale]);
 
-  const locateUser = () => {
+  const locateUser = useCallback(() => {
     if (!navigator.geolocation) {
       setLocationMessage("このブラウザでは現在地を取得できません");
       return;
@@ -293,7 +294,13 @@ export function StoreMap({
         timeout: 10000
       }
     );
-  };
+  }, []);
+
+  useEffect(() => {
+    if (autoLocationRequested.current) return;
+    autoLocationRequested.current = true;
+    locateUser();
+  }, [locateUser]);
 
   const handlePointerDown = (event: PointerEvent<HTMLElement>) => {
     if (event.button !== 0) return;
