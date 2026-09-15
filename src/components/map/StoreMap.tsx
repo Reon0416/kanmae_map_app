@@ -594,7 +594,7 @@ export function StoreMap({
       </div>
       {locationError ? (
         <div
-          className="absolute inset-0 z-30 flex items-end justify-center bg-slate-950/45 px-3 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-8 backdrop-blur-[2px] sm:items-center"
+          className="absolute inset-0 z-30 flex items-center justify-center bg-slate-950/45 px-3 py-8 backdrop-blur-[2px]"
           data-map-control
         >
           <section className="w-full max-w-md rounded-[30px] bg-white p-4 text-slate-900 shadow-[0_30px_90px_rgba(0,0,0,0.35)]">
