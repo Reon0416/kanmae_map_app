@@ -7,6 +7,10 @@ import { WaitTimeSelector } from "@/components/visit-records/WaitTimeSelector";
 import type { Store, WaitTimeBucket } from "@/features/stores/store-types";
 import { saveVisitRecord } from "@/features/visit-records/save-visit-record";
 import { useVisitLocation } from "@/features/visit-records/use-visit-location";
+import {
+  getVisitLocationButtonLabel,
+  VisitLocationNotice
+} from "@/components/visit-records/VisitLocationNotice";
 
 export function VisitRecordButton({ store }: { store: Store }) {
   const [waitTime, setWaitTime] = useState<WaitTimeBucket>("within_5");
@@ -46,20 +50,15 @@ export function VisitRecordButton({ store }: { store: Store }) {
       <div className="mt-4">
         <WaitTimeSelector value={waitTime} onChange={setWaitTime} />
       </div>
-      <Button className="mt-4 w-full sm:w-auto" onClick={saveRecord} disabled={isSaving || !canSaveWithLocation}>
+      <Button
+        className="mt-4 w-full sm:w-auto"
+        onClick={saveRecord}
+        disabled={isSaving || status === "requesting" || status === "unavailable"}
+      >
         {saved ? <CheckCircle2 className="size-4" aria-hidden="true" /> : <Navigation className="size-4" aria-hidden="true" />}
-        {isSaving ? "保存中" : saved ? "記録済み" : canSaveWithLocation ? "来店記録を保存" : "位置情報を取得してください"}
+        {isSaving ? "保存中" : saved ? "記録済み" : canSaveWithLocation ? "来店記録を保存" : getVisitLocationButtonLabel(status)}
       </Button>
-      {!canSaveWithLocation ? (
-        <div className="mt-3 rounded-md bg-amber-50 px-3 py-2 text-sm font-bold text-amber-800">
-          <p>{locationMessage}</p>
-          {status === "denied" || status === "failed" ? (
-            <button type="button" className="mt-2 underline underline-offset-4" onClick={requestLocation}>
-              もう一度取得する
-            </button>
-          ) : null}
-        </div>
-      ) : null}
+      {!canSaveWithLocation ? <VisitLocationNotice status={status} message={locationMessage} /> : null}
       {error ? <p className="mt-3 rounded-md bg-red-50 px-3 py-2 text-sm font-bold text-red-700">{error}</p> : null}
     </div>
   );

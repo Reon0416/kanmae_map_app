@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { WAIT_TIME_BUCKET } from "@/constants/wait-time-options";
-import { getStoreSummaries } from "@/features/stores/store-queries";
+import { getStoreInfoById } from "@/features/stores/store-queries";
 import { hashAnonymousVisitorId } from "@/features/visit-records/anonymous-visitor-server";
+import { validateVisitLocation } from "@/features/visit-records/validate-location";
 import { checkRateLimit } from "@/lib/security/rate-limit";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -36,12 +37,22 @@ export async function POST(request: Request) {
 
   const started = performance.now();
   const supabase = await createSupabaseServerClient();
-  const stores = await getStoreSummaries();
+  const store = await getStoreInfoById(body.data.storeId);
   const verifiedAt = performance.now();
 
-  const store = stores.find(store => store.id === body.data.storeId);
   if (!store) {
     return NextResponse.json({ error: "Store not found" }, { status: 404 });
+  }
+
+  const visitLocation = validateVisitLocation(body.data.location, {
+    lat: store.lat,
+    lng: store.lng
+  });
+  if (!visitLocation.isValid) {
+    return NextResponse.json(
+      { error: "店舗付近でのみ来店記録できます。正確な位置情報をオンにして、店舗の近くでもう一度お試しください。" },
+      { status: 403 }
+    );
   }
 
   const stampStoreKey = store.assetKey ?? store.id;

@@ -12,6 +12,10 @@ import { playStampSound } from "@/features/visit-records/stamp-sound";
 import { prepareStampReward } from "@/features/visit-records/stamp-reward-loader";
 import { StampRewardOverlay } from "@/components/visit-records/StampRewardOverlay";
 import { useVisitLocation } from "@/features/visit-records/use-visit-location";
+import {
+  getVisitLocationButtonLabel,
+  VisitLocationNotice
+} from "@/components/visit-records/VisitLocationNotice";
 
 export { OPEN_STORE_DETAIL_RECORD_EVENT } from "@/features/visit-records/record-events";
 
@@ -164,7 +168,7 @@ export function StoreRecordSheet({
             <Button
               className="mt-5 h-14 w-full rounded-2xl bg-emerald-500 text-base font-black text-white shadow-[0_16px_34px_rgba(16,185,129,0.35)] hover:bg-emerald-600"
               onClick={saveRecord}
-              disabled={isSaving || saved || !canSaveWithLocation}
+              disabled={isSaving || saved || status === "requesting" || status === "unavailable"}
             >
               {saved ? <CheckCircle2 className="size-5" aria-hidden="true" /> : null}
               {isSaving
@@ -173,18 +177,9 @@ export function StoreRecordSheet({
                   ? "記録しました"
                   : canSaveWithLocation
                     ? ownerWaitTimeLocked ? "スタンプを押す" : "記録する"
-                    : "位置情報を取得してください"}
+                    : getVisitLocationButtonLabel(status)}
             </Button>
-            {!canSaveWithLocation ? (
-              <div className="mt-3 rounded-md bg-amber-50 px-3 py-2 text-sm font-bold text-amber-800">
-                <p>{locationMessage}</p>
-                {status === "denied" || status === "failed" ? (
-                  <button type="button" className="mt-2 underline underline-offset-4" onClick={requestLocation}>
-                    もう一度取得する
-                  </button>
-                ) : null}
-              </div>
-            ) : null}
+            {!canSaveWithLocation ? <VisitLocationNotice status={status} message={locationMessage} /> : null}
             {error ? <p className="mt-3 rounded-md bg-red-50 px-3 py-2 text-sm font-bold text-red-700">{error}</p> : null}
           </section>
         </div>

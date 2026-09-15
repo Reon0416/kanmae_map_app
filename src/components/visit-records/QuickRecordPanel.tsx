@@ -13,6 +13,10 @@ import { cn } from "@/lib/utils";
 import { prepareStampReward } from "@/features/visit-records/stamp-reward-loader";
 import { StampRewardOverlay } from "@/components/visit-records/StampRewardOverlay";
 import { useVisitLocation } from "@/features/visit-records/use-visit-location";
+import {
+  getVisitLocationButtonLabel,
+  VisitLocationNotice
+} from "@/components/visit-records/VisitLocationNotice";
 
 export function QuickRecordPanel({ stores }: { stores: StoreSummary[] }) {
   const [storeId, setStoreId] = useState<string | null>(null);
@@ -169,21 +173,12 @@ export function QuickRecordPanel({ stores }: { stores: StoreSummary[] }) {
             <Button
               className="mt-5 h-14 w-full rounded-2xl bg-emerald-500 text-base font-black text-white shadow-[0_16px_34px_rgba(16,185,129,0.35)] hover:bg-emerald-600"
               onClick={saveRecord}
-              disabled={isSaving || saved || !canSaveWithLocation}
+              disabled={isSaving || saved || status === "requesting" || status === "unavailable"}
             >
               {saved ? <CheckCircle2 className="size-5" aria-hidden="true" /> : null}
-              {isSaving ? "保存中" : saved ? "記録しました" : canSaveWithLocation ? "記録する" : "位置情報を取得してください"}
+              {isSaving ? "保存中" : saved ? "記録しました" : getVisitLocationButtonLabel(status)}
             </Button>
-            {!canSaveWithLocation ? (
-              <div className="mt-3 rounded-md bg-amber-50 px-3 py-2 text-sm font-bold text-amber-800">
-                <p>{locationMessage}</p>
-                {status === "denied" || status === "failed" ? (
-                  <button type="button" className="mt-2 underline underline-offset-4" onClick={requestLocation}>
-                    もう一度取得する
-                  </button>
-                ) : null}
-              </div>
-            ) : null}
+            {!canSaveWithLocation ? <VisitLocationNotice status={status} message={locationMessage} /> : null}
             {error ? <p className="mt-3 rounded-md bg-red-50 px-3 py-2 text-sm font-bold text-red-700">{error}</p> : null}
           </section>
         </div>
