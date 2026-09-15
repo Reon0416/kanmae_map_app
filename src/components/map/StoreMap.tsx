@@ -623,7 +623,7 @@ export function StoreMap({
           <section className="w-full max-w-md rounded-[30px] bg-white p-4 text-slate-900 shadow-[0_30px_90px_rgba(0,0,0,0.35)]">
             <div className="px-1 pt-1">
               <div>
-                <p className="text-xs font-black text-emerald-600">現在地の設定</p>
+                <p className="text-xs font-black text-red-600">現在地の設定</p>
                 <h2 className="mt-0.5 text-2xl font-black leading-tight text-slate-950">{locationError.title}</h2>
               </div>
             </div>
@@ -631,7 +631,7 @@ export function StoreMap({
             <ol className="mt-4 grid gap-2 rounded-2xl bg-slate-50 p-3 text-sm font-semibold leading-relaxed text-slate-600">
               {locationError.steps.map((step, index) => (
                 <li key={step} className="flex gap-2">
-                  <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-emerald-500 text-[0.72rem] font-black text-white">
+                  <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-red-500 text-[0.72rem] font-black text-white">
                     {index + 1}
                   </span>
                   <span>{step}</span>
@@ -641,7 +641,7 @@ export function StoreMap({
             <div className="mt-5 flex gap-2">
               <button
                 type="button"
-                className="h-14 flex-1 rounded-2xl bg-emerald-500 px-3 text-sm font-black text-white shadow-[0_16px_34px_rgba(16,185,129,0.35)] transition active:scale-[0.98] disabled:scale-100 disabled:bg-emerald-300 disabled:shadow-none"
+                className="h-14 flex-1 rounded-2xl bg-red-500 px-3 text-sm font-black text-white shadow-[0_16px_34px_rgba(239,68,68,0.32)] transition active:scale-[0.98] disabled:scale-100 disabled:bg-red-300 disabled:shadow-none"
                 onClick={() => locateUser({ keepErrorVisible: true })}
                 disabled={isLocating}
               >
