@@ -8,7 +8,7 @@ const noChromePaths = new Set(["/login", "/signup", "/terms", "/privacy"]);
 export function AppChrome() {
   const pathname = usePathname();
 
-  if (noChromePaths.has(pathname)) {
+  if (noChromePaths.has(pathname) || pathname.startsWith("/admin")) {
     return null;
   }
 

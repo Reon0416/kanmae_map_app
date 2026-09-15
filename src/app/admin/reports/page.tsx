@@ -1,6 +1,6 @@
 export default function AdminReportsPage() {
   return (
-    <main className="mx-auto max-w-5xl px-4 pb-24 pt-6 md:px-6">
+    <main className="mx-auto max-w-5xl px-4 pb-24 pt-6 md:px-6 md:pb-10">
       <h1 className="text-2xl font-black">報告確認</h1>
       <div className="mt-5 rounded-lg border border-border bg-white p-5 shadow-sm">
         <p className="text-sm text-slate-600">
