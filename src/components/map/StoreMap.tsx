@@ -3,6 +3,7 @@
 import { LocateFixed, X } from "lucide-react";
 import Image from "next/image";
 import { WAIT_TIME_BUCKET, WAIT_TIME_LABELS } from "@/constants/wait-time-options";
+import { SET_MAP_BOTTOM_NAV_HIDDEN_EVENT } from "@/components/layout/BottomNav";
 import type { Store } from "@/features/stores/store-types";
 import { ACTIVE_MAP_LAYOUT, ACTIVE_MAP_SOURCE_SIZE, ACTIVE_MAP_TILES, MAP_STORE_PLACEMENTS } from "@/lib/map/map-layout";
 import { KANMAE_MAP_IMAGE, latLngToMapPosition } from "@/lib/map/map-config";
@@ -365,6 +366,18 @@ export function StoreMap({
     autoLocationRequested.current = true;
     locateUser();
   }, [locateUser]);
+
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent(SET_MAP_BOTTOM_NAV_HIDDEN_EVENT, {
+      detail: { hidden: Boolean(locationError) }
+    }));
+
+    return () => {
+      window.dispatchEvent(new CustomEvent(SET_MAP_BOTTOM_NAV_HIDDEN_EVENT, {
+        detail: { hidden: false }
+      }));
+    };
+  }, [locationError]);
 
   const handlePointerDown = (event: PointerEvent<HTMLElement>) => {
     if (event.button !== 0) return;

@@ -10,6 +10,7 @@ import { USER_ROLE, type UserRole } from "@/features/auth/roles";
 import { cn } from "@/lib/utils";
 
 export const TOGGLE_MAP_BOTTOM_NAV_EVENT = "kanmae:toggle-map-bottom-nav";
+export const SET_MAP_BOTTOM_NAV_HIDDEN_EVENT = "kanmae:set-map-bottom-nav-hidden";
 
 const itemsByRole = {
   store: [
@@ -78,8 +79,17 @@ export function BottomNav() {
       }
     };
 
+    const setMapNavHidden = (event: Event) => {
+      if (window.location.pathname !== "/") return;
+      setIsMapNavHidden(Boolean((event as CustomEvent<{ hidden?: boolean }>).detail?.hidden));
+    };
+
     window.addEventListener(TOGGLE_MAP_BOTTOM_NAV_EVENT, toggleMapNav);
-    return () => window.removeEventListener(TOGGLE_MAP_BOTTOM_NAV_EVENT, toggleMapNav);
+    window.addEventListener(SET_MAP_BOTTOM_NAV_HIDDEN_EVENT, setMapNavHidden);
+    return () => {
+      window.removeEventListener(TOGGLE_MAP_BOTTOM_NAV_EVENT, toggleMapNav);
+      window.removeEventListener(SET_MAP_BOTTOM_NAV_HIDDEN_EVENT, setMapNavHidden);
+    };
   }, []);
 
   const items = role === USER_ROLE.USER ? getUserItems(pathname) : itemsByRole[role];
