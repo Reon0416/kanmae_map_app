@@ -127,7 +127,7 @@ export function StoreRecordSheet({
       });
       setSaved(true);
     } catch {
-      setShowStampReward(false);
+      // Keep the stamp visible even if the background save fails.
     } finally {
       savingRef.current = false;
       setIsSaving(false);
