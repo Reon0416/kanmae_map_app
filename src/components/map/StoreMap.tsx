@@ -1,6 +1,6 @@
 "use client";
 
-import { LocateFixed } from "lucide-react";
+import { LocateFixed, X } from "lucide-react";
 import Image from "next/image";
 import { WAIT_TIME_BUCKET, WAIT_TIME_LABELS } from "@/constants/wait-time-options";
 import type { Store } from "@/features/stores/store-types";
@@ -482,7 +482,7 @@ export function StoreMap({
       onWheel={handleWheel}
     >
       <div
-        className={`absolute left-1/2 top-1/2 overflow-hidden transition-opacity duration-200 ${locationError ? "opacity-45" : "opacity-100"}`}
+        className="absolute left-1/2 top-1/2 overflow-hidden"
         style={{
           width: mapSize.width || undefined,
           height: mapSize.height || undefined,
@@ -593,37 +593,53 @@ export function StoreMap({
         </button>
       </div>
       {locationError ? (
-        <div className="absolute inset-0 z-30 bg-white/20 backdrop-blur-[1px]" data-map-control>
-          <div className="absolute inset-x-4 top-1/2 mx-auto max-w-sm -translate-y-1/2 rounded-lg border border-white/85 bg-white/96 p-4 text-slate-900 shadow-panel">
-            <p className="text-base font-black">{locationError.title}</p>
-            <p className="mt-2 text-sm font-bold leading-relaxed text-slate-700">{locationError.body}</p>
-            <ol className="mt-3 grid gap-2 text-sm font-semibold leading-relaxed text-slate-600">
+        <div
+          className="absolute inset-0 z-30 flex items-end justify-center bg-slate-950/45 px-3 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-8 backdrop-blur-[2px] sm:items-center"
+          data-map-control
+        >
+          <section className="w-full max-w-md rounded-[30px] bg-white p-4 text-slate-900 shadow-[0_30px_90px_rgba(0,0,0,0.35)]">
+            <div className="flex items-start justify-between gap-3 px-1 pt-1">
+              <div>
+                <p className="text-xs font-black text-emerald-600">現在地の設定</p>
+                <h2 className="mt-0.5 text-2xl font-black leading-tight text-slate-950">{locationError.title}</h2>
+              </div>
+              <button
+                type="button"
+                className="flex size-10 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-500"
+                onClick={() => setLocationError(null)}
+                aria-label="閉じる"
+              >
+                <X className="size-5" aria-hidden="true" />
+              </button>
+            </div>
+            <p className="mt-4 px-1 text-sm font-bold leading-relaxed text-slate-700">{locationError.body}</p>
+            <ol className="mt-4 grid gap-2 rounded-2xl bg-slate-50 p-3 text-sm font-semibold leading-relaxed text-slate-600">
               {locationError.steps.map((step, index) => (
                 <li key={step} className="flex gap-2">
-                  <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-slate-950 text-[0.65rem] font-black text-white">
+                  <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-emerald-500 text-[0.72rem] font-black text-white">
                     {index + 1}
                   </span>
                   <span>{step}</span>
                 </li>
               ))}
             </ol>
-            <div className="mt-4 flex gap-2">
+            <div className="mt-5 flex gap-2">
               <button
                 type="button"
-                className="min-h-10 flex-1 rounded-md bg-slate-950 px-3 text-xs font-black text-white shadow-sm"
+                className="h-14 flex-1 rounded-2xl bg-emerald-500 px-3 text-sm font-black text-white shadow-[0_16px_34px_rgba(16,185,129,0.35)]"
                 onClick={locateUser}
               >
                 もう一度試す
               </button>
               <button
                 type="button"
-                className="min-h-10 flex-1 rounded-md border border-slate-200 bg-white px-3 text-xs font-black text-slate-700"
+                className="h-14 flex-1 rounded-2xl bg-slate-100 px-3 text-sm font-black text-slate-700"
                 onClick={() => setLocationError(null)}
               >
                 閉じる
               </button>
             </div>
-          </div>
+          </section>
         </div>
       ) : null}
       {locationMessage ? (
