@@ -71,7 +71,6 @@ export function StoreRecordSheet({
   const [waitTime, setWaitTime] = useState<WaitTimeBucket>("within_5");
   const [saved, setSaved] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [showStampReward, setShowStampReward] = useState(false);
   const [, setLockTick] = useState(0);
   const savingRef = useRef(false);
@@ -82,7 +81,6 @@ export function StoreRecordSheet({
     if (isOpen) {
       setWaitTime("within_5");
       setSaved(false);
-      setError(null);
       setShowStampReward(false);
     }
   }, [isOpen, store.id]);
@@ -100,7 +98,6 @@ export function StoreRecordSheet({
   const closeSheet = () => {
     if (savingRef.current) return;
     setSaved(false);
-    setError(null);
     setShowStampReward(false);
     onClose();
   };
@@ -110,7 +107,6 @@ export function StoreRecordSheet({
 
     savingRef.current = true;
     setIsSaving(true);
-    setError(null);
 
     const recordLocation = location ?? await requestLocation();
     if (!recordLocation) {
@@ -124,16 +120,14 @@ export function StoreRecordSheet({
     setShowStampReward(true);
     try { playStampSound(); } catch { /* Audio failure must not interrupt saving. */ }
     try {
-      const result = await saveVisitRecord({
+      await saveVisitRecord({
         storeId: store.id,
         waitTime: ownerWaitTimeLocked ? "no_wait" : waitTime,
         location: recordLocation
       });
-      if (result.crowdStatusUpdated === false) setError("スタンプは保存しましたが、待ち時間の更新に失敗しました。");
       setSaved(true);
-    } catch (saveError) {
+    } catch {
       setShowStampReward(false);
-      setError(saveError instanceof Error ? saveError.message : "来店記録を保存できませんでした。");
     } finally {
       savingRef.current = false;
       setIsSaving(false);
@@ -180,7 +174,6 @@ export function StoreRecordSheet({
                   ? "記録しました"
                   : ownerWaitTimeLocked ? "スタンプを押す" : "記録する"}
             </Button>
-            {error ? <p className="mt-3 rounded-md bg-red-50 px-3 py-2 text-sm font-bold text-red-700">{error}</p> : null}
           </section>
         </div>
       ) : null}
