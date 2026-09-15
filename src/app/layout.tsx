@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { LegalGate } from "@/components/legal/LegalGate";
 import { AppChrome } from "@/components/layout/AppChrome";
 import "./globals.css";
 
@@ -18,7 +19,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     <html lang="ja">
       <body>
         <AppChrome />
-        {children}
+        <LegalGate>{children}</LegalGate>
       </body>
     </html>
   );
