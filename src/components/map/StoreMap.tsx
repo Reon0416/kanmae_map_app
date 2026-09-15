@@ -16,6 +16,12 @@ type UserLocation = {
   accuracy: number;
 };
 
+type LocationError = {
+  title: string;
+  body: string;
+  steps: string[];
+};
+
 type MapOffset = {
   x: number;
   y: number;
@@ -30,6 +36,15 @@ const INITIAL_SCALE = 1;
 const INITIAL_OFFSET = { x: 0, y: 0 };
 const TAP_MOVE_THRESHOLD = 8;
 const LANDMARK_PLACEMENT_IDS = new Set(["kandai"]);
+
+const LOCATION_PERMISSION_ERROR: LocationError = {
+  title: "現在地を取得できませんでした",
+  body: "お使いのブラウザの位置情報許可をオンにすると、マップ上に現在地を表示できます。",
+  steps: [
+    "設定で「プライバシーとセキュリティ」を開いてください。",
+    "「位置情報サービス」の中からお使いのブラウザを選び、位置情報をオンにしてください。"
+  ]
+};
 
 function getMapWaitTimeValue(waitTime: Store["waitTime"]) {
   if (waitTime === WAIT_TIME_BUCKET.NO_WAIT) return "0";
@@ -220,6 +235,7 @@ export function StoreMap({
 }) {
   const [userLocation, setUserLocation] = useState<UserLocation | null>(null);
   const [locationMessage, setLocationMessage] = useState<string | null>(null);
+  const [locationError, setLocationError] = useState<LocationError | null>(null);
   const [scale, setScale] = useState(INITIAL_SCALE);
   const [offset, setOffset] = useState<MapOffset>(INITIAL_OFFSET);
   const [mapSize, setMapSize] = useState<MapSize>({ width: 0, height: 0 });
@@ -310,10 +326,15 @@ export function StoreMap({
 
   const locateUser = useCallback(() => {
     if (!navigator.geolocation) {
-      setLocationMessage("このブラウザでは現在地を取得できません");
+      setLocationMessage(null);
+      setLocationError({
+        ...LOCATION_PERMISSION_ERROR,
+        steps: ["位置情報に対応したChromeまたはSafariで開いてください。", ...LOCATION_PERMISSION_ERROR.steps]
+      });
       return;
     }
 
+    setLocationError(null);
     setLocationMessage("現在地を取得中");
     navigator.geolocation.getCurrentPosition(
       (position) => {
@@ -327,7 +348,9 @@ export function StoreMap({
         setLocationMessage(null);
       },
       () => {
-        setLocationMessage("現在地の許可が必要です");
+        setUserLocation(null);
+        setLocationMessage(null);
+        setLocationError(LOCATION_PERMISSION_ERROR);
       },
       {
         enableHighAccuracy: true,
@@ -459,7 +482,7 @@ export function StoreMap({
       onWheel={handleWheel}
     >
       <div
-        className="absolute left-1/2 top-1/2 overflow-hidden"
+        className={`absolute left-1/2 top-1/2 overflow-hidden transition-opacity duration-200 ${locationError ? "opacity-45" : "opacity-100"}`}
         style={{
           width: mapSize.width || undefined,
           height: mapSize.height || undefined,
@@ -569,6 +592,40 @@ export function StoreMap({
           <LocateFixed className="size-5" aria-hidden="true" />
         </button>
       </div>
+      {locationError ? (
+        <div className="absolute inset-0 z-30 bg-white/20 backdrop-blur-[1px]" data-map-control>
+          <div className="absolute inset-x-4 top-1/2 mx-auto max-w-sm -translate-y-1/2 rounded-lg border border-white/85 bg-white/96 p-4 text-slate-900 shadow-panel">
+            <p className="text-base font-black">{locationError.title}</p>
+            <p className="mt-2 text-sm font-bold leading-relaxed text-slate-700">{locationError.body}</p>
+            <ol className="mt-3 grid gap-2 text-sm font-semibold leading-relaxed text-slate-600">
+              {locationError.steps.map((step, index) => (
+                <li key={step} className="flex gap-2">
+                  <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-slate-950 text-[0.65rem] font-black text-white">
+                    {index + 1}
+                  </span>
+                  <span>{step}</span>
+                </li>
+              ))}
+            </ol>
+            <div className="mt-4 flex gap-2">
+              <button
+                type="button"
+                className="min-h-10 flex-1 rounded-md bg-slate-950 px-3 text-xs font-black text-white shadow-sm"
+                onClick={locateUser}
+              >
+                もう一度試す
+              </button>
+              <button
+                type="button"
+                className="min-h-10 flex-1 rounded-md border border-slate-200 bg-white px-3 text-xs font-black text-slate-700"
+                onClick={() => setLocationError(null)}
+              >
+                閉じる
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
       {locationMessage ? (
         <div className="absolute left-4 top-4 z-20 rounded-md bg-white/92 px-3 py-2 text-xs font-bold text-slate-700 shadow-sm">
           {locationMessage}
