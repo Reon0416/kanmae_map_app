@@ -7,6 +7,7 @@ import { CheckCircle2, FileText, ShieldCheck } from "lucide-react";
 import { CURRENT_LEGAL_VERSION, LEGAL_ACCEPTANCE_STORAGE_KEY } from "@/constants/legal";
 
 const legalPaths = new Set(["/terms", "/privacy"]);
+type AcceptanceStatus = "checking" | "accepted" | "pending";
 
 type LegalGateProps = {
   children: ReactNode;
@@ -14,28 +15,26 @@ type LegalGateProps = {
 
 export function LegalGate({ children }: LegalGateProps) {
   const pathname = usePathname();
-  const [isReady, setIsReady] = useState(false);
-  const [hasAccepted, setHasAccepted] = useState(false);
+  const [acceptanceStatus, setAcceptanceStatus] = useState<AcceptanceStatus>("checking");
   const [isChecked, setIsChecked] = useState(false);
   const isLegalPage = legalPaths.has(pathname);
 
   useEffect(() => {
     if (isLegalPage) {
-      setIsReady(true);
+      setAcceptanceStatus("accepted");
       return;
     }
 
     const acceptedVersion = window.localStorage.getItem(LEGAL_ACCEPTANCE_STORAGE_KEY);
-    setHasAccepted(acceptedVersion === CURRENT_LEGAL_VERSION);
-    setIsReady(true);
+    setAcceptanceStatus(acceptedVersion === CURRENT_LEGAL_VERSION ? "accepted" : "pending");
   }, [isLegalPage, pathname]);
 
   function acceptLegalDocuments() {
     window.localStorage.setItem(LEGAL_ACCEPTANCE_STORAGE_KEY, CURRENT_LEGAL_VERSION);
-    setHasAccepted(true);
+    setAcceptanceStatus("accepted");
   }
 
-  if (isLegalPage || (isReady && hasAccepted)) {
+  if (isLegalPage || acceptanceStatus !== "pending") {
     return children;
   }
 
@@ -93,7 +92,7 @@ export function LegalGate({ children }: LegalGateProps) {
 
           <button
             type="button"
-            disabled={!isReady || !isChecked}
+            disabled={!isChecked}
             onClick={acceptLegalDocuments}
             className="mt-4 flex h-11 w-full items-center justify-center gap-2 rounded-md bg-slate-950 px-4 text-sm font-black text-white transition enabled:hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-300"
           >
