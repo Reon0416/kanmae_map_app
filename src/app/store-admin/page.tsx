@@ -27,7 +27,7 @@ export default async function StoreAdminPage() {
   const store = await getCurrentStoreAdminStore();
 
   return (
-    <main className="min-h-dvh bg-slate-100 px-4 pb-24 pt-5 md:pb-10">
+    <main className="min-h-dvh bg-slate-100 px-4 pb-24 pt-5">
       <div className="mx-auto max-w-xl">
         <div className="flex items-center justify-between gap-3">
           <div>

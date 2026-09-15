@@ -100,7 +100,7 @@ export function BottomNav() {
   return (
     <nav
       className={cn(
-        "fixed inset-x-0 bottom-0 z-40 border-t border-border bg-white transition-transform duration-300 ease-out md:hidden",
+        "fixed inset-x-0 bottom-0 z-40 border-t border-border bg-white transition-transform duration-300 ease-out",
         isMapPage && isMapNavHidden && "translate-y-[calc(100%+2.5rem)]"
       )}
     >

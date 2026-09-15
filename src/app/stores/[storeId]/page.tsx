@@ -25,7 +25,7 @@ export default async function StoreDetailPage({ params }: { params: Promise<{ st
   const genre = getStoreDisplayGenre(store);
 
   return (
-    <main className="min-h-dvh bg-slate-100 pb-24 pt-5 md:pb-10">
+    <main className="min-h-dvh bg-slate-100 pb-24 pt-5">
       <Link href="/stores" prefetch={false} className="inline-flex items-center gap-2 px-4 text-sm font-semibold text-slate-600 hover:text-slate-950">
         <ArrowLeft className="size-4" aria-hidden="true" />
         店舗一覧へ

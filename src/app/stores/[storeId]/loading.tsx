@@ -3,7 +3,7 @@ import { ArrowLeft } from "lucide-react";
 
 export default function StoreDetailLoading() {
   return (
-    <main className="min-h-dvh bg-slate-100 pb-24 pt-5 md:pb-10" aria-busy="true">
+    <main className="min-h-dvh bg-slate-100 pb-24 pt-5" aria-busy="true">
       <Link href="/stores" prefetch={false} className="inline-flex items-center gap-2 px-4 text-sm font-semibold text-slate-600">
         <ArrowLeft className="size-4" aria-hidden="true" />
         店舗一覧へ

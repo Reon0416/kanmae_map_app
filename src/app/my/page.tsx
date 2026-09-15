@@ -10,7 +10,7 @@ async function StampContent() {
 
 export default function MyPage() {
   return (
-    <main className="pb-24 pt-6 md:mx-auto md:max-w-4xl md:pb-10">
+    <main className="pb-24 pt-6 md:mx-auto md:max-w-4xl">
       <div className="flex items-center justify-between gap-4 px-4 md:px-6">
         <h1 className="text-2xl font-black">マイページ</h1>
       </div>

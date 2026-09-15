@@ -84,7 +84,7 @@ export function AdminShell({
               </div>
             </div>
           </header>
-          <div className="px-4 py-5 md:px-8 md:py-7">{children}</div>
+          <div className="px-4 pb-24 pt-5 md:px-8 md:pt-7">{children}</div>
         </section>
       </div>
     </main>
