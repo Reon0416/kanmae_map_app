@@ -37,11 +37,12 @@ type MapSize = {
 const INITIAL_SCALE = 1;
 const INITIAL_OFFSET = { x: 0, y: 0 };
 const TAP_MOVE_THRESHOLD = 8;
+const MIN_LOCATION_FEEDBACK_MS = 600;
 const LANDMARK_PLACEMENT_IDS = new Set(["kandai"]);
 
 const LOCATION_PERMISSION_ERROR: LocationError = {
   title: "位置情報を取得できません",
-  body: "お使いのブラウザの位置情報を許可すると、待ち時間の記録ができるようになります。",
+  body: "お使いの端末または、ブラウザの位置情報を許可すると、待ち時間の記録ができるようになります。",
   steps: [
     "設定で「プライバシーとセキュリティ」を開いてください。",
     "「位置情報サービス」の中からお使いのブラウザを選び、位置情報をオンにしてください。"
@@ -328,15 +329,11 @@ export function StoreMap({
   }, [nowMs, stores]);
 
   const locateUser = useCallback((options?: { keepErrorVisible?: boolean }) => {
-    if (!navigator.geolocation) {
-      setIsLocating(false);
-      setLocationMessage(null);
-      setLocationError({
-        ...LOCATION_PERMISSION_ERROR,
-        steps: ["位置情報に対応したChromeまたはSafariで開いてください。", ...LOCATION_PERMISSION_ERROR.steps]
-      });
-      return;
-    }
+    const requestStartedAt = Date.now();
+    const finishAfterFeedback = (finish: () => void) => {
+      const remainingMs = Math.max(0, MIN_LOCATION_FEEDBACK_MS - (Date.now() - requestStartedAt));
+      window.setTimeout(finish, remainingMs);
+    };
 
     setIsLocating(true);
     if (!options?.keepErrorVisible) {
@@ -345,24 +342,41 @@ export function StoreMap({
     } else {
       setLocationMessage(null);
     }
+
+    if (!navigator.geolocation) {
+      finishAfterFeedback(() => {
+        setIsLocating(false);
+        setLocationMessage(null);
+        setLocationError({
+          ...LOCATION_PERMISSION_ERROR,
+          steps: ["位置情報に対応したChromeまたはSafariで開いてください。", ...LOCATION_PERMISSION_ERROR.steps]
+        });
+      });
+      return;
+    }
+
     navigator.geolocation.getCurrentPosition(
       (position) => {
-        setUserLocation({
-          position: latLngToMapPosition({
-            lat: position.coords.latitude,
-            lng: position.coords.longitude
-          }),
-          accuracy: position.coords.accuracy
+        finishAfterFeedback(() => {
+          setUserLocation({
+            position: latLngToMapPosition({
+              lat: position.coords.latitude,
+              lng: position.coords.longitude
+            }),
+            accuracy: position.coords.accuracy
+          });
+          setIsLocating(false);
+          setLocationError(null);
+          setLocationMessage(null);
         });
-        setIsLocating(false);
-        setLocationError(null);
-        setLocationMessage(null);
       },
       () => {
-        setIsLocating(false);
-        setUserLocation(null);
-        setLocationMessage(null);
-        setLocationError(LOCATION_PERMISSION_ERROR);
+        finishAfterFeedback(() => {
+          setIsLocating(false);
+          setUserLocation(null);
+          setLocationMessage(null);
+          setLocationError(LOCATION_PERMISSION_ERROR);
+        });
       },
       {
         enableHighAccuracy: true,
