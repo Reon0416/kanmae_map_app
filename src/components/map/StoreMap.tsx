@@ -38,6 +38,7 @@ const INITIAL_SCALE = 1;
 const INITIAL_OFFSET = { x: 0, y: 0 };
 const TAP_MOVE_THRESHOLD = 8;
 const MIN_LOCATION_FEEDBACK_MS = 600;
+const LOCATION_ERROR_RERENDER_DELAY_MS = 60;
 const LANDMARK_PLACEMENT_IDS = new Set(["kandai"]);
 
 const LOCATION_PERMISSION_ERROR: LocationError = {
@@ -250,6 +251,18 @@ export function StoreMap({
   const suppressNextStoreClick = useRef(false);
   const autoLocationRequested = useRef(false);
 
+  const showLocationErrorSheet = useCallback((error: LocationError = LOCATION_PERMISSION_ERROR, rerender = false) => {
+    setLocationMessage(null);
+
+    if (!rerender) {
+      setLocationError(error);
+      return;
+    }
+
+    setLocationError(null);
+    window.setTimeout(() => setLocationError(error), LOCATION_ERROR_RERENDER_DELAY_MS);
+  }, []);
+
   const visiblePlacements = useMemo(() => {
     return MAP_STORE_PLACEMENTS
       .map((placement) => ({
@@ -346,11 +359,10 @@ export function StoreMap({
     if (!navigator.geolocation) {
       finishAfterFeedback(() => {
         setIsLocating(false);
-        setLocationMessage(null);
-        setLocationError({
+        showLocationErrorSheet({
           ...LOCATION_PERMISSION_ERROR,
           steps: ["位置情報に対応したChromeまたはSafariで開いてください。", ...LOCATION_PERMISSION_ERROR.steps]
-        });
+        }, Boolean(options?.keepErrorVisible));
       });
       return;
     }
@@ -374,8 +386,7 @@ export function StoreMap({
         finishAfterFeedback(() => {
           setIsLocating(false);
           setUserLocation(null);
-          setLocationMessage(null);
-          setLocationError(LOCATION_PERMISSION_ERROR);
+          showLocationErrorSheet(LOCATION_PERMISSION_ERROR, Boolean(options?.keepErrorVisible));
         });
       },
       {
@@ -384,7 +395,7 @@ export function StoreMap({
         timeout: 10000
       }
     );
-  }, []);
+  }, [showLocationErrorSheet]);
 
   useEffect(() => {
     if (autoLocationRequested.current) return;
@@ -406,13 +417,12 @@ export function StoreMap({
 
   useEffect(() => {
     const showLocationError = () => {
-      setLocationMessage(null);
-      setLocationError(LOCATION_PERMISSION_ERROR);
+      showLocationErrorSheet();
     };
 
     window.addEventListener(SHOW_MAP_LOCATION_ERROR_EVENT, showLocationError);
     return () => window.removeEventListener(SHOW_MAP_LOCATION_ERROR_EVENT, showLocationError);
-  }, []);
+  }, [showLocationErrorSheet]);
 
   const handlePointerDown = (event: PointerEvent<HTMLElement>) => {
     if (event.button !== 0) return;
