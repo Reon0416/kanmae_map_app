@@ -34,8 +34,12 @@ export function LegalGate({ children }: LegalGateProps) {
     setAcceptanceStatus("accepted");
   }
 
-  if (isLegalPage || acceptanceStatus !== "pending") {
+  if (isLegalPage || acceptanceStatus === "accepted") {
     return children;
+  }
+
+  if (acceptanceStatus === "checking") {
+    return null;
   }
 
   return (
