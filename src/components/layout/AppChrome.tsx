@@ -3,7 +3,7 @@
 import { usePathname } from "next/navigation";
 import { BottomNav } from "@/components/layout/BottomNav";
 
-const noChromePaths = new Set(["/login", "/signup"]);
+const noChromePaths = new Set(["/login", "/signup", "/terms", "/privacy"]);
 
 export function AppChrome() {
   const pathname = usePathname();
