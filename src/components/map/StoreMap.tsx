@@ -43,19 +43,6 @@ function getLocationMessage(status: LocationStatus) {
 }
 
 function getLocationGuide(status: LocationStatus) {
-  if (status === "idle") {
-    return {
-      title: "現在地をマップに表示しますか",
-      body: "近くのお店を探しやすくするため、現在地を使えます。",
-      steps: [
-        "次の画面でChromeやSafariの位置情報確認が出たら「許可」を選んでください。",
-        "現在地はマップ上の表示に使います。"
-      ],
-      actionLabel: "現在地を表示",
-      canRetry: true
-    };
-  }
-
   if (status === "denied") {
     return {
       title: "現在地を使うには許可が必要です",
@@ -64,7 +51,6 @@ function getLocationGuide(status: LocationStatus) {
         "ブラウザやiPhoneの位置情報確認が出たら「許可」を選んでください。",
         "すでに拒否している場合は、端末設定またはブラウザのサイト設定から位置情報を許可してください。"
       ],
-      actionLabel: "もう一度許可する",
       canRetry: true
     };
   }
@@ -77,7 +63,6 @@ function getLocationGuide(status: LocationStatus) {
         "iPhoneの「設定」から位置情報サービスをオンにしてください。",
         "ChromeやSafariにも位置情報の利用を許可してください。"
       ],
-      actionLabel: "もう一度試す",
       canRetry: true
     };
   }
@@ -87,7 +72,6 @@ function getLocationGuide(status: LocationStatus) {
       title: "現在地の取得に時間がかかっています",
       body: "屋内や通信状況によって取得に時間がかかることがあります。",
       steps: ["少し場所を移動するか、時間を置いてもう一度お試しください。"],
-      actionLabel: "もう一度試す",
       canRetry: true
     };
   }
@@ -302,6 +286,7 @@ export function StoreMap({
   const pointers = useRef(new Map<number, PointerPosition>());
   const gesture = useRef<GestureState | null>(null);
   const suppressNextStoreClick = useRef(false);
+  const autoLocationRequested = useRef(false);
 
   const visiblePlacements = useMemo(() => {
     return MAP_STORE_PLACEMENTS
@@ -422,6 +407,12 @@ export function StoreMap({
       }
     );
   }, []);
+
+  useEffect(() => {
+    if (autoLocationRequested.current) return;
+    autoLocationRequested.current = true;
+    locateUser();
+  }, [locateUser]);
 
   const locationMessage = getLocationMessage(locationStatus);
   const locationGuide = isLocationGuideDismissed ? null : getLocationGuide(locationStatus);
@@ -674,7 +665,7 @@ export function StoreMap({
                 className="min-h-10 flex-1 rounded-md bg-slate-950 px-3 text-xs font-black text-white shadow-sm"
                 onClick={locateUser}
               >
-                {locationGuide.actionLabel}
+                もう一度許可する
               </button>
             ) : null}
             <button
