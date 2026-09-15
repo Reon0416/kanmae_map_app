@@ -4,7 +4,10 @@ import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { CheckCircle2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { OPEN_STORE_DETAIL_RECORD_EVENT } from "@/features/visit-records/record-events";
+import {
+  OPEN_STORE_DETAIL_RECORD_EVENT,
+  SHOW_MAP_LOCATION_ERROR_EVENT
+} from "@/features/visit-records/record-events";
 import { WaitTimeSelector } from "@/components/visit-records/WaitTimeSelector";
 import type { Store, WaitTimeBucket } from "@/features/stores/store-types";
 import { saveVisitRecord } from "@/features/visit-records/save-visit-record";
@@ -12,10 +15,6 @@ import { playStampSound } from "@/features/visit-records/stamp-sound";
 import { prepareStampReward } from "@/features/visit-records/stamp-reward-loader";
 import { StampRewardOverlay } from "@/components/visit-records/StampRewardOverlay";
 import { useVisitLocation } from "@/features/visit-records/use-visit-location";
-import {
-  getVisitLocationButtonLabel,
-  VisitLocationNotice
-} from "@/components/visit-records/VisitLocationNotice";
 
 export { OPEN_STORE_DETAIL_RECORD_EVENT } from "@/features/visit-records/record-events";
 
@@ -76,7 +75,7 @@ export function StoreRecordSheet({
   const [showStampReward, setShowStampReward] = useState(false);
   const [, setLockTick] = useState(0);
   const savingRef = useRef(false);
-  const { canSaveWithLocation, location, locationMessage, requestLocation, status } = useVisitLocation(isOpen);
+  const { location, requestLocation, status } = useVisitLocation(isOpen);
   const ownerWaitTimeLocked = isOwnerWaitTimeLocked(store);
 
   useEffect(() => {
@@ -108,23 +107,27 @@ export function StoreRecordSheet({
 
   const saveRecord = async () => {
     if (savingRef.current || saved) return;
-    if (!location) {
-      setError("位置情報を取得してから記録してください。");
-      requestLocation();
-      return;
-    }
 
     savingRef.current = true;
     setIsSaving(true);
     setError(null);
+
+    const recordLocation = location ?? await requestLocation();
+    if (!recordLocation) {
+      savingRef.current = false;
+      setIsSaving(false);
+      onClose();
+      window.dispatchEvent(new Event(SHOW_MAP_LOCATION_ERROR_EVENT));
+      return;
+    }
+
     setShowStampReward(true);
     try { playStampSound(); } catch { /* Audio failure must not interrupt saving. */ }
-
     try {
       const result = await saveVisitRecord({
         storeId: store.id,
         waitTime: ownerWaitTimeLocked ? "no_wait" : waitTime,
-        location
+        location: recordLocation
       });
       if (result.crowdStatusUpdated === false) setError("スタンプは保存しましたが、待ち時間の更新に失敗しました。");
       setSaved(true);
@@ -175,11 +178,8 @@ export function StoreRecordSheet({
                 ? "保存中"
                 : saved
                   ? "記録しました"
-                  : canSaveWithLocation
-                    ? ownerWaitTimeLocked ? "スタンプを押す" : "記録する"
-                    : getVisitLocationButtonLabel(status)}
+                  : ownerWaitTimeLocked ? "スタンプを押す" : "記録する"}
             </Button>
-            {!canSaveWithLocation ? <VisitLocationNotice status={status} message={locationMessage} /> : null}
             {error ? <p className="mt-3 rounded-md bg-red-50 px-3 py-2 text-sm font-bold text-red-700">{error}</p> : null}
           </section>
         </div>

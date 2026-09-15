@@ -33,44 +33,50 @@ export function useVisitLocation(active = true) {
   const [status, setStatus] = useState<VisitLocationStatus>("idle");
 
   const requestLocation = useCallback(() => {
-    if (!active) return;
+    if (!active) return Promise.resolve(null);
 
     if (!("geolocation" in navigator)) {
       setStatus("unavailable");
-      return;
+      return Promise.resolve(null);
     }
 
     setStatus("requesting");
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        if (!Number.isFinite(position.coords.accuracy) || position.coords.accuracy > 500) {
-          setLocation(null);
-          setStatus("imprecise");
-          return;
-        }
+    return new Promise<VisitLocation | null>((resolve) => {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          if (!Number.isFinite(position.coords.accuracy) || position.coords.accuracy > 500) {
+            setLocation(null);
+            setStatus("imprecise");
+            resolve(null);
+            return;
+          }
 
-        setLocation({
-          lat: position.coords.latitude,
-          lng: position.coords.longitude
-        });
-        setStatus("ready");
-      },
-      (error) => {
-        setLocation(null);
-        if (error.code === error.PERMISSION_DENIED) {
-          setStatus("denied");
-        } else if (error.code === error.TIMEOUT) {
-          setStatus("timeout");
-        } else {
-          setStatus("position_unavailable");
+          const nextLocation = {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude
+          };
+          setLocation(nextLocation);
+          setStatus("ready");
+          resolve(nextLocation);
+        },
+        (error) => {
+          setLocation(null);
+          if (error.code === error.PERMISSION_DENIED) {
+            setStatus("denied");
+          } else if (error.code === error.TIMEOUT) {
+            setStatus("timeout");
+          } else {
+            setStatus("position_unavailable");
+          }
+          resolve(null);
+        },
+        {
+          enableHighAccuracy: true,
+          maximumAge: 60_000,
+          timeout: 8_000
         }
-      },
-      {
-        enableHighAccuracy: true,
-        maximumAge: 60_000,
-        timeout: 8_000
-      }
-    );
+      );
+    });
   }, [active]);
 
   useEffect(() => {

@@ -5,6 +5,7 @@ import Image from "next/image";
 import { WAIT_TIME_BUCKET, WAIT_TIME_LABELS } from "@/constants/wait-time-options";
 import { SET_MAP_BOTTOM_NAV_HIDDEN_EVENT } from "@/components/layout/BottomNav";
 import type { Store } from "@/features/stores/store-types";
+import { SHOW_MAP_LOCATION_ERROR_EVENT } from "@/features/visit-records/record-events";
 import { ACTIVE_MAP_LAYOUT, ACTIVE_MAP_SOURCE_SIZE, ACTIVE_MAP_TILES, MAP_STORE_PLACEMENTS } from "@/lib/map/map-layout";
 import { KANMAE_MAP_IMAGE, latLngToMapPosition } from "@/lib/map/map-config";
 import { PointerEvent, WheelEvent, memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -388,6 +389,16 @@ export function StoreMap({
       }));
     };
   }, [locationError]);
+
+  useEffect(() => {
+    const showLocationError = () => {
+      setLocationMessage(null);
+      setLocationError(LOCATION_PERMISSION_ERROR);
+    };
+
+    window.addEventListener(SHOW_MAP_LOCATION_ERROR_EVENT, showLocationError);
+    return () => window.removeEventListener(SHOW_MAP_LOCATION_ERROR_EVENT, showLocationError);
+  }, []);
 
   const handlePointerDown = (event: PointerEvent<HTMLElement>) => {
     if (event.button !== 0) return;
