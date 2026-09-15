@@ -7,34 +7,47 @@ import { CheckCircle2, FileText, ShieldCheck } from "lucide-react";
 import { CURRENT_LEGAL_VERSION, LEGAL_ACCEPTANCE_STORAGE_KEY } from "@/constants/legal";
 
 const legalPaths = new Set(["/terms", "/privacy"]);
+const gatedUserPaths = ["/", "/filters", "/stores", "/record", "/my"];
 type AcceptanceStatus = "checking" | "accepted" | "pending";
 
 type LegalGateProps = {
   children: ReactNode;
 };
 
+function matchesUserPath(pathname: string) {
+  return gatedUserPaths.some((path) => pathname === path || (path !== "/" && pathname.startsWith(`${path}/`)));
+}
+
 export function LegalGate({ children }: LegalGateProps) {
   const pathname = usePathname();
-  const [acceptanceStatus, setAcceptanceStatus] = useState<AcceptanceStatus>("checking");
+  const [acceptanceState, setAcceptanceState] = useState<{ pathname: string; status: AcceptanceStatus }>({
+    pathname: "",
+    status: "checking"
+  });
   const [isChecked, setIsChecked] = useState(false);
   const isLegalPage = legalPaths.has(pathname);
+  const isGatedUserPage = matchesUserPath(pathname);
+  const acceptanceStatus = acceptanceState.pathname === pathname ? acceptanceState.status : "checking";
 
   useEffect(() => {
-    if (isLegalPage) {
-      setAcceptanceStatus("accepted");
+    if (isLegalPage || !isGatedUserPage) {
+      setAcceptanceState({ pathname, status: "accepted" });
       return;
     }
 
     const acceptedVersion = window.localStorage.getItem(LEGAL_ACCEPTANCE_STORAGE_KEY);
-    setAcceptanceStatus(acceptedVersion === CURRENT_LEGAL_VERSION ? "accepted" : "pending");
-  }, [isLegalPage, pathname]);
+    setAcceptanceState({
+      pathname,
+      status: acceptedVersion === CURRENT_LEGAL_VERSION ? "accepted" : "pending"
+    });
+  }, [isGatedUserPage, isLegalPage, pathname]);
 
   function acceptLegalDocuments() {
     window.localStorage.setItem(LEGAL_ACCEPTANCE_STORAGE_KEY, CURRENT_LEGAL_VERSION);
-    setAcceptanceStatus("accepted");
+    setAcceptanceState({ pathname, status: "accepted" });
   }
 
-  if (isLegalPage || acceptanceStatus === "accepted") {
+  if (isLegalPage || !isGatedUserPage || acceptanceStatus === "accepted") {
     return children;
   }
 
