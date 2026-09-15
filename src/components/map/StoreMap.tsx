@@ -1,6 +1,6 @@
 "use client";
 
-import { LocateFixed, X } from "lucide-react";
+import { LocateFixed } from "lucide-react";
 import Image from "next/image";
 import { WAIT_TIME_BUCKET, WAIT_TIME_LABELS } from "@/constants/wait-time-options";
 import { SET_MAP_BOTTOM_NAV_HIDDEN_EVENT } from "@/components/layout/BottomNav";
@@ -39,8 +39,8 @@ const TAP_MOVE_THRESHOLD = 8;
 const LANDMARK_PLACEMENT_IDS = new Set(["kandai"]);
 
 const LOCATION_PERMISSION_ERROR: LocationError = {
-  title: "現在地を取得できませんでした",
-  body: "お使いのブラウザの位置情報許可をオンにすると、マップ上に現在地を表示できます。",
+  title: "位置情報を取得できません",
+  body: "お使いのブラウザの位置情報を許可すると、待ち時間の記録ができるようになります。",
   steps: [
     "設定で「プライバシーとセキュリティ」を開いてください。",
     "「位置情報サービス」の中からお使いのブラウザを選び、位置情報をオンにしてください。"
@@ -237,6 +237,7 @@ export function StoreMap({
   const [userLocation, setUserLocation] = useState<UserLocation | null>(null);
   const [locationMessage, setLocationMessage] = useState<string | null>(null);
   const [locationError, setLocationError] = useState<LocationError | null>(null);
+  const [isLocating, setIsLocating] = useState(false);
   const [scale, setScale] = useState(INITIAL_SCALE);
   const [offset, setOffset] = useState<MapOffset>(INITIAL_OFFSET);
   const [mapSize, setMapSize] = useState<MapSize>({ width: 0, height: 0 });
@@ -325,8 +326,9 @@ export function StoreMap({
     return () => window.clearInterval(intervalId);
   }, [nowMs, stores]);
 
-  const locateUser = useCallback(() => {
+  const locateUser = useCallback((options?: { keepErrorVisible?: boolean }) => {
     if (!navigator.geolocation) {
+      setIsLocating(false);
       setLocationMessage(null);
       setLocationError({
         ...LOCATION_PERMISSION_ERROR,
@@ -335,8 +337,13 @@ export function StoreMap({
       return;
     }
 
-    setLocationError(null);
-    setLocationMessage("現在地を取得中");
+    setIsLocating(true);
+    if (!options?.keepErrorVisible) {
+      setLocationError(null);
+      setLocationMessage("現在地を取得中");
+    } else {
+      setLocationMessage(null);
+    }
     navigator.geolocation.getCurrentPosition(
       (position) => {
         setUserLocation({
@@ -346,9 +353,12 @@ export function StoreMap({
           }),
           accuracy: position.coords.accuracy
         });
+        setIsLocating(false);
+        setLocationError(null);
         setLocationMessage(null);
       },
       () => {
+        setIsLocating(false);
         setUserLocation(null);
         setLocationMessage(null);
         setLocationError(LOCATION_PERMISSION_ERROR);
@@ -599,7 +609,7 @@ export function StoreMap({
           data-map-control
           className="flex size-10 items-center justify-center rounded-md bg-white text-slate-700 shadow-sm"
           aria-label="現在地"
-          onClick={locateUser}
+          onClick={() => locateUser()}
           type="button"
         >
           <LocateFixed className="size-5" aria-hidden="true" />
@@ -611,19 +621,11 @@ export function StoreMap({
           data-map-control
         >
           <section className="w-full max-w-md rounded-[30px] bg-white p-4 text-slate-900 shadow-[0_30px_90px_rgba(0,0,0,0.35)]">
-            <div className="flex items-start justify-between gap-3 px-1 pt-1">
+            <div className="px-1 pt-1">
               <div>
                 <p className="text-xs font-black text-emerald-600">現在地の設定</p>
                 <h2 className="mt-0.5 text-2xl font-black leading-tight text-slate-950">{locationError.title}</h2>
               </div>
-              <button
-                type="button"
-                className="flex size-10 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-500"
-                onClick={() => setLocationError(null)}
-                aria-label="閉じる"
-              >
-                <X className="size-5" aria-hidden="true" />
-              </button>
             </div>
             <p className="mt-4 px-1 text-sm font-bold leading-relaxed text-slate-700">{locationError.body}</p>
             <ol className="mt-4 grid gap-2 rounded-2xl bg-slate-50 p-3 text-sm font-semibold leading-relaxed text-slate-600">
@@ -639,10 +641,11 @@ export function StoreMap({
             <div className="mt-5 flex gap-2">
               <button
                 type="button"
-                className="h-14 flex-1 rounded-2xl bg-emerald-500 px-3 text-sm font-black text-white shadow-[0_16px_34px_rgba(16,185,129,0.35)]"
-                onClick={locateUser}
+                className="h-14 flex-1 rounded-2xl bg-emerald-500 px-3 text-sm font-black text-white shadow-[0_16px_34px_rgba(16,185,129,0.35)] transition active:scale-[0.98] disabled:scale-100 disabled:bg-emerald-300 disabled:shadow-none"
+                onClick={() => locateUser({ keepErrorVisible: true })}
+                disabled={isLocating}
               >
-                もう一度試す
+                {isLocating ? "確認中" : "もう一度試す"}
               </button>
               <button
                 type="button"
