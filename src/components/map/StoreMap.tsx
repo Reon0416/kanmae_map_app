@@ -16,6 +16,8 @@ type UserLocation = {
   accuracy: number;
 };
 
+type LocationStatus = "idle" | "requesting" | "ready" | "unavailable" | "denied" | "position_unavailable" | "timeout";
+
 type MapOffset = {
   x: number;
   y: number;
@@ -30,6 +32,61 @@ const INITIAL_SCALE = 1;
 const INITIAL_OFFSET = { x: 0, y: 0 };
 const TAP_MOVE_THRESHOLD = 8;
 const LANDMARK_PLACEMENT_IDS = new Set(["kandai"]);
+
+function getLocationMessage(status: LocationStatus) {
+  if (status === "requesting") return "現在地を取得中";
+  if (status === "denied") return "現在地の許可が必要です";
+  if (status === "unavailable") return "このブラウザでは現在地を取得できません";
+  if (status === "position_unavailable") return "現在地を取得できませんでした";
+  if (status === "timeout") return "位置情報の取得に時間がかかっています";
+  return null;
+}
+
+function getLocationGuide(status: LocationStatus) {
+  if (status === "denied") {
+    return {
+      title: "現在地を使うには許可が必要です",
+      body: "ChromeやSafariの位置情報を許可すると、マップ上に現在地を表示できます。",
+      steps: [
+        "ブラウザやiPhoneの位置情報確認が出たら「許可」を選んでください。",
+        "すでに拒否している場合は、端末設定またはブラウザのサイト設定から位置情報を許可してください。"
+      ],
+      canRetry: true
+    };
+  }
+
+  if (status === "position_unavailable") {
+    return {
+      title: "スマホ本体の位置情報を確認してください",
+      body: "端末側の位置情報サービスがオフ、または現在地を測位できない状態です。",
+      steps: [
+        "iPhoneの「設定」から位置情報サービスをオンにしてください。",
+        "ChromeやSafariにも位置情報の利用を許可してください。"
+      ],
+      canRetry: true
+    };
+  }
+
+  if (status === "timeout") {
+    return {
+      title: "現在地の取得に時間がかかっています",
+      body: "屋内や通信状況によって取得に時間がかかることがあります。",
+      steps: ["少し場所を移動するか、時間を置いてもう一度お試しください。"],
+      canRetry: true
+    };
+  }
+
+  if (status === "unavailable") {
+    return {
+      title: "このブラウザでは現在地を使えません",
+      body: "位置情報に対応したChromeまたはSafariで開くと、現在地を表示できます。",
+      steps: ["マップや店舗情報の閲覧はこのまま続けられます。"],
+      canRetry: false
+    };
+  }
+
+  return null;
+}
 
 function getMapWaitTimeValue(waitTime: Store["waitTime"]) {
   if (waitTime === WAIT_TIME_BUCKET.NO_WAIT) return "0";
@@ -219,7 +276,8 @@ export function StoreMap({
   onStoreSelect?: (store: Store) => void;
 }) {
   const [userLocation, setUserLocation] = useState<UserLocation | null>(null);
-  const [locationMessage, setLocationMessage] = useState<string | null>(null);
+  const [locationStatus, setLocationStatus] = useState<LocationStatus>("idle");
+  const [isLocationGuideDismissed, setIsLocationGuideDismissed] = useState(false);
   const [scale, setScale] = useState(INITIAL_SCALE);
   const [offset, setOffset] = useState<MapOffset>(INITIAL_OFFSET);
   const [mapSize, setMapSize] = useState<MapSize>({ width: 0, height: 0 });
@@ -310,11 +368,13 @@ export function StoreMap({
 
   const locateUser = useCallback(() => {
     if (!navigator.geolocation) {
-      setLocationMessage("このブラウザでは現在地を取得できません");
+      setLocationStatus("unavailable");
+      setIsLocationGuideDismissed(false);
       return;
     }
 
-    setLocationMessage("現在地を取得中");
+    setLocationStatus("requesting");
+    setIsLocationGuideDismissed(false);
     navigator.geolocation.getCurrentPosition(
       (position) => {
         setUserLocation({
@@ -324,10 +384,21 @@ export function StoreMap({
           }),
           accuracy: position.coords.accuracy
         });
-        setLocationMessage(null);
+        setLocationStatus("ready");
       },
-      () => {
-        setLocationMessage("現在地の許可が必要です");
+      (error) => {
+        setUserLocation(null);
+        if (error.code === error.PERMISSION_DENIED) {
+          setLocationStatus("denied");
+          return;
+        }
+
+        if (error.code === error.TIMEOUT) {
+          setLocationStatus("timeout");
+          return;
+        }
+
+        setLocationStatus("position_unavailable");
       },
       {
         enableHighAccuracy: true,
@@ -342,6 +413,9 @@ export function StoreMap({
     autoLocationRequested.current = true;
     locateUser();
   }, [locateUser]);
+
+  const locationMessage = getLocationMessage(locationStatus);
+  const locationGuide = isLocationGuideDismissed ? null : getLocationGuide(locationStatus);
 
   const handlePointerDown = (event: PointerEvent<HTMLElement>) => {
     if (event.button !== 0) return;
@@ -569,6 +643,41 @@ export function StoreMap({
           <LocateFixed className="size-5" aria-hidden="true" />
         </button>
       </div>
+      {locationGuide ? (
+        <div
+          data-map-control
+          className="absolute inset-x-4 bottom-24 z-30 rounded-lg border border-white/80 bg-white/95 p-4 text-slate-900 shadow-panel backdrop-blur-md sm:left-4 sm:right-auto sm:max-w-sm"
+        >
+          <p className="text-sm font-black">{locationGuide.title}</p>
+          <p className="mt-1 text-xs font-bold leading-relaxed text-slate-600">{locationGuide.body}</p>
+          <ul className="mt-3 grid gap-1.5 text-xs font-semibold leading-relaxed text-slate-600">
+            {locationGuide.steps.map((step) => (
+              <li key={step} className="flex gap-2">
+                <span className="mt-[0.45rem] size-1.5 shrink-0 rounded-full bg-sky-500" aria-hidden="true" />
+                <span>{step}</span>
+              </li>
+            ))}
+          </ul>
+          <div className="mt-4 flex gap-2">
+            {locationGuide.canRetry ? (
+              <button
+                type="button"
+                className="min-h-10 flex-1 rounded-md bg-slate-950 px-3 text-xs font-black text-white shadow-sm"
+                onClick={locateUser}
+              >
+                もう一度許可する
+              </button>
+            ) : null}
+            <button
+              type="button"
+              className="min-h-10 flex-1 rounded-md border border-slate-200 bg-white px-3 text-xs font-black text-slate-700"
+              onClick={() => setIsLocationGuideDismissed(true)}
+            >
+              あとで
+            </button>
+          </div>
+        </div>
+      ) : null}
       {locationMessage ? (
         <div className="absolute left-4 top-4 z-20 rounded-md bg-white/92 px-3 py-2 text-xs font-bold text-slate-700 shadow-sm">
           {locationMessage}
