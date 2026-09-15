@@ -1,6 +1,5 @@
 "use client";
 
-import { LocateFixed } from "lucide-react";
 import Image from "next/image";
 import { WAIT_TIME_BUCKET, WAIT_TIME_LABELS } from "@/constants/wait-time-options";
 import { SET_MAP_BOTTOM_NAV_HIDDEN_EVENT } from "@/components/layout/BottomNav";
@@ -238,7 +237,7 @@ export function StoreMap({
   onStoreSelect?: (store: Store) => void;
 }) {
   const [userLocation, setUserLocation] = useState<UserLocation | null>(null);
-  const [locationMessage, setLocationMessage] = useState<string | null>(null);
+  const [, setLocationMessage] = useState<string | null>(null);
   const [locationError, setLocationError] = useState<LocationError | null>(null);
   const [isLocating, setIsLocating] = useState(false);
   const [scale, setScale] = useState(INITIAL_SCALE);
@@ -639,17 +638,6 @@ export function StoreMap({
         <p className="text-xs font-bold text-slate-500">KANMAE MAP</p>
         <p className="text-sm font-bold text-slate-950">関大前エリア</p>
       </div>
-      <div className={fullscreen ? "absolute right-4 top-32 z-20 grid gap-2" : "absolute right-5 top-5 z-10 flex gap-2"}>
-        <button
-          data-map-control
-          className="flex size-10 items-center justify-center rounded-md bg-white text-slate-700 shadow-sm"
-          aria-label="現在地"
-          onClick={() => locateUser()}
-          type="button"
-        >
-          <LocateFixed className="size-5" aria-hidden="true" />
-        </button>
-      </div>
       {locationError ? (
         <div
           className="absolute inset-0 z-30 flex items-center justify-center bg-slate-950/45 px-3 py-8 backdrop-blur-[2px]"
@@ -691,11 +679,6 @@ export function StoreMap({
               </button>
             </div>
           </section>
-        </div>
-      ) : null}
-      {locationMessage ? (
-        <div className="absolute left-4 top-4 z-20 rounded-md bg-white/92 px-3 py-2 text-xs font-bold text-slate-700 shadow-sm">
-          {locationMessage}
         </div>
       ) : null}
     </section>
