@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { Loader2, LogIn, UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { AuthApiResponse } from "@/features/auth/auth-validation";
@@ -17,7 +16,6 @@ export function AuthForm({
   mode: AuthMode;
   redirectTo?: string;
 }) {
-  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
@@ -57,8 +55,7 @@ export function AuthForm({
     }
 
     window.localStorage.setItem(ROLE_STORAGE_KEY, result.role);
-    router.refresh();
-    router.push(result.redirectTo);
+    window.location.replace(result.redirectTo);
   }
 
   return (
