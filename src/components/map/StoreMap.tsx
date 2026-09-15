@@ -42,7 +42,7 @@ const LANDMARK_PLACEMENT_IDS = new Set(["kandai"]);
 
 const LOCATION_PERMISSION_ERROR: LocationError = {
   title: "位置情報を取得できません",
-  body: "お使いの端末または、ブラウザの位置情報を許可すると、待ち時間の記録ができるようになります。",
+  body: "お使いの端末または、ブラウザの位置情報を許可することで待ち時間の記録ができるようになります。",
   steps: [
     "設定で「プライバシーとセキュリティ」を開いてください。",
     "「位置情報サービス」の中からお使いのブラウザを選び、位置情報をオンにしてください。"
