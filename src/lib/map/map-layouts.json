@@ -125,16 +125,6 @@
       "zIndex": 4
     },
     {
-      "storeId": "semi",
-      "image": "/maps/stores/semi-map.webp",
-      "x": 2600,
-      "y": 3720,
-      "width": 1300,
-      "height": 1400,
-      "waitBubble": { "x": 3000, "y": 3200 },
-      "zIndex": 4
-    },
-    {
       "storeId": "butafuku",
       "image": "/maps/stores/butafuku-map.webp",
       "x": 4450,
