@@ -32,7 +32,7 @@ const validPayload = {
   visitorId: "123e4567-e89b-12d3-a456-426614174000"
 };
 
-function loadRoute({ missing = false, stampFails = false, crowdFails = false, invalidLocation = false } = {}) {
+function loadRoute({ missing = false, stampFails = false, crowdFails = false } = {}) {
   const calls = [];
   const exports = {};
   const source = fs.readFileSync(path.join(__dirname, "../src/app/api/visit-records/route.ts"), "utf8");
@@ -44,10 +44,6 @@ function loadRoute({ missing = false, stampFails = false, crowdFails = false, in
       if (name.endsWith("wait-time-options")) return { WAIT_TIME_BUCKET: { NO_WAIT: "no_wait", WITHIN_5: "within_5", BETWEEN_5_10: "between_5_10", BETWEEN_10_20: "between_10_20", OVER_20: "over_20" } };
       if (name.endsWith("rate-limit")) return { checkRateLimit: () => ({ allowed: true }) };
       if (name.endsWith("anonymous-visitor-server")) return { hashAnonymousVisitorId: id => `hashed-${id}` };
-      if (name.endsWith("validate-location")) return { validateVisitLocation() {
-        calls.push("validate-location");
-        return { isValid: !invalidLocation, distance: invalidLocation ? 1000 : 10 };
-      } };
       if (name.endsWith("store-queries")) return { async getStoreInfoById(storeId) {
         calls.push("store-info");
         assert.equal(storeId, "real-id");
@@ -81,19 +77,31 @@ test("saving records anonymous stamp and crowd wait time with the real store ide
   assert.equal(result.status, 200);
   assert.equal(result.data.crowdStatusUpdated, true);
   assert.match(result.headers["Server-Timing"], /verify;dur=.*stamp;dur=.*crowd;dur=/);
-  assert.deepEqual(route.calls, ["store-info", "validate-location", "record_anonymous_visit_stamp", "report_anonymous_crowd_wait_time"]);
+  assert.deepEqual(route.calls, ["store-info", "record_anonymous_visit_stamp", "report_anonymous_crowd_wait_time"]);
 });
 
-test("invalid, out-of-range and unknown-store requests never write stamps", async () => {
+test("invalid and unknown-store requests never write stamps", async () => {
   for (const [options, payload, status] of [
     [{}, { ...validPayload, waitTime: "invalid" }, 400],
     [{}, { ...validPayload, visitorId: "not-a-uuid" }, 400],
-    [{ missing: true }, validPayload, 404],
-    [{ invalidLocation: true }, validPayload, 403]
+    [{ missing: true }, validPayload, 404]
   ]) {
     const route = loadRoute(options);
     assert.equal((await route.post(payload)).status, status);
     assert.ok(!route.calls.includes("record_anonymous_visit_stamp"));
+  }
+});
+
+test("location is optional and never blocks a valid visit save", async () => {
+  for (const payload of [
+    { ...validPayload, location: undefined },
+    { ...validPayload, location: { lat: 35.0, lng: 135.0 } }
+  ]) {
+    const route = loadRoute();
+    const result = await route.post(payload);
+    assert.equal(result.status, 200);
+    assert.ok(route.calls.includes("record_anonymous_visit_stamp"));
+    assert.ok(route.calls.includes("report_anonymous_crowd_wait_time"));
   }
 });
 

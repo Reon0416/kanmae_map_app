@@ -2,12 +2,10 @@
 
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { CheckCircle2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  OPEN_STORE_DETAIL_RECORD_EVENT,
-  SHOW_MAP_LOCATION_ERROR_EVENT
-} from "@/features/visit-records/record-events";
+import { OPEN_STORE_DETAIL_RECORD_EVENT } from "@/features/visit-records/record-events";
 import { WaitTimeSelector } from "@/components/visit-records/WaitTimeSelector";
 import type { Store, WaitTimeBucket } from "@/features/stores/store-types";
 import { saveVisitRecord } from "@/features/visit-records/save-visit-record";
@@ -75,6 +73,7 @@ export function StoreRecordSheet({
   const [showStampReward, setShowStampReward] = useState(false);
   const [, setLockTick] = useState(0);
   const savingRef = useRef(false);
+  const router = useRouter();
   const { location, requestLocation, status } = useVisitLocation(isOpen);
   const ownerWaitTimeLocked = isOwnerWaitTimeLocked(store);
 
@@ -112,13 +111,6 @@ export function StoreRecordSheet({
     setError(null);
 
     const recordLocation = location ?? await requestLocation();
-    if (!recordLocation) {
-      savingRef.current = false;
-      setIsSaving(false);
-      onClose();
-      window.dispatchEvent(new Event(SHOW_MAP_LOCATION_ERROR_EVENT));
-      return;
-    }
 
     setShowStampReward(true);
     try { playStampSound(); } catch { /* Audio failure must not interrupt saving. */ }
@@ -126,9 +118,10 @@ export function StoreRecordSheet({
       await saveVisitRecord({
         storeId: store.id,
         waitTime: ownerWaitTimeLocked ? "no_wait" : waitTime,
-        location: recordLocation
+        location: recordLocation ?? undefined
       });
       setSaved(true);
+      router.refresh();
     } catch (saveError) {
       setShowStampReward(false);
       setError(saveError instanceof Error ? saveError.message : "来店記録を保存できませんでした。");

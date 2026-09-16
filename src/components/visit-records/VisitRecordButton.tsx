@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { CheckCircle2, Navigation } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { WaitTimeSelector } from "@/components/visit-records/WaitTimeSelector";
@@ -17,14 +18,11 @@ export function VisitRecordButton({ store }: { store: Store }) {
   const [saved, setSaved] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
   const { canSaveWithLocation, location, locationMessage, requestLocation, status } = useVisitLocation();
 
   async function saveRecord() {
     const recordLocation = location ?? await requestLocation();
-    if (!recordLocation) {
-      setError("位置情報を取得してから記録してください。");
-      return;
-    }
 
     setIsSaving(true);
     setError(null);
@@ -33,9 +31,10 @@ export function VisitRecordButton({ store }: { store: Store }) {
       await saveVisitRecord({
         storeId: store.id,
         waitTime,
-        location: recordLocation
+        location: recordLocation ?? undefined
       });
       setSaved(true);
+      router.refresh();
     } catch (saveError) {
       setError(saveError instanceof Error ? saveError.message : "来店記録を保存できませんでした。");
     } finally {

@@ -30,6 +30,7 @@ function harness(file, overlayReady = false) {
     react,
     'react/jsx-runtime': require('react/jsx-runtime'),
     'next/image': () => null,
+    'next/navigation': { useRouter: () => ({ refresh() {} }) },
     'lucide-react': { CheckCircle2: 'icon', X: 'icon', Utensils: 'icon', Sparkles: 'icon' },
     '@/components/ui/button': { Button: 'button' },
     '@/components/visit-records/WaitTimeSelector': { WaitTimeSelector: 'selector' },

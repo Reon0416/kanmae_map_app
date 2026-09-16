@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { storeThumbnailImages } from "@/features/stores/store-thumbnail-images";
 import { CheckCircle2, Utensils, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -26,6 +27,7 @@ export function QuickRecordPanel({ stores }: { stores: StoreSummary[] }) {
   const [error, setError] = useState<string | null>(null);
   const [showStampReward, setShowStampReward] = useState(false);
   const savingRef = useRef(false);
+  const router = useRouter();
   const selectedStore = stores.find((store) => store.id === storeId) ?? null;
   const { canSaveWithLocation, location, locationMessage, requestLocation, status } = useVisitLocation(Boolean(selectedStore));
 
@@ -54,10 +56,6 @@ export function QuickRecordPanel({ stores }: { stores: StoreSummary[] }) {
     }
 
     const recordLocation = location ?? await requestLocation();
-    if (!recordLocation) {
-      setError("位置情報を取得してから記録してください。");
-      return;
-    }
 
     savingRef.current = true;
     setIsSaving(true);
@@ -69,10 +67,11 @@ export function QuickRecordPanel({ stores }: { stores: StoreSummary[] }) {
       const result = await saveVisitRecord({
         storeId: selectedStore.id,
         waitTime,
-        location: recordLocation
+        location: recordLocation ?? undefined
       });
       if (result.crowdStatusUpdated === false) setError("スタンプは保存しましたが、待ち時間の更新に失敗しました。");
       setSaved(true);
+      router.refresh();
     } catch (saveError) {
       setShowStampReward(false);
       setError(saveError instanceof Error ? saveError.message : "来店記録を保存できませんでした。");

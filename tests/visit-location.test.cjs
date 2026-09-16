@@ -22,14 +22,14 @@ test("visit distance validation accepts nearby coordinates and rejects distant o
   assert.equal(exports.validateVisitLocation({ lat: 34.7834, lng: 135.5061 }, store).isValid, false);
 });
 
-test("visit API verifies the submitted location before creating a stamp", () => {
+test("visit API no longer rejects saves because of distance validation", () => {
   const source = fs.readFileSync(path.join(__dirname, "../src/app/api/visit-records/route.ts"), "utf8");
-  const validationIndex = source.indexOf("validateVisitLocation(body.data.location");
   const stampIndex = source.indexOf('supabase.rpc("record_anonymous_visit_stamp"');
 
-  assert.ok(validationIndex >= 0);
-  assert.ok(stampIndex > validationIndex);
-  assert.match(source, /status: 403/);
+  assert.ok(stampIndex >= 0);
+  assert.doesNotMatch(source, /validateVisitLocation\(body\.data\.location/);
+  assert.doesNotMatch(source, /店舗付近でのみ来店記録できます/);
+  assert.doesNotMatch(source, /status: 403/);
 });
 
 test("location guidance covers Safari denial and precise-location failures", () => {

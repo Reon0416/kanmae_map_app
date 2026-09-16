@@ -3,7 +3,6 @@ import { z } from "zod";
 import { WAIT_TIME_BUCKET } from "@/constants/wait-time-options";
 import { getStoreInfoById } from "@/features/stores/store-queries";
 import { hashAnonymousVisitorId } from "@/features/visit-records/anonymous-visitor-server";
-import { validateVisitLocation } from "@/features/visit-records/validate-location";
 import { checkRateLimit } from "@/lib/security/rate-limit";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -19,7 +18,7 @@ const visitRecordSchema = z.object({
   location: z.object({
     lat: z.number(),
     lng: z.number()
-  }),
+  }).optional(),
   visitorId: z.string().uuid()
 });
 
@@ -42,17 +41,6 @@ export async function POST(request: Request) {
 
   if (!store) {
     return NextResponse.json({ error: "Store not found" }, { status: 404 });
-  }
-
-  const visitLocation = validateVisitLocation(body.data.location, {
-    lat: store.lat,
-    lng: store.lng
-  });
-  if (!visitLocation.isValid) {
-    return NextResponse.json(
-      { error: "店舗付近でのみ来店記録できます。正確な位置情報をオンにして、店舗の近くでもう一度お試しください。" },
-      { status: 403 }
-    );
   }
 
   const stampStoreKey = store.assetKey ?? store.id;
