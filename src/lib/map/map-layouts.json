@@ -111,7 +111,7 @@
       "y": 3400,
       "width": 1100,
       "height": 1000,
-      "waitBubble": { "x": 2900, "y": 2800 },
+      "waitBubble": { "x": 2700, "y": 2800 },
       "zIndex": 4
     },
     {
