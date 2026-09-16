@@ -13,11 +13,6 @@ import { playStampSound } from "@/features/visit-records/stamp-sound";
 import { cn } from "@/lib/utils";
 import { prepareStampReward } from "@/features/visit-records/stamp-reward-loader";
 import { StampRewardOverlay } from "@/components/visit-records/StampRewardOverlay";
-import { useVisitLocation } from "@/features/visit-records/use-visit-location";
-import {
-  getVisitLocationButtonLabel,
-  VisitLocationNotice
-} from "@/components/visit-records/VisitLocationNotice";
 
 export function QuickRecordPanel({ stores }: { stores: StoreSummary[] }) {
   const [storeId, setStoreId] = useState<string | null>(null);
@@ -29,7 +24,6 @@ export function QuickRecordPanel({ stores }: { stores: StoreSummary[] }) {
   const savingRef = useRef(false);
   const router = useRouter();
   const selectedStore = stores.find((store) => store.id === storeId) ?? null;
-  const { canSaveWithLocation, location, locationMessage, requestLocation, status } = useVisitLocation(Boolean(selectedStore));
 
   const openWaitTimeSheet = (nextStoreId: string) => {
     if (savingRef.current) return;
@@ -55,8 +49,6 @@ export function QuickRecordPanel({ stores }: { stores: StoreSummary[] }) {
       return;
     }
 
-    const recordLocation = location ?? await requestLocation();
-
     savingRef.current = true;
     setIsSaving(true);
     setError(null);
@@ -66,8 +58,7 @@ export function QuickRecordPanel({ stores }: { stores: StoreSummary[] }) {
     try {
       const result = await saveVisitRecord({
         storeId: selectedStore.id,
-        waitTime,
-        location: recordLocation ?? undefined
+        waitTime
       });
       if (result.crowdStatusUpdated === false) setError("スタンプは保存しましたが、待ち時間の更新に失敗しました。");
       setSaved(true);
@@ -172,12 +163,11 @@ export function QuickRecordPanel({ stores }: { stores: StoreSummary[] }) {
             <Button
               className="mt-5 h-14 w-full rounded-2xl bg-emerald-500 text-base font-black text-white shadow-[0_16px_34px_rgba(16,185,129,0.35)] hover:bg-emerald-600"
               onClick={saveRecord}
-              disabled={isSaving || saved || status === "requesting" || status === "unavailable"}
+              disabled={isSaving || saved}
             >
               {saved ? <CheckCircle2 className="size-5" aria-hidden="true" /> : null}
-              {isSaving ? "保存中" : saved ? "記録しました" : getVisitLocationButtonLabel(status)}
+              {isSaving ? "保存中" : saved ? "記録しました" : "記録する"}
             </Button>
-            {!canSaveWithLocation ? <VisitLocationNotice status={status} message={locationMessage} /> : null}
             {error ? <p className="mt-3 rounded-md bg-red-50 px-3 py-2 text-sm font-bold text-red-700">{error}</p> : null}
           </section>
         </div>
