@@ -33,13 +33,23 @@ function harness(file, overlayReady = false) {
     'lucide-react': { CheckCircle2: 'icon', X: 'icon', Utensils: 'icon', Sparkles: 'icon' },
     '@/components/ui/button': { Button: 'button' },
     '@/components/visit-records/WaitTimeSelector': { WaitTimeSelector: 'selector' },
+    '@/components/visit-records/VisitLocationNotice': { VisitLocationNotice: () => null, getVisitLocationButtonLabel: () => '記録する' },
     '@/features/stores/store-thumbnail-images': { storeThumbnailImages: {} },
     '@/features/visit-records/save-visit-record': { saveVisitRecord: () => { calls++; return pending; } },
+    '@/features/visit-records/use-visit-location': {
+      useVisitLocation: () => ({
+        canSaveWithLocation: true,
+        location: { lat: 34.7732, lng: 135.5073 },
+        locationMessage: 'ready',
+        requestLocation: async () => ({ lat: 34.7732, lng: 135.5073 }),
+        status: 'ready'
+      })
+    },
     '@/features/visit-records/stamp-sound': { playStampSound: () => { throw new Error('Audio unavailable'); } },
     '@/features/visit-records/stamp-reward-loader': { prepareStampReward() {} },
     '@/features/visit-records/stamp-images': { getStampImage: () => undefined },
     '@/components/visit-records/StampRewardOverlay': { StampRewardOverlay: overlay },
-    '@/features/visit-records/record-events': { OPEN_STORE_DETAIL_RECORD_EVENT: 'open' },
+    '@/features/visit-records/record-events': { OPEN_STORE_DETAIL_RECORD_EVENT: 'open', SHOW_MAP_LOCATION_ERROR_EVENT: 'location-error' },
     '@/lib/utils': { cn: (...parts) => parts.filter(Boolean).join(' ') }
   };
   const source = fs.readFileSync(path.join(__dirname, '..', file), 'utf8');

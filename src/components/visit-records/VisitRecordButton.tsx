@@ -20,9 +20,9 @@ export function VisitRecordButton({ store }: { store: Store }) {
   const { canSaveWithLocation, location, locationMessage, requestLocation, status } = useVisitLocation();
 
   async function saveRecord() {
-    if (!location) {
+    const recordLocation = location ?? await requestLocation();
+    if (!recordLocation) {
       setError("位置情報を取得してから記録してください。");
-      requestLocation();
       return;
     }
 
@@ -33,7 +33,7 @@ export function VisitRecordButton({ store }: { store: Store }) {
       await saveVisitRecord({
         storeId: store.id,
         waitTime,
-        location
+        location: recordLocation
       });
       setSaved(true);
     } catch (saveError) {

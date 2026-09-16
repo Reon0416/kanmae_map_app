@@ -53,9 +53,9 @@ export function QuickRecordPanel({ stores }: { stores: StoreSummary[] }) {
       return;
     }
 
-    if (!location) {
+    const recordLocation = location ?? await requestLocation();
+    if (!recordLocation) {
       setError("位置情報を取得してから記録してください。");
-      requestLocation();
       return;
     }
 
@@ -69,7 +69,7 @@ export function QuickRecordPanel({ stores }: { stores: StoreSummary[] }) {
       const result = await saveVisitRecord({
         storeId: selectedStore.id,
         waitTime,
-        location
+        location: recordLocation
       });
       if (result.crowdStatusUpdated === false) setError("スタンプは保存しましたが、待ち時間の更新に失敗しました。");
       setSaved(true);

@@ -71,6 +71,7 @@ export function StoreRecordSheet({
   const [waitTime, setWaitTime] = useState<WaitTimeBucket>("within_5");
   const [saved, setSaved] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [showStampReward, setShowStampReward] = useState(false);
   const [, setLockTick] = useState(0);
   const savingRef = useRef(false);
@@ -81,6 +82,7 @@ export function StoreRecordSheet({
     if (isOpen) {
       setWaitTime("within_5");
       setSaved(false);
+      setError(null);
       setShowStampReward(false);
     }
   }, [isOpen, store.id]);
@@ -107,6 +109,7 @@ export function StoreRecordSheet({
 
     savingRef.current = true;
     setIsSaving(true);
+    setError(null);
 
     const recordLocation = location ?? await requestLocation();
     if (!recordLocation) {
@@ -126,8 +129,9 @@ export function StoreRecordSheet({
         location: recordLocation
       });
       setSaved(true);
-    } catch {
-      // Keep the stamp visible even if the background save fails.
+    } catch (saveError) {
+      setShowStampReward(false);
+      setError(saveError instanceof Error ? saveError.message : "来店記録を保存できませんでした。");
     } finally {
       savingRef.current = false;
       setIsSaving(false);
@@ -174,6 +178,7 @@ export function StoreRecordSheet({
                   ? "記録しました"
                   : ownerWaitTimeLocked ? "スタンプを押す" : "記録する"}
             </Button>
+            {error ? <p className="mt-3 rounded-md bg-red-50 px-3 py-2 text-sm font-bold text-red-700">{error}</p> : null}
           </section>
         </div>
       ) : null}
