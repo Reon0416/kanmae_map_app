@@ -134,7 +134,7 @@ export const demoStores: Store[] = [
   }),
   createStore({
     id: "yoyoyo",
-    name: "ラム白湯専門店　羊羊羊",
+    name: "ラム白湯専門店 羊羊羊",
     description: "ラム白湯ラーメンを楽しめる関大前エリアの飲食店です。",
     genre: "ラム白湯ラーメン",
     heroImage: "/stores/yoyoyo-sign.png",

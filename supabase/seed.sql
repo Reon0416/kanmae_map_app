@@ -22,7 +22,7 @@ values
   ('蝉', '関大前エリアの飲食店です。', '魚介豚骨ラーメン', '800_1200', '大阪府吹田市千里山東', 34.77327041674564, 135.50677486778991, 4, '未設定', '未設定', false, false),
   ('麺屋　こころ', '関大前エリアの飲食店です。', 'ラーメン', '800_1200', '大阪府吹田市千里山東', 34.77283513040589, 135.50586781314328, 7, '未設定', '未設定', false, false),
   ('武双家', '関大前エリアの飲食店です。', 'ラーメン', '800_1200', '大阪府吹田市千里山東', 34.7729585105518, 135.50586781308675, 7, '未設定', '未設定', false, false),
-  ('ラム白湯専門店　羊羊羊', 'ラム白湯ラーメンを楽しめる関大前エリアの飲食店です。', 'ラム白湯ラーメン', '800_1200', '大阪府吹田市千里山東1-7-22', 34.77295, 135.50623, 4, '11:00-15:00 / 17:00-21:30', '未設定', false, false);
+  ('ラム白湯専門店 羊羊羊', 'ラム白湯ラーメンを楽しめる関大前エリアの飲食店です。', 'ラム白湯ラーメン', '800_1200', '大阪府吹田市千里山東1-7-22', 34.77295, 135.50623, 4, '11:00-15:00 / 17:00-21:30', '未設定', false, false);
 
 insert into public.current_store_status (store_id, display_status, wait_time, source, updated_at)
 select stores.id, status_seed.display_status, status_seed.wait_time, 'seed', now()
@@ -38,6 +38,6 @@ join (
     ('蝉', 'stale'::public.display_status, 'no_wait'::public.wait_time_bucket),
     ('麺屋　こころ', 'limited'::public.display_status, 'between_5_10'::public.wait_time_bucket),
     ('武双家', 'available'::public.display_status, 'within_5'::public.wait_time_bucket),
-    ('ラム白湯専門店　羊羊羊', 'unknown'::public.display_status, 'no_wait'::public.wait_time_bucket)
+    ('ラム白湯専門店 羊羊羊', 'unknown'::public.display_status, 'no_wait'::public.wait_time_bucket)
 ) as status_seed(name, display_status, wait_time) on status_seed.name = stores.name
 on conflict (store_id) do nothing;
