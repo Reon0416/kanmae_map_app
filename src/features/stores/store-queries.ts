@@ -10,17 +10,23 @@ const now = Date.now();
 const createStore = (
   store: Omit<Store, "description" | "priceBand" | "address" | "walkMinutes" | "hours" | "closed" | "acceptsTakeout" | "hasStudentDiscount" | "lastUpdatedAt" | "ownerStatus" | "mapPosition"> & {
     description?: string;
+    priceBand?: Store["priceBand"];
+    address?: string;
     walkMinutes?: number;
+    hours?: string;
+    closed?: string;
+    acceptsTakeout?: boolean;
+    hasStudentDiscount?: boolean;
   }
 ): Store => ({
   description: store.description ?? "関大前エリアの飲食店です。",
-  priceBand: "800_1200",
-  address: "大阪府吹田市千里山東",
+  priceBand: store.priceBand ?? "800_1200",
+  address: store.address ?? "大阪府吹田市千里山東",
   walkMinutes: store.walkMinutes ?? 5,
-  hours: "未設定",
-  closed: "未設定",
-  acceptsTakeout: false,
-  hasStudentDiscount: false,
+  hours: store.hours ?? "未設定",
+  closed: store.closed ?? "未設定",
+  acceptsTakeout: store.acceptsTakeout ?? false,
+  hasStudentDiscount: store.hasStudentDiscount ?? false,
   lastUpdatedAt: new Date(now - 6 * 60000).toISOString(),
   mapPosition: latLngToMapPosition({ lat: store.lat, lng: store.lng }),
   ...store
@@ -125,6 +131,20 @@ export const demoStores: Store[] = [
     status: "available",
     waitTime: "within_5",
     walkMinutes: 7
+  }),
+  createStore({
+    id: "yoyoyo",
+    name: "ラム白湯専門店　羊羊羊",
+    description: "ラム白湯ラーメンを楽しめる関大前エリアの飲食店です。",
+    genre: "ラム白湯ラーメン",
+    heroImage: "/stores/yoyoyo-sign.png",
+    address: "大阪府吹田市千里山東1-7-22",
+    lat: 34.77295,
+    lng: 135.50623,
+    status: "unknown",
+    waitTime: "no_wait",
+    walkMinutes: 4,
+    hours: "11:00-15:00 / 17:00-21:30"
   })
 ];
 
@@ -164,7 +184,8 @@ const assetMatchers: { assetKey: string; includes: string[] }[] = [
   { assetKey: "kirameki", includes: ["キラメキ"] },
   { assetKey: "semi", includes: ["蝉"] },
   { assetKey: "kokoro", includes: ["こころ"] },
-  { assetKey: "musou", includes: ["武双", "むそう"] }
+  { assetKey: "musou", includes: ["武双", "むそう"] },
+  { assetKey: "yoyoyo", includes: ["羊羊羊", "Yo-Yo-Yo", "YO-YO-YO", "ようようよう"] }
 ];
 
 const assetImages: Record<string, string> = {
@@ -176,7 +197,8 @@ const assetImages: Record<string, string> = {
   kirameki: "/stores/kirameki-sign.png",
   semi: "/stores/semi-sign.png",
   kokoro: "/stores/kokoro-sign.png",
-  musou: "/stores/musou-sign.png"
+  musou: "/stores/musou-sign.png",
+  yoyoyo: "/stores/yoyoyo-sign.png"
 };
 
 function getAssetKey(name: string) {

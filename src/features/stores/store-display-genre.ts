@@ -6,7 +6,8 @@ const storeGenres: Partial<Record<string, string>> = {
   toriton: "鶏豚骨ラーメン",
   musou: "家系ラーメン",
   kokoro: "台湾まぜそば",
-  semi: "魚介豚骨ラーメン"
+  semi: "魚介豚骨ラーメン",
+  yoyoyo: "ラム白湯ラーメン"
 };
 
 export function getStoreDisplayGenre(store: Pick<StoreSummary, "id" | "assetKey" | "genre">) {

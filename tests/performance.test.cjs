@@ -120,7 +120,7 @@ test("map and store list still request live status", async () => {
     { id: "id", name: "蝉", current_store_status: { display_status: "full", wait_time: "over_20" } }
   ] });
   const [store] = await exports.getStores();
-  assert.ok(selections.includes("store_id, display_status, wait_time, source, updated_at"));
+  assert.ok(selections.includes("store_id, display_status, wait_time, source, updated_at, owner_wait_time_lock_until"));
   assert.equal(store.status, "full");
   assert.equal(store.waitTime, "over_20");
 });
@@ -140,10 +140,10 @@ test("production summary failures do not expose demo records", async () => {
   await assert.rejects(loadQueries({ rows: null, error: { message: "denied" } }).exports.getStoreSummaries(), /denied/);
 });
 
-test("development summaries include all nine storefront identities", async () => {
+test("development summaries include all ten storefront identities", async () => {
   const rows = await loadQueries({ production: false }).exports.getStoreSummaries();
-  assert.equal(rows.length, 9);
-  assert.equal(new Set(rows.map(row => row.assetKey)).size, 9);
+  assert.equal(rows.length, 10);
+  assert.equal(new Set(rows.map(row => row.assetKey)).size, 10);
 });
 
 test("public catalogue is reused while wait times are fetched on every request", async () => {

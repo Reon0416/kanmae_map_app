@@ -39,5 +39,9 @@ export const storeThumbnailImages: Record<string, {
   musou: {
     src: "/stores/musou-storefront.jpg", width: 1368, height: 1150,
     bounds: { x: 108, y: 32, width: 1233, height: 1067 }
+  },
+  yoyoyo: {
+    src: "/stores/yoyoyo-storefront.png", width: 1303, height: 1207,
+    bounds: { x: 0, y: 0, width: 1303, height: 1207 }
   }
 };

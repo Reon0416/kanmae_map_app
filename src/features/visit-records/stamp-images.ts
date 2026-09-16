@@ -7,7 +7,8 @@ export const STAMP_IMAGE_BY_STORE: Partial<Record<string, string>> = {
   musou: "/stamps/musou.png",
   semi: "/stamps/semi.png",
   suzume: "/stamps/suzume.png",
-  toriton: "/stamps/toriton.png"
+  toriton: "/stamps/toriton.png",
+  yoyoyo: "/stamps/yoyoyo.png"
 };
 
 const STAMP_IMAGE_MATCHERS: { assetKey: keyof typeof STAMP_IMAGE_BY_STORE; includes: string[] }[] = [
@@ -19,7 +20,8 @@ const STAMP_IMAGE_MATCHERS: { assetKey: keyof typeof STAMP_IMAGE_BY_STORE; inclu
   { assetKey: "kirameki", includes: ["キラメキ"] },
   { assetKey: "semi", includes: ["蝉"] },
   { assetKey: "kokoro", includes: ["こころ"] },
-  { assetKey: "musou", includes: ["武双", "むそう"] }
+  { assetKey: "musou", includes: ["武双", "むそう"] },
+  { assetKey: "yoyoyo", includes: ["羊羊羊", "Yo-Yo-Yo", "YO-YO-YO", "ようようよう"] }
 ];
 
 export function getStampImage(storeId: string, storeName?: string, assetKey?: string) {
