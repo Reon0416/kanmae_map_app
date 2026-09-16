@@ -107,11 +107,11 @@
     {
       "storeId": "yoyoyo",
       "image": "/maps/stores/yoyoyo-map.png",
-      "x": 2500,
-      "y": 2700,
-      "width": 1500,
-      "height": 1390,
-      "waitBubble": { "x": 3150, "y": 2300 },
+      "x": 2400,
+      "y": 3100,
+      "width": 1100,
+      "height": 1000,
+      "waitBubble": { "x": 2900, "y": 2500 },
       "zIndex": 4
     },
     {
