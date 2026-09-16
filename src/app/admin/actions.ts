@@ -184,6 +184,31 @@ export async function createStoreAction(formData: FormData) {
   redirect(`/admin/stores/${data}`);
 }
 
+export async function deleteStoreAction(formData: FormData) {
+  const { supabase } = await requireAdmin();
+  const storeId = z.string().uuid().parse(getString(formData, "storeId"));
+
+  const { error } = await supabase.rpc("admin_delete_store", {
+    p_store_id: storeId
+  });
+
+  if (error) {
+    throw new Error(`店舗を削除できませんでした: ${error.message}`);
+  }
+
+  revalidatePath("/");
+  revalidatePath("/stores");
+  revalidatePath(`/stores/${storeId}`);
+  revalidatePath("/record");
+  revalidatePath("/my");
+  revalidatePath("/admin");
+  revalidatePath("/admin/wait-times");
+  revalidatePath("/admin/settings");
+  revalidatePath("/admin/stores");
+  revalidatePath(`/admin/stores/${storeId}`);
+  redirect("/admin/stores");
+}
+
 export async function createOperatorAction(formData: FormData) {
   await requireAdmin();
 

@@ -1,6 +1,8 @@
 import { notFound } from "next/navigation";
+import Link from "next/link";
 import { Save } from "lucide-react";
 import { updateStoreAction } from "@/app/admin/actions";
+import { DeleteStoreButton } from "@/components/admin/DeleteStoreButton";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { getStoreById } from "@/features/stores/store-queries";
 
@@ -34,9 +36,9 @@ export default async function AdminStoreEditPage({ params }: { params: Promise<{
           </label>
         </div>
         <div className="mt-5 flex items-center justify-end gap-3 border-t border-slate-200 pt-4">
-          <button type="button" className="h-10 rounded-sm border border-slate-300 px-4 text-sm font-black text-slate-700">
+          <Link href="/admin/stores" className="inline-flex h-10 items-center rounded-sm border border-slate-300 px-4 text-sm font-black text-slate-700">
             キャンセル
-          </button>
+          </Link>
           <button
             type="submit"
             className="inline-flex h-10 items-center justify-center gap-2 rounded-sm bg-slate-950 px-4 text-sm font-black text-white transition hover:bg-slate-800"
@@ -46,6 +48,16 @@ export default async function AdminStoreEditPage({ params }: { params: Promise<{
           </button>
         </div>
       </form>
+
+      <section className="mt-5 max-w-3xl border border-red-200 bg-white p-5">
+        <h2 className="text-sm font-black text-red-700">店舗を削除</h2>
+        <p className="mt-2 text-sm font-bold leading-6 text-slate-600">
+          店舗を削除すると、関連する待ち時間、来店記録、担当店舗の紐づけもデータベースから削除されます。
+        </p>
+        <div className="mt-4">
+          <DeleteStoreButton storeId={store.id} storeName={store.name} />
+        </div>
+      </section>
     </AdminShell>
   );
 }

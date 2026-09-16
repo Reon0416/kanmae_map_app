@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Plus } from "lucide-react";
 import { AdminShell } from "@/components/admin/AdminShell";
+import { DeleteStoreButton } from "@/components/admin/DeleteStoreButton";
 import { getStores } from "@/features/stores/store-queries";
 
 export default async function AdminStoresPage() {
@@ -10,7 +11,7 @@ export default async function AdminStoresPage() {
     <AdminShell
       activePath="/admin/stores"
       title="店舗情報管理"
-      description="運営画面では店舗名と営業時間のみを追加・修正できます。"
+      description="運営画面では店舗名と営業時間の追加・修正・削除を行えます。"
     >
       <section className="border border-slate-200 bg-white">
         <div className="flex items-center justify-between gap-3 border-b border-slate-200 px-4 py-3">
@@ -48,9 +49,12 @@ export default async function AdminStoresPage() {
                     })}
                   </td>
                   <td className="px-4 py-3">
-                    <Link href={`/admin/stores/${store.id}`} className="font-black text-blue-700 underline-offset-4 hover:underline">
-                      編集
-                    </Link>
+                    <div className="flex items-center gap-3">
+                      <Link href={`/admin/stores/${store.id}`} className="font-black text-blue-700 underline-offset-4 hover:underline">
+                        編集
+                      </Link>
+                      <DeleteStoreButton storeId={store.id} storeName={store.name} />
+                    </div>
                   </td>
                 </tr>
               ))}
